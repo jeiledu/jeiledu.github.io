@@ -2,7 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6fd0">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-title" content="학습관리">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>정보·데이터과학 학습관리 · 김포제일고등학교</title>
 
 <!-- 카카오톡·메신저 링크 미리보기 (Open Graph) -->
@@ -56,27 +60,36 @@
   .wrap{max-width:1180px; margin:0 auto; padding:32px 24px 64px}
 
   header.top{
-    display:flex; align-items:baseline; justify-content:space-between;
+    display:flex; align-items:center; justify-content:space-between;
     gap:16px; margin-bottom:24px; flex-wrap:wrap;
   }
-  .brand{display:flex; align-items:center; gap:10px}
-  .brand .dot{
-    width:11px;height:11px;border-radius:50%;
-    background:var(--blue); box-shadow:0 0 0 5px var(--blue-soft);
+  .brand{
+    display:flex; align-items:center; gap:11px; background:none; border:0; padding:5px 12px 5px 5px;
+    border-radius:14px; cursor:pointer; font-family:inherit; text-align:left; transition:.15s;
   }
-  .brand h1{font-size:18px; font-weight:700; letter-spacing:-.4px; margin:0; word-break:keep-all}
-  .clock-box{display:flex; align-items:center; gap:14px}
-  .clock-box .date{font-size:13.5px; color:var(--ink-soft); letter-spacing:-.2px; text-align:right}
+  .brand:hover{background:#eaf1fa}
+  .brand .logo{width:48px; height:48px; flex:none; border-radius:14px; display:block}
+  .brand h1{font-size:19px; font-weight:700; letter-spacing:-.5px; margin:0; word-break:keep-all;
+            color:var(--ink); line-height:1.25}
+  .brand .sub{display:block; font-size:12px; font-weight:600; color:var(--ink-faint);
+              letter-spacing:-.1px; margin-top:2px}
+  .clock-box{display:flex; align-items:center; gap:10px}
+  .clock-box .date{
+    font-size:13.5px; color:var(--ink-soft); letter-spacing:-.2px; text-align:right;
+    display:flex; flex-direction:column; justify-content:center; height:48px; margin-right:4px;
+  }
   .clock-box .date .src{
     display:block; margin-top:3px; font-size:10.5px; color:var(--ink-faint); letter-spacing:.2px;
   }
   .clock-box .date .src.live{color:var(--blue)}
   .clock{
-    font-size:26px; font-weight:600; letter-spacing:-1px; color:var(--ink);
+    font-size:25px; font-weight:600; letter-spacing:-1px; color:var(--ink);
     font-variant-numeric:tabular-nums; font-family:"SF Mono", ui-monospace, Menlo, monospace;
-    background:#fff; border:1px solid var(--line); border-radius:13px; padding:8px 14px;
+    background:#fff; border:1px solid var(--line); border-radius:13px; padding:0 14px;
     box-shadow:var(--shadow); display:flex; align-items:baseline; gap:4px;
+    height:48px; box-sizing:border-box; align-items:center;
   }
+  .clock .sec{align-self:flex-end; padding-bottom:6px}
   .clock .sec{font-size:15px; color:var(--blue); font-weight:500}
 
   /* ---------- 상단 탭 / 배너 ---------- */
@@ -290,6 +303,14 @@
   }
   .w-field .tip{margin-top:6px; font-size:11.5px; color:var(--ink-faint)}
   .w-btns{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
+  .chk-row{
+    display:flex; align-items:center; gap:10px; padding:13px 15px; border-radius:12px;
+    background:var(--blue-soft); border:1px solid #d4e3f8; cursor:pointer;
+  }
+  .chk-row input{width:17px; height:17px; accent-color:var(--blue); cursor:pointer; margin:0}
+  .chk-row span{font-size:13.5px; color:var(--blue-dark); letter-spacing:-.2px; font-weight:600}
+  .chk-row em{font-style:normal; display:block; font-size:11.5px; color:var(--ink-soft);
+              font-weight:400; margin-top:2px}
 
   .layout{
     display:grid;
@@ -297,6 +318,8 @@
     gap:22px;
     align-items:start;
   }
+  .layout > section{min-width:0}
+  .card{min-width:0}
 
   .card{
     background:var(--card);
@@ -328,8 +351,8 @@
   body.running .mode-pill .live{opacity:1; animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
 
-  .ring-wrap{position:relative; width:312px; height:312px; margin:6px auto 8px}
-  .ring{transform:rotate(-90deg)}
+  .ring-wrap{position:relative; width:min(312px, 80vw); height:min(312px, 80vw); margin:6px auto 8px}
+  .ring{transform:rotate(-90deg); width:100%; height:100%; display:block}
   .ring circle{fill:none; stroke-linecap:round}
   .ring .track{stroke:#edf3fa; stroke-width:9}
   .ring .bar{
@@ -337,11 +360,11 @@
     transition:stroke-dashoffset .3s linear, stroke .3s;
   }
   .ring-inner{
-    position:absolute; inset:0; padding:0 44px;
+    position:absolute; inset:0; padding:0 14%;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
   .time{
-    font-size:46px; font-weight:600; letter-spacing:-1.4px;
+    font-size:clamp(30px, 11.5vw, 46px); font-weight:600; letter-spacing:-1.4px;
     font-variant-numeric:tabular-nums;
     font-family:"SF Mono", ui-monospace, Menlo, monospace;
     color:var(--ink);
@@ -452,13 +475,16 @@
   .account{position:relative}
   .acc-btn{
     display:flex; align-items:center; gap:9px; background:#fff; border:1px solid var(--line);
-    border-radius:13px; padding:7px 13px 7px 8px; cursor:pointer; font-family:inherit;
+    border-radius:13px; padding:0 14px 0 8px; height:48px; box-sizing:border-box;
+    cursor:pointer; font-family:inherit;
     font-size:13.5px; font-weight:600; color:var(--ink); letter-spacing:-.2px;
-    box-shadow:var(--shadow); transition:.15s;
+    box-shadow:var(--shadow); transition:.15s; white-space:nowrap;
   }
   .acc-btn:hover{border-color:#c9dbf3}
+  .dm-btn .ava{background:var(--blue-soft); color:var(--blue-dark); font-size:14px}
+  .dm-btn.has .ava{background:#d94f4f; color:#fff}
   .acc-btn .ava{
-    width:26px;height:26px;border-radius:9px;background:var(--blue); color:#fff;
+    width:30px;height:30px;border-radius:10px;background:var(--blue); color:#fff;
     display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
   }
   .acc-btn.guest .ava{background:var(--blue-soft); color:var(--blue-dark)}
@@ -681,6 +707,39 @@
   }
   #miniTimer .mt-btn:hover{background:var(--blue-soft)}
 
+  /* 쪽지 */
+  .modal.dm{max-width:620px; text-align:left; max-height:86vh; overflow:auto}
+  .dm-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
+  .dm-head h3{margin:0}
+  .dm-row{
+    display:flex; align-items:center; gap:11px; padding:13px 12px; border-radius:11px;
+    border-bottom:1px solid var(--line); cursor:pointer; font-size:13.5px;
+  }
+  .dm-row:hover{background:var(--blue-tint)}
+  .dm-row.unread{background:#f2f7fe}
+  .dm-row .who{flex:none; width:82px; font-weight:700; color:var(--blue-dark);
+               overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .dm-row .sub{flex:1; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .dm-row.unread .sub{font-weight:700}
+  .dm-row .when{flex:none; font-size:11.5px; color:var(--ink-faint)}
+  .dm-row .dot{width:7px;height:7px;border-radius:50%;background:#d94f4f;flex:none}
+  .dm-sug{
+    position:absolute; left:0; right:0; top:100%; z-index:5; background:#fff;
+    border:1px solid var(--line); border-radius:12px; box-shadow:0 10px 24px rgba(31,58,102,.14);
+    padding:6px; margin-top:4px; max-height:210px; overflow:auto;
+  }
+  .dm-sug[hidden]{display:none}
+  .dm-sug button{
+    display:block; width:100%; text-align:left; background:none; border:0; padding:9px 11px;
+    border-radius:9px; cursor:pointer; font-family:inherit; font-size:13.5px; color:var(--ink);
+  }
+  .dm-sug button:hover{background:var(--blue-tint)}
+  .dm-sug .rl{font-size:11px; color:var(--ink-faint); margin-left:6px}
+  .dm-meta{font-size:12.5px; color:var(--ink-faint); margin:0 0 14px; display:flex; gap:10px; flex-wrap:wrap}
+  .dm-meta b{color:var(--ink-soft)}
+  .dm-body{font-size:14px; line-height:1.85; color:var(--ink); white-space:pre-wrap;
+           word-break:break-word; min-height:70px; margin-bottom:16px}
+
   /* 파일 미리보기 */
   .modal.wide{max-width:960px; width:100%; padding:18px}
   .pv-head{display:flex; align-items:center; gap:10px; margin-bottom:12px}
@@ -718,17 +777,119 @@
   }
   #toast.on{opacity:1; transform:translate(-50%,0)}
 
+  /* ================= 반응형 ================= */
+  html{-webkit-text-size-adjust:100%}
+  body{-webkit-tap-highlight-color:transparent}
+
+  /* 노트북·태블릿 가로 */
+  @media (max-width:1100px){
+    .wrap{padding:26px 18px 56px}
+    .layout{gap:18px}
+    .card{padding:22px}
+  }
+
+  /* 태블릿 세로 (아이패드·갤럭시탭) */
   @media (max-width:900px){
-    .layout{grid-template-columns:1fr}
-    .wrap{padding:22px 16px 48px}
-    .ring-wrap{width:280px;height:280px}
-    .ring-inner{padding:0 34px}
-    .time{font-size:42px}
-    .clock-box{gap:9px}
-    .clock{font-size:21px; padding:7px 11px}
+    .layout{grid-template-columns:minmax(0,1fr)}
+    .layout > section{min-width:0}
+    .wrap{padding:20px 16px 48px}
     .board-actions{width:100%}
     .board-actions input{flex:1; width:auto}
     .p-cat{display:none}
+    .card + .card{margin-top:16px}
+  }
+
+  /* 휴대폰 */
+  @media (max-width:620px){
+    .wrap{
+      padding:14px max(14px, env(safe-area-inset-left)) calc(40px + env(safe-area-inset-bottom))
+             max(14px, env(safe-area-inset-right));
+    }
+    header.top{flex-direction:column; align-items:stretch; gap:12px; margin-bottom:16px}
+    .brand{padding:0; gap:10px}
+    .brand .logo{width:44px; height:44px; border-radius:13px}
+    .brand h1{font-size:16.5px}
+    .brand .sub{font-size:11px}
+    .clock-box{width:100%; justify-content:space-between; gap:8px}
+    .clock-box .date{text-align:left; font-size:11.5px; flex:1; white-space:nowrap}
+    .clock-box .date .src{margin-top:1px}
+    .clock{font-size:19px; padding:0 10px; border-radius:11px; height:42px}
+    .clock .sec{font-size:11px; padding-bottom:4px}
+    .acc-btn{padding:0 11px 0 6px; font-size:12.5px; height:42px}
+    .acc-btn .ava{width:26px;height:26px;border-radius:8px;font-size:12px}
+    .clock-box .date{height:42px}
+    #accName{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .acc-menu{width:200px}
+
+    .main-tabs button{flex:1; padding:10px 0; font-size:14px}
+    .main-tabs{gap:4px}
+
+    .card{padding:18px 15px; border-radius:16px}
+    .timer-card{padding-top:22px}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat b{font-size:17px}
+    .btn{padding:13px 6px; font-size:14px}
+    .preset{padding:9px 13px; font-size:13px}
+
+    /* 카테고리는 가로 스크롤 */
+    .cat-bar{flex-wrap:nowrap; overflow-x:auto; padding-bottom:6px; scrollbar-width:none}
+    .cat-bar::-webkit-scrollbar{display:none}
+
+    .post-row{padding:12px 4px; gap:8px}
+    .p-title{font-size:13.5px}
+    .tabs button{font-size:11.5px; padding:8px 2px}
+    .rank-list li{padding:8px 8px; font-size:13px}
+    .sessions li{font-size:12.5px}
+
+    .day{width:12px;height:12px}
+    .week{grid-template-rows:repeat(7,12px)}
+    .wdays{grid-template-rows:repeat(7,12px)}
+    .wdays i{line-height:12px; height:12px; width:16px}
+    .mcell{font-size:11px; border-radius:8px}
+    .mcell em{font-size:8.5px}
+
+    /* 입력창 16px 미만이면 아이폰에서 화면이 확대돼요 */
+    input, select, textarea{font-size:16px !important}
+    .w-field textarea{min-height:200px}
+
+    /* 팝업은 아래에서 올라오는 형태로 */
+    .modal-back{padding:0; align-items:flex-end}
+    .modal{
+      max-width:100%; border-radius:20px 20px 0 0; padding:22px 18px;
+      max-height:92vh; overflow:auto; padding-bottom:calc(22px + env(safe-area-inset-bottom));
+    }
+    .modal.dm{max-width:100%}
+    .modal.wide{padding:14px}
+    .pv-body{height:64vh}
+    .modal-opts{grid-template-columns:1fr}
+
+    #miniTimer{
+      left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+      justify-content:space-between; padding:12px 14px;
+    }
+    .foot-copy{font-size:11px; margin-top:26px}
+    #toast{left:12px; right:12px; transform:translateY(16px); bottom:auto;
+           top:auto; margin-bottom:0; text-align:center}
+    #toast.on{transform:translateY(0)}
+    #tip{display:none}
+  }
+
+  @media (max-width:620px){
+    #toast{position:fixed; bottom:calc(90px + env(safe-area-inset-bottom)); left:12px; right:12px}
+  }
+
+  /* 아주 좁은 기기 (갤럭시 폴드 등) */
+  @media (max-width:360px){
+    .stats{grid-template-columns:1fr 1fr}
+    .brand h1{font-size:15px}
+    .preset{padding:8px 10px; font-size:12.5px}
+  }
+
+  /* 터치 기기: 마우스오버 효과 제거 */
+  @media (hover:none){
+    .post-row:hover{background:none}
+    .post-row.pinned:hover{background:#f2f7fe}
+    .day:not(.blank):hover{transform:none}
   }
 </style>
 </head>
@@ -736,16 +897,30 @@
 <div class="wrap">
 
   <header class="top">
-    <div class="brand">
-      <div class="dot"></div>
-      <h1>정보·데이터과학 학습관리</h1>
-    </div>
+    <button class="brand" id="brandBtn" title="타이머 화면으로">
+      <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+        <rect width="48" height="48" rx="13" fill="#2f6fd0"/>
+        <rect x="11" y="26" width="5" height="10" rx="2" fill="#9dc4ee"/>
+        <rect x="19" y="21" width="5" height="15" rx="2" fill="#cfe0f6"/>
+        <rect x="27" y="16" width="5" height="20" rx="2" fill="#fff"/>
+        <circle cx="35" cy="15" r="7.5" fill="none" stroke="#fff" stroke-width="2.6"/>
+        <path d="M35 11v4.4l3 2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span>
+        <h1>정보·데이터과학 학습관리</h1>
+        <span class="sub">김포제일고등학교</span>
+      </span>
+    </button>
     <div class="clock-box">
       <div class="date">
         <span id="todayLabel"></span>
         <span class="src" id="clockSrc">내 기기 시간</span>
       </div>
       <div class="clock"><span id="clockHM">00:00</span><span class="sec" id="clockS">00</span></div>
+
+      <button class="acc-btn dm-btn" id="dmBtn" hidden title="쪽지">
+        <span class="ava">✉</span><span id="dmLabel">쪽지</span>
+      </button>
 
       <div class="account">
         <button class="acc-btn guest" id="accBtn">
@@ -934,6 +1109,14 @@
           <div class="drop" id="wDrop">파일을 끌어다 놓거나 클릭해서 선택하세요 · 하나당 20MB, 최대 10개</div>
           <input type="file" id="wFiles" multiple hidden>
         </div>
+        <div class="w-field" id="wPinWrap" hidden>
+          <label class="chk-row">
+            <input type="checkbox" id="wPin">
+            <span>📌 이 글을 게시판 맨 위에 고정
+              <em>공지처럼 강조 표시되고, 목록 맨 위에 항상 보여요. (선생님·관리자만 설정 가능)</em>
+            </span>
+          </label>
+        </div>
         <p class="err" id="wErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:0"></p>
         <div class="w-btns">
           <button class="btn-ghost" id="wCancel">취소</button>
@@ -959,6 +1142,60 @@
     <span class="mt-mode" id="mtMode">순공부</span>
   </span>
   <button class="mt-btn" id="mtToggle" title="일시정지 / 계속">⏸</button>
+</div>
+
+<!-- 쪽지 -->
+<div class="modal-back" id="dmModal">
+  <div class="modal dm" role="dialog" aria-modal="true">
+    <div class="dm-head">
+      <h3 id="dmTitle">쪽지</h3>
+      <button class="btn-ghost" id="dmClose">닫기</button>
+    </div>
+
+    <div class="tabs" id="dmTabs">
+      <button data-b="in" class="on">받은 쪽지</button>
+      <button data-b="out">보낸 쪽지</button>
+      <button data-b="new">쪽지 쓰기</button>
+    </div>
+
+    <!-- 목록 -->
+    <div id="dmListView">
+      <div id="dmList"></div>
+      <div class="pager" id="dmPager"></div>
+    </div>
+
+    <!-- 읽기 -->
+    <div id="dmReadView" hidden></div>
+
+    <!-- 쓰기 -->
+    <div id="dmWriteView" hidden>
+      <div class="w-field" style="position:relative">
+        <label>받는 사람</label>
+        <input id="dmTo" placeholder="닉네임으로 검색" autocomplete="off">
+        <div class="dm-sug" id="dmSug" hidden></div>
+        <div class="tip" id="dmToPick"></div>
+      </div>
+      <div class="w-field">
+        <label>제목</label>
+        <input id="dmSubject" maxlength="100" placeholder="제목">
+      </div>
+      <div class="w-field">
+        <label>내용</label>
+        <textarea id="dmBody" style="min-height:150px" placeholder="내용을 입력하세요"></textarea>
+      </div>
+      <div class="w-field">
+        <label>첨부파일 (선택)</label>
+        <div class="files" id="dmFileList" hidden></div>
+        <div class="drop" id="dmDrop">파일을 끌어다 놓거나 클릭 · 하나당 20MB, 최대 5개</div>
+        <input type="file" id="dmFiles" multiple hidden>
+      </div>
+      <p class="err" id="dmErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:0"></p>
+      <div class="w-btns">
+        <button class="btn-ghost" id="dmCancel">취소</button>
+        <button class="btn-write" id="dmSend">보내기</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 파일 미리보기 -->
@@ -1663,6 +1900,7 @@
 
     setInterval(flush, 20000);                                  // 20초마다 서버 저장
     setInterval(()=>{ if (!document.hidden) refreshRank(); }, 45000);
+    setInterval(()=>{ if (!document.hidden) updateUnread(); }, 60000);
   }
 
   // 공지 배너는 여러 개(JSON 배열)일 수 있고, 예전처럼 한 줄 문자열일 수도 있다
@@ -1717,6 +1955,7 @@
     await loadGroups();
     renderAll();
     refreshRank();
+    updateUnread();
     boardLoaded = false;
 
     // 로그인하려고 커뮤니티에서 넘어온 경우 다시 커뮤니티로
@@ -1894,6 +2133,7 @@
   $("mOut").onclick   = async ()=>{
     await sb.auth.signOut();
     me = null; boardLoaded = false;
+    $("dmBtn").hidden = true;
     renderAccount(); renderRank();
     if (!$("boardView").hidden) openBoard();
     toast("로그아웃했어요.");
@@ -2012,6 +2252,7 @@
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
 
   function switchView(v){
+    if (v !== "board" && !$("boardWrite").hidden && !confirmLeaveWrite()) return;
     // 커뮤니티는 로그인한 사람만
     if (v === "board" && (!sb || !me || !me.nickname)){
       document.querySelectorAll(".main-tabs button")
@@ -2031,6 +2272,8 @@
     renderMiniTimer();
     if (v === "board" && !boardLoaded) openBoard();
   }
+
+  $("brandBtn").onclick = ()=>{ switchView("timer"); window.scrollTo({ top:0, behavior:"smooth" }); };
 
   $("miniTimer").onclick = (e)=>{
     if (e.target.id === "mtToggle"){ state.running ? pause() : start(); return; }
@@ -2179,6 +2422,7 @@
     $("boardWrite").hidden = true;
     $("boardDetail").hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
+    try { history.pushState({ app: "post" }, ""); } catch(e){}
   }
 
   function renderDetail(p, cs){
@@ -2350,6 +2594,17 @@
       if (pvUrl) URL.revokeObjectURL(pvUrl);
       const isPdf = /\.pdf$/i.test(f.name) || f.mime === "application/pdf";
       pvUrl = URL.createObjectURL(isPdf ? new Blob([data], { type: "application/pdf" }) : data);
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                 || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (isPdf && isIOS){
+        // iOS 사파리는 화면 안에서 PDF를 못 여는 경우가 많아 새 탭으로
+        $("pvBody").innerHTML =
+          '<div class="pv-none"><span class="big">📕</span><b>'+esc(f.name)+'</b><br>'
+          + 'PDF는 새 탭에서 열려요.<div style="margin-top:16px">'
+          + '<button class="btn-write" id="pvTab">새 탭에서 열기</button></div></div>';
+        $("pvTab").onclick = ()=> window.open(pvUrl, "_blank");
+        return;
+      }
       $("pvBody").innerHTML = isPdf
         ? '<iframe src="'+pvUrl+'#toolbar=1"></iframe>'
         : '<img src="'+pvUrl+'" alt="">';
@@ -2428,6 +2683,20 @@
   }
 
   /* ---------- 글쓰기 ---------- */
+  function writeHasContent(){
+    if ($("boardWrite").hidden) return false;
+    return !!($("wTitle").value.trim() || $("wBody").value.trim()
+           || $("wYt").value.trim() || $("wTags").value.trim() || pendingFiles.length);
+  }
+  function confirmLeaveWrite(){
+    if (!writeHasContent()) return true;
+    return confirm("작성 중인 내용이 사라집니다.\n나가시겠어요?");
+  }
+  function closeWrite(){
+    pendingFiles = []; editingId = null;
+    showList(); loadPosts();
+  }
+
   function openWrite(post){
     editingId = post ? post.id : null;
     pendingFiles = [];
@@ -2445,6 +2714,9 @@
       sel.value = String(post.category_id);
     }
     renderWriteFiles();
+    const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
+    $("wPinWrap").hidden = !canPin;
+    $("wPin").checked = !!(post && post.pinned);
     $("wErr").textContent = "";
     $("wSave").textContent = post ? "수정 완료" : "등록";
     $("boardList").hidden = true;
@@ -2452,12 +2724,25 @@
     $("boardWrite").hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
     $("wTitle").focus();
+    try { history.pushState({ app: "write" }, ""); } catch(e){}
   }
 
   $("wCancel").onclick = ()=>{
-    pendingFiles = [];
-    if (editingId) openPost(editingId); else { showList(); loadPosts(); }
+    if (!confirmLeaveWrite()) return;
+    const back = editingId;
+    pendingFiles = []; editingId = null;
+    if (back) openPost(back); else closeWrite();
   };
+
+  // 브라우저 뒤로가기로 글쓰기 화면을 벗어날 때
+  window.addEventListener("popstate", ()=>{
+    if (!$("boardWrite").hidden){
+      if (confirmLeaveWrite()){ closeWrite(); }
+      else { try { history.pushState({ app: "write" }, ""); } catch(e){} }
+      return;
+    }
+    if (!$("boardDetail").hidden){ showList(); loadPosts(); }
+  });
   $("wSave").onclick = async ()=>{
     const title = $("wTitle").value.trim();
     if (!title){ $("wErr").textContent = "제목을 입력해주세요."; return; }
@@ -2484,6 +2769,17 @@
     }
 
     const id = editingId || data;
+
+    // 고정 체크 반영 (관리자: 모든 글 / 선생님: 자기 글)
+    if (me && (me.role === "admin" || me.role === "teacher")){
+      const wantPin = $("wPin").checked;
+      const wasPin  = !!(editingId && curPost && curPost.id === editingId && curPost.pinned);
+      if (wantPin !== wasPin){
+        const { error: pe } = await sb.rpc("set_pinned", { p_post: id, p_pinned: wantPin });
+        if (pe) toast("고정 설정에 실패했어요: " + cleanErr(pe));
+      }
+    }
+
     if (pendingFiles.length){
       $("wSave").textContent = "파일 올리는 중…";
       await uploadPending(id);
@@ -2530,6 +2826,220 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(()=>{ query = e.target.value.trim(); page = 0; loadPosts(); }, 350);
   };
+
+  /* =====================================================================
+     쪽지
+     ===================================================================== */
+  let dmBox = "in", dmPage = 0, dmTo = null, dmFiles = [], dmCur = null;
+
+  function openDM(box){
+    if (!sb || !me || !me.nickname){ openLogin(); return; }
+    dmBox = box || "in"; dmPage = 0;
+    document.querySelectorAll("#dmTabs button")
+      .forEach(b=> b.classList.toggle("on", b.dataset.b === dmBox));
+    $("dmModal").classList.add("on");
+    dmBox === "new" ? showDmWrite() : dmLoad();
+  }
+  function closeDM(){ $("dmModal").classList.remove("on"); }
+
+  function dmShow(view){
+    $("dmListView").hidden  = view !== "list";
+    $("dmReadView").hidden  = view !== "read";
+    $("dmWriteView").hidden = view !== "write";
+  }
+
+  async function dmLoad(){
+    dmShow("list");
+    $("dmTitle").textContent = dmBox === "out" ? "보낸 쪽지" : "받은 쪽지";
+    $("dmList").innerHTML = '<div class="empty">불러오는 중…</div>';
+    const { data, error } = await sb.rpc("list_messages",
+      { p_box: dmBox, p_limit: 12, p_offset: dmPage * 12 });
+    if (error){ $("dmList").innerHTML = '<div class="empty">'+esc(cleanErr(error))+'</div>'; return; }
+    const rows = data || [];
+    if (!rows.length){
+      $("dmList").innerHTML = '<div class="empty">'
+        + (dmBox === "out" ? "보낸 쪽지가 없어요." : "받은 쪽지가 없어요.") + '</div>';
+      $("dmPager").innerHTML = ""; return;
+    }
+    $("dmList").innerHTML = rows.map(m=>
+      '<div class="dm-row'+(!m.is_read && dmBox === "in" ? " unread" : "")+'" data-m="'+m.id+'">'
+      + (!m.is_read && dmBox === "in" ? '<span class="dot"></span>' : '')
+      + '<span class="who">'+esc(m.other_nick || "탈퇴")+'</span>'
+      + '<span class="sub">'+esc(m.title)+(m.files ? ' 📎' : '')+'</span>'
+      + '<span class="when">'+fmtDate(m.created_at, true)+'</span></div>').join("");
+
+    const total = Number(rows[0].total || rows.length), pages = Math.ceil(total / 12);
+    $("dmPager").innerHTML = pages > 1
+      ? '<button data-p="'+(dmPage-1)+'"'+(dmPage===0?" disabled":"")+'>‹</button>'
+        + '<button class="on">'+(dmPage+1)+' / '+pages+'</button>'
+        + '<button data-p="'+(dmPage+1)+'"'+(dmPage>=pages-1?" disabled":"")+'>›</button>'
+      : "";
+    $("dmList").querySelectorAll("[data-m]").forEach(r=>
+      r.onclick = ()=> dmOpen(Number(r.dataset.m)));
+    $("dmPager").querySelectorAll("[data-p]").forEach(b=>
+      b.onclick = ()=>{ if (!b.disabled){ dmPage = Number(b.dataset.p); dmLoad(); } });
+  }
+
+  async function dmOpen(id){
+    const { data, error } = await sb.rpc("read_message", { p_id: id });
+    const m = Array.isArray(data) ? data[0] : data;
+    if (error || !m){ toast("쪽지를 열 수 없어요."); return; }
+    dmCur = m;
+    dmShow("read");
+    $("dmTitle").textContent = "쪽지";
+    const files = m.files || [];
+    $("dmReadView").innerHTML =
+      '<h3 style="margin:0 0 8px;font-size:17px;letter-spacing:-.4px">'+esc(m.title)+'</h3>'
+      + '<div class="dm-meta">'
+      +   '<span>' + (m.i_sent ? '받는 사람 <b>'+esc(m.recipient_nick||"탈퇴")+'</b>'
+                               : '보낸 사람 <b>'+esc(m.sender_nick||"탈퇴")+'</b>') + '</span>'
+      +   '<span>'+fmtDate(m.created_at, true)+'</span></div>'
+      + renderFiles(files)
+      + '<div class="dm-body">'+linkify(m.body)+'</div>'
+      + '<div class="w-btns" style="justify-content:space-between">'
+      +   '<button class="btn-ghost btn-danger" id="dmDel">삭제</button>'
+      +   '<span><button class="btn-ghost" id="dmBack">목록</button> '
+      +   (m.i_sent ? '' : '<button class="btn-write" id="dmReply">답장</button>') + '</span>'
+      + '</div>';
+
+    $("dmBack").onclick = ()=>{ dmLoad(); updateUnread(); };
+    $("dmDel").onclick  = async ()=>{
+      if (!confirm("이 쪽지를 삭제할까요?")) return;
+      await sb.rpc("delete_message", { p_id: id });
+      toast("삭제했어요."); dmLoad(); updateUnread();
+    };
+    if (!m.i_sent) $("dmReply").onclick = ()=>
+      showDmWrite({ id: m.sender_id, nick: m.sender_nick },
+                  (m.title.startsWith("RE:") ? m.title : "RE: " + m.title));
+
+    $("dmReadView").querySelectorAll("[data-dl]").forEach(b=>
+      b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name));
+    $("dmReadView").querySelectorAll("[data-pv]").forEach(b=>
+      b.onclick = ()=> openPreview(files[Number(b.dataset.pv)]));
+    updateUnread();
+  }
+
+  function showDmWrite(to, title){
+    dmShow("write");
+    $("dmTitle").textContent = "쪽지 쓰기";
+    document.querySelectorAll("#dmTabs button")
+      .forEach(b=> b.classList.toggle("on", b.dataset.b === "new"));
+    dmTo = to || null;
+    dmFiles = [];
+    $("dmTo").value = to ? to.nick : "";
+    $("dmToPick").innerHTML = to ? '받는 사람: <b>'+esc(to.nick)+'</b>' : "";
+    $("dmSubject").value = title || "";
+    $("dmBody").value = "";
+    $("dmErr").textContent = "";
+    $("dmSug").hidden = true;
+    renderDmFiles();
+    setTimeout(()=> (to ? $("dmSubject") : $("dmTo")).focus(), 80);
+  }
+
+  function renderDmFiles(){
+    const box = $("dmFileList");
+    box.hidden = !dmFiles.length;
+    box.innerHTML = dmFiles.map((f,i)=>
+      '<div class="file-row"><span class="fi">'+FILE_ICON(f.type, f.name)+'</span>'
+      + '<span class="fn">'+esc(f.name)+'</span><span class="fs">'+fileSize(f.size)+'</span>'
+      + '<button class="fx" data-dx="'+i+'">빼기</button></div>').join("");
+    box.querySelectorAll("[data-dx]").forEach(b=> b.onclick = ()=>{
+      dmFiles.splice(Number(b.dataset.dx), 1); renderDmFiles();
+    });
+  }
+
+  let dmSugTimer;
+  $("dmTo").oninput = (e)=>{
+    dmTo = null; $("dmToPick").innerHTML = "";
+    const q = e.target.value.trim();
+    clearTimeout(dmSugTimer);
+    if (q.length < 1){ $("dmSug").hidden = true; return; }
+    dmSugTimer = setTimeout(async ()=>{
+      const { data } = await sb.rpc("search_members", { p_q: q });
+      const rows = data || [];
+      $("dmSug").hidden = !rows.length;
+      $("dmSug").innerHTML = rows.map(r=>
+        '<button data-u="'+r.id+'" data-n="'+esc(r.nickname)+'">'+esc(r.nickname)
+        + (r.role !== "student" ? '<span class="rl">'+r.role+'</span>' : '') + '</button>').join("");
+      $("dmSug").querySelectorAll("[data-u]").forEach(b=> b.onclick = ()=>{
+        dmTo = { id: b.dataset.u, nick: b.dataset.n };
+        $("dmTo").value = dmTo.nick;
+        $("dmToPick").innerHTML = '받는 사람: <b>'+esc(dmTo.nick)+'</b>';
+        $("dmSug").hidden = true;
+        $("dmSubject").focus();
+      });
+    }, 280);
+  };
+
+  $("dmDrop").onclick = ()=> $("dmFiles").click();
+  $("dmFiles").onchange = (e)=>{
+    for (const f of e.target.files){
+      if (f.size > 20 * 1024 * 1024){ toast('"'+f.name+'" 은 20MB가 넘어요.'); continue; }
+      if (dmFiles.length >= 5){ toast("파일은 5개까지예요."); break; }
+      dmFiles.push(f);
+    }
+    e.target.value = ""; renderDmFiles();
+  };
+  $("dmDrop").ondragover = (e)=>{ e.preventDefault(); $("dmDrop").classList.add("over"); };
+  $("dmDrop").ondragleave = ()=> $("dmDrop").classList.remove("over");
+  $("dmDrop").ondrop = (e)=>{
+    e.preventDefault(); $("dmDrop").classList.remove("over");
+    for (const f of e.dataTransfer.files){
+      if (f.size > 20 * 1024 * 1024){ toast('"'+f.name+'" 은 20MB가 넘어요.'); continue; }
+      if (dmFiles.length >= 5){ toast("파일은 5개까지예요."); break; }
+      dmFiles.push(f);
+    }
+    renderDmFiles();
+  };
+
+  $("dmSend").onclick = async ()=>{
+    if (!dmTo){ $("dmErr").textContent = "받는 사람을 검색해서 선택해주세요."; return; }
+    const title = $("dmSubject").value.trim();
+    if (!title){ $("dmErr").textContent = "제목을 입력해주세요."; return; }
+
+    $("dmSend").disabled = true; $("dmSend").textContent = "보내는 중…";
+    const { data, error } = await sb.rpc("send_message",
+      { p_to: dmTo.id, p_title: title, p_body: $("dmBody").value });
+    if (error){
+      $("dmSend").disabled = false; $("dmSend").textContent = "보내기";
+      $("dmErr").textContent = cleanErr(error); return;
+    }
+    for (const f of dmFiles){
+      const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");
+      const path = "dm/" + data + "/" + Date.now() + "_" + Math.random().toString(36).slice(2,7) + "_" + safe;
+      const up = await sb.storage.from("attachments").upload(path, f, { upsert: false });
+      if (up.error){ toast('"'+f.name+'" 업로드 실패'); continue; }
+      await sb.rpc("add_message_file",
+        { p_msg: data, p_path: path, p_name: f.name, p_size: f.size, p_mime: f.type || null });
+    }
+    $("dmSend").disabled = false; $("dmSend").textContent = "보내기";
+    dmFiles = [];
+    toast(dmTo.nick + "님에게 쪽지를 보냈어요.");
+    dmBox = "out"; dmPage = 0;
+    document.querySelectorAll("#dmTabs button").forEach(b=> b.classList.toggle("on", b.dataset.b === "out"));
+    dmLoad();
+  };
+
+  $("dmTabs").onclick = (e)=>{
+    const b = e.target.closest("button[data-b]"); if (!b) return;
+    if (b.dataset.b === "new"){ showDmWrite(); return; }
+    dmBox = b.dataset.b; dmPage = 0;
+    document.querySelectorAll("#dmTabs button").forEach(x=> x.classList.toggle("on", x === b));
+    dmLoad();
+  };
+  $("dmClose").onclick  = closeDM;
+  $("dmCancel").onclick = ()=>{ dmBox = "in"; openDM("in"); };
+  $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") closeDM(); };
+  $("dmBtn").onclick    = ()=> openDM("in");
+
+  async function updateUnread(){
+    if (!sb || !me || !me.nickname){ $("dmBtn").hidden = true; return; }
+    $("dmBtn").hidden = false;
+    const { data } = await sb.rpc("unread_count");
+    const n = Number(data || 0);
+    $("dmBtn").classList.toggle("has", n > 0);
+    $("dmLabel").textContent = n > 0 ? "쪽지 " + n : "쪽지";
+  }
 
   /* ---------- 게시판 helpers ---------- */
   function ytId(url){
@@ -2603,7 +3113,11 @@
     if (e.key === "Enter" && !$("finishBtn").disabled) finish();
   });
 
-  window.addEventListener("beforeunload", ()=>{ if (state.running) step(); save(); });
+  window.addEventListener("beforeunload", (e)=>{
+    if (state.running) step();
+    save();
+    if (writeHasContent()){ e.preventDefault(); e.returnValue = ""; }
+  });
   document.addEventListener("visibilitychange", ()=>{
     if (document.hidden){ save(); flush(); }
     else { refreshRank(); }

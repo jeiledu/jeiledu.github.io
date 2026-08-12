@@ -3,7 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>김포제일고 정보 교육</title>
+<title>정보·데이터과학 학습관리 · 김포제일고등학교</title>
+
+<!-- 카카오톡·메신저 링크 미리보기 (Open Graph) -->
+<meta name="description" content="김포제일고등학교 정보·데이터과학 학습관리. 순공부 시간 기록, 학급 랭킹, 수업자료 커뮤니티.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="김포제일고등학교">
+<meta property="og:title" content="정보·데이터과학 학습관리 · 김포제일고등학교">
+<meta property="og:description" content="순공부 시간 기록과 수업자료를 한 곳에서. 타이머 · 랭킹 · 커뮤니티">
+<meta property="og:locale" content="ko_KR">
+<!-- 미리보기 이미지를 넣으려면 아래 두 줄의 주석을 풀고 주소를 바꾸세요
+<meta property="og:image" content="https://조직이름.github.io/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+-->
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6fd0'/%3E%3Ccircle cx='32' cy='34' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M32 24v11h8' stroke='white' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#f2f6fb;
@@ -50,7 +64,7 @@
     width:11px;height:11px;border-radius:50%;
     background:var(--blue); box-shadow:0 0 0 5px var(--blue-soft);
   }
-  .brand h1{font-size:19px; font-weight:700; letter-spacing:-.3px; margin:0}
+  .brand h1{font-size:18px; font-weight:700; letter-spacing:-.4px; margin:0; word-break:keep-all}
   .clock-box{display:flex; align-items:center; gap:14px}
   .clock-box .date{font-size:13.5px; color:var(--ink-soft); letter-spacing:-.2px; text-align:right}
   .clock-box .date .src{
@@ -91,19 +105,25 @@
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     flex-wrap:wrap; margin-bottom:16px;
   }
-  .cat-rows{display:flex; flex-direction:column; gap:7px}
-  .cat-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-  .cat-label{
-    flex:none; width:44px; font-size:11px; font-weight:700; color:var(--ink-faint);
-    letter-spacing:.3px; text-align:right;
+  /* 카테고리: 가로 한 줄로 흐르게 (좁아지면 자동 줄바꿈) */
+  .cat-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; row-gap:8px}
+  .cat-bar button{
+    background:var(--blue-tint); border:1px solid var(--line); color:var(--ink-soft);
+    padding:7px 13px; border-radius:10px; font-family:inherit; font-size:13px; font-weight:600;
+    cursor:pointer; letter-spacing:-.2px; transition:.15s; white-space:nowrap;
   }
-  .cats{display:flex; gap:6px; flex-wrap:wrap}
-  .cats .cnt{opacity:.65; font-weight:600; font-size:11.5px; margin-left:3px}
-  .old-row{opacity:.72; margin-top:2px}
-  .old-row .cat-label{color:var(--ink-faint)}
-  .cats button.old{background:#fff; border-style:dashed; color:var(--ink-faint)}
-  .cats button.old:hover{color:var(--ink-soft)}
-  .cats button.old.on{background:var(--ink-soft); border-color:var(--ink-soft); color:#fff}
+  .cat-bar button:hover{border-color:#c9dbf3; color:var(--blue-dark)}
+  .cat-bar button.on{background:var(--blue); border-color:var(--blue); color:#fff}
+  .cat-bar .cnt{opacity:.65; font-weight:600; font-size:11.5px; margin-left:4px}
+  .cat-label{
+    flex:none; font-size:11px; font-weight:700; color:var(--ink-faint);
+    letter-spacing:.3px; margin-left:6px; white-space:nowrap;
+  }
+  .cat-sep{width:1px; height:16px; background:var(--line); margin:0 3px}
+  .cat-bar button.old{background:#fff; border-style:dashed; color:var(--ink-faint)}
+  .cat-bar button.old:hover{color:var(--ink-soft)}
+  .cat-bar button.old.on{background:var(--ink-soft); border-color:var(--ink-soft); color:#fff}
+  .cat-label.old{color:#b6c4d6}
 
   /* 태그 */
   .tag-chip{
@@ -192,6 +212,10 @@
     border-bottom:1px solid var(--line); cursor:pointer; transition:.12s;
   }
   .post-row:hover{background:var(--blue-tint)}
+  .post-row.pinned{background:#f2f7fe; box-shadow:inset 3px 0 0 var(--blue)}
+  .post-row.pinned:hover{background:#e9f1fd}
+  .post-row.pinned .p-title{font-weight:700; color:var(--blue-dark)}
+  .post-row.pinned + .post-row:not(.pinned){border-top:2px solid var(--line)}
   .p-cat{
     flex:none; width:70px; text-align:center; font-size:11px; font-weight:700; padding:4px 0;
     border-radius:6px; background:var(--blue-soft); color:var(--blue-dark); letter-spacing:-.1px;
@@ -629,6 +653,62 @@
   }
   #tip.on{opacity:1}
 
+  /* 커뮤니티에 있을 때 떠 있는 작은 타이머 */
+  #miniTimer{
+    position:fixed; right:22px; bottom:22px; z-index:45;
+    display:flex; align-items:center; gap:11px;
+    background:#fff; border:1px solid var(--line); border-radius:15px;
+    padding:11px 13px 11px 15px; box-shadow:0 10px 30px rgba(31,58,102,.16);
+    cursor:pointer; transition:.15s;
+  }
+  #miniTimer[hidden]{display:none}
+  #miniTimer:hover{box-shadow:0 12px 34px rgba(31,58,102,.22); transform:translateY(-1px)}
+  #miniTimer .mt-live{
+    width:7px;height:7px;border-radius:50%;background:var(--blue); flex:none; opacity:.35;
+  }
+  body.running #miniTimer .mt-live{opacity:1; animation:pulse 1.6s ease-in-out infinite}
+  body.breaking #miniTimer .mt-live{background:var(--rest)}
+  #miniTimer .mt-body{display:flex; flex-direction:column; line-height:1.25}
+  #miniTimer .mt-time{
+    font-size:18px; font-weight:700; letter-spacing:-.6px; color:var(--ink);
+    font-variant-numeric:tabular-nums; font-family:"SF Mono", ui-monospace, Menlo, monospace;
+  }
+  #miniTimer .mt-mode{font-size:10.5px; color:var(--ink-faint); letter-spacing:-.1px}
+  body.breaking #miniTimer .mt-time{color:#2c7268}
+  #miniTimer .mt-btn{
+    width:32px;height:32px; border-radius:10px; border:1px solid var(--line); background:var(--blue-tint);
+    color:var(--blue-dark); font-size:13px; cursor:pointer; flex:none; font-family:inherit;
+  }
+  #miniTimer .mt-btn:hover{background:var(--blue-soft)}
+
+  /* 파일 미리보기 */
+  .modal.wide{max-width:960px; width:100%; padding:18px}
+  .pv-head{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+  .pv-head .pv-name{
+    flex:1; font-size:14px; font-weight:600; letter-spacing:-.2px; text-align:left;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .pv-body{
+    background:#f4f7fb; border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    height:70vh; display:flex; align-items:center; justify-content:center;
+  }
+  .pv-body iframe{width:100%; height:100%; border:0; background:#fff}
+  .pv-body img{max-width:100%; max-height:100%; object-fit:contain}
+  .pv-none{text-align:center; padding:30px 20px; color:var(--ink-soft); font-size:13.5px; line-height:1.8}
+  .pv-none .big{font-size:34px; display:block; margin-bottom:10px}
+  .pv-none .warn{font-size:11.5px; color:var(--ink-faint); margin-top:12px; line-height:1.6}
+  .file-row .fp{
+    background:none;border:0;color:var(--blue);cursor:pointer;font:inherit;font-size:12px;
+    font-weight:600; flex:none;
+  }
+
+  /* 푸터 */
+  .foot-copy{
+    margin-top:34px; padding:20px 4px 0; border-top:1px solid var(--line);
+    text-align:center; font-size:11.5px; color:var(--ink-faint); line-height:1.9; letter-spacing:-.1px;
+  }
+  .foot-copy b{color:var(--ink-soft); font-weight:600}
+
   /* toast */
   #toast{
     position:fixed; left:50%; bottom:34px; transform:translate(-50%,20px);
@@ -658,7 +738,7 @@
   <header class="top">
     <div class="brand">
       <div class="dot"></div>
-      <h1>김포제일고 정보 교육</h1>
+      <h1>정보·데이터과학 학습관리</h1>
     </div>
     <div class="clock-box">
       <div class="date">
@@ -688,7 +768,7 @@
     <button data-view="board">커뮤니티</button>
   </nav>
 
-  <div class="banner" id="noticeBanner" hidden><b>📢</b><span id="noticeText"></span></div>
+  <div id="banners"></div>
 
   <div class="layout" id="timerView">
 
@@ -768,7 +848,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="rankCard">
         <div class="rank-top">
           <h2 class="card-title" style="margin:0">랭킹</h2>
           <select class="scope-sel" id="scopeSel"><option value="">전체</option></select>
@@ -810,7 +890,7 @@
       <!-- 목록 -->
       <div id="boardList">
         <div class="board-head">
-          <div class="cat-rows" id="cats"></div>
+          <div class="cat-bar" id="cats"></div>
           <div class="board-actions">
             <input id="boardSearch" placeholder="제목·내용 검색" autocomplete="off">
             <button class="btn-write" id="writeBtn" hidden>글쓰기</button>
@@ -863,6 +943,34 @@
 
     </div>
   </section>
+
+  <footer class="foot-copy">
+    <b>정보·데이터과학 학습관리</b> · 김포제일고등학교<br>
+    © 2026 김포제일고등학교. 이 사이트의 모든 콘텐츠(수업자료·게시물 포함)의 저작권은
+    김포제일고등학교에 있으며, 무단 복제 및 외부 배포를 금합니다.
+  </footer>
+</div>
+
+<!-- 커뮤니티에서 떠 있는 작은 타이머 -->
+<div id="miniTimer" hidden>
+  <span class="mt-live"></span>
+  <span class="mt-body">
+    <span class="mt-time" id="mtTime">00:00:00</span>
+    <span class="mt-mode" id="mtMode">순공부</span>
+  </span>
+  <button class="mt-btn" id="mtToggle" title="일시정지 / 계속">⏸</button>
+</div>
+
+<!-- 파일 미리보기 -->
+<div class="modal-back" id="pvModal">
+  <div class="modal wide" role="dialog" aria-modal="true">
+    <div class="pv-head">
+      <span class="pv-name" id="pvName"></span>
+      <button class="btn-ghost" id="pvDown">받기</button>
+      <button class="btn-ghost" id="pvClose">닫기</button>
+    </div>
+    <div class="pv-body" id="pvBody"></div>
+  </div>
 </div>
 
 <!-- 휴식 타이머 설정 -->
@@ -941,6 +1049,7 @@
   /* ================= storage ================= */
   const KEY  = "sungong.records.v1";   // { "YYYY-MM-DD": seconds }
   const SKEY = "sungong.sessions.v1";  // { "YYYY-MM-DD": [{start, sec, target}] }
+  const TKEY = "sungong.timer.v1";     // 진행 중이던 세션
 
   // localStorage 를 못 쓰는 환경(파일 미리보기 등)에서도 앱이 죽지 않도록
   const store = (function(){
@@ -971,6 +1080,14 @@
     try {
       store.setItem(KEY, JSON.stringify(records));
       store.setItem(SKEY, JSON.stringify(sessions));
+      // 진행 중인 세션도 보관 → 새로고침·로그인 이동 후에도 이어서 진행
+      store.setItem(TKEY, JSON.stringify({
+        mode: state.mode, phase: state.phase,
+        target: state.target, pomoTarget: state.pomoTarget,
+        elapsed: Math.floor(state.elapsed),
+        startedAt: state.startedAt ? state.startedAt.toISOString() : null,
+        at: Date.now()
+      }));
     } catch(e){}
   }
 
@@ -1231,7 +1348,25 @@
         : (countDown ? Math.round(state.target/60) + "분 집중 준비 완료"
                      : "버튼을 눌러 공부를 시작하세요");
     }
+    renderMiniTimer();
     renderStats();
+  }
+
+  /* 커뮤니티 화면에 떠 있는 작은 타이머 */
+  function renderMiniTimer(){
+    const box = $("miniTimer");
+    const onBoard = !$("boardView").hidden;
+    const alive = state.running || state.elapsed >= 1;
+    box.hidden = !(onBoard && alive);
+    if (box.hidden) return;
+
+    const countDown = state.target > 0;
+    const shown = countDown ? Math.max(0, state.target - state.elapsed) : state.elapsed;
+    $("mtTime").textContent = hhmmss(shown);
+    $("mtMode").textContent =
+      (state.phase === "break" ? "휴식" : (countDown ? Math.round(state.target/60)+"분 포모" : "순공부"))
+      + (state.running ? " · 진행 중" : " · 일시정지");
+    $("mtToggle").textContent = state.running ? "⏸" : "▶";
   }
 
   function renderStats(){
@@ -1518,12 +1653,9 @@
     const { data } = await sb.rpc("server_now_ms");
     if (data) syncServerTime(Number(data));
 
-    // 관리자가 걸어둔 공지 배너
+    // 관리자가 백오피스에서 설정한 값들
     const { data: st } = await sb.rpc("public_settings");
-    if (st && st.notice_banner){
-      $("noticeText").textContent = st.notice_banner;
-      $("noticeBanner").hidden = false;
-    }
+    applySettings(st || {});
 
     sb.auth.onAuthStateChange((_e, session)=> onSession(session));
     const { data: s } = await sb.auth.getSession();
@@ -1531,6 +1663,29 @@
 
     setInterval(flush, 20000);                                  // 20초마다 서버 저장
     setInterval(()=>{ if (!document.hidden) refreshRank(); }, 45000);
+  }
+
+  // 공지 배너는 여러 개(JSON 배열)일 수 있고, 예전처럼 한 줄 문자열일 수도 있다
+  function parseBanners(v){
+    if (!v) return [];
+    try {
+      const a = JSON.parse(v);
+      if (Array.isArray(a)) return a.map(x=> String(x).trim()).filter(Boolean);
+      if (typeof a === "string") return a.trim() ? [a.trim()] : [];
+    } catch(e){}
+    return String(v).trim() ? [String(v).trim()] : [];
+  }
+
+  function applySettings(st){
+    $("banners").innerHTML = parseBanners(st.notice_banner).slice(0, 5)
+      .map(t=> '<div class="banner"><b>📢</b><span>'+esc(t)+'</span></div>').join("");
+
+    if (st.board_enabled === "false"){
+      const tab = document.querySelector('.main-tabs button[data-view="board"]');
+      if (tab) tab.hidden = true;
+      if (!$("boardView").hidden) switchView("timer");
+    }
+    if (st.ranking_enabled === "false") $("rankCard").hidden = true;
   }
 
   async function onSession(session){
@@ -1873,8 +2028,15 @@
       .forEach(b=> b.classList.toggle("on", b.dataset.view === v));
     $("timerView").hidden = v !== "timer";
     $("boardView").hidden = v !== "board";
+    renderMiniTimer();
     if (v === "board" && !boardLoaded) openBoard();
   }
+
+  $("miniTimer").onclick = (e)=>{
+    if (e.target.id === "mtToggle"){ state.running ? pause() : start(); return; }
+    switchView("timer");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   /* ---------- 로그인 안내 팝업 ---------- */
   function openLogin(){ $("loginModal").classList.add("on"); }
@@ -1924,15 +2086,16 @@
       + esc(c.archived && c.section ? c.section + " " + c.name : c.name)
       + (c.posts ? '<span class="cnt">'+c.posts+'</span>' : '') + '</button>';
 
+    // 가로 한 줄로 이어 붙이고, 구분(학년)마다 라벨과 구분선을 넣는다
     $("cats").innerHTML =
-      '<div class="cat-row"><span class="cat-label"></span><div class="cats">'
-      + '<button data-c="" class="'+(catId===null?"on":"")+'">전체</button></div></div>'
+      '<button data-c="" class="'+(catId===null?"on":"")+'">전체</button>'
       + secs.map(s=>
-          '<div class="cat-row"><span class="cat-label">'+esc(s.key)+'</span>'
-          + '<div class="cats">' + s.items.map(chip).join("") + '</div></div>').join("")
+          '<span class="cat-sep"></span>'
+          + (s.key ? '<span class="cat-label">'+esc(s.key)+'</span>' : '')
+          + s.items.map(chip).join("")).join("")
       + (old.length
-          ? '<div class="cat-row old-row"><span class="cat-label">지난 학기</span>'
-            + '<div class="cats">' + old.map(chip).join("") + '</div></div>'
+          ? '<span class="cat-sep"></span><span class="cat-label old">지난 학기</span>'
+            + old.map(chip).join("")
           : "");
 
     const writable = cats.filter(c=>c.can_write);
@@ -1969,7 +2132,7 @@
       return;
     }
     $("posts").innerHTML = rows.map(p=>
-      '<div class="post-row" data-id="'+p.id+'">'
+      '<div class="post-row'+(p.pinned?" pinned":"")+'" data-id="'+p.id+'">'
       + '<span class="p-cat">'+esc(p.category_name)+'</span>'
       + '<span class="p-main"><span class="p-title">'
       +   (p.pinned ? '<span class="pin">📌</span>' : '')
@@ -2105,6 +2268,9 @@
     $("boardDetail").querySelectorAll("[data-dl]").forEach(b=>{
       b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name);
     });
+    $("boardDetail").querySelectorAll("[data-pv]").forEach(b=>{
+      b.onclick = ()=> openPreview((p.files || [])[Number(b.dataset.pv)]);
+    });
   }
 
   async function sendComment(text, parent, postId){
@@ -2134,20 +2300,85 @@
     return b + "B";
   };
 
+  const canPreview = (f)=> /^image\//.test(f.mime || "") || /\.(pdf|png|jpe?g|gif|webp|svg)$/i.test(f.name);
+  const OFFICE_EXT = /\.(pptx?|docx?|xlsx?)$/i;
+
   function renderFiles(files){
     if (!files.length) return "";
-    return '<div class="files">' + files.map(f=>
+    return '<div class="files">' + files.map((f,i)=>
       '<div class="file-row"><span class="fi">'+FILE_ICON(f.mime, f.name)+'</span>'
       + '<span class="fn">'+esc(f.name)+'</span>'
       + '<span class="fs">'+fileSize(f.size)+'</span>'
+      + '<button class="fp" data-pv="'+i+'">미리보기</button>'
       + '<button class="fd" data-dl="'+esc(f.path)+'" data-name="'+esc(f.name)+'">받기</button>'
       + '</div>').join("") + '</div>';
   }
 
+  // 원본 파일명 그대로 내려받기 (한글 이름이 깨지지 않도록 직접 저장)
   async function downloadFile(path, name){
-    const { data, error } = await sb.storage.from("attachments").createSignedUrl(path, 120, { download: name });
-    if (error || !data){ toast("파일을 열 수 없어요."); return; }
-    window.open(data.signedUrl, "_blank");
+    toast("파일을 준비하고 있어요…");
+    const { data, error } = await sb.storage.from("attachments").download(path);
+    if (error || !data){ toast("파일을 받을 수 없어요."); return; }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url; a.download = name || "file";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+  }
+
+  /* ---------- 미리보기 ---------- */
+  let pvUrl = null, pvFile = null;
+
+  function closePreview(){
+    $("pvModal").classList.remove("on");
+    $("pvBody").innerHTML = "";
+    if (pvUrl){ URL.revokeObjectURL(pvUrl); pvUrl = null; }
+  }
+  $("pvClose").onclick = closePreview;
+  $("pvModal").onclick = (e)=>{ if (e.target.id === "pvModal") closePreview(); };
+  $("pvDown").onclick  = ()=>{ if (pvFile) downloadFile(pvFile.path, pvFile.name); };
+
+  async function openPreview(f){
+    pvFile = f;
+    $("pvName").textContent = f.name;
+    $("pvModal").classList.add("on");
+
+    if (canPreview(f)){
+      $("pvBody").innerHTML = '<div class="pv-none">불러오는 중…</div>';
+      const { data, error } = await sb.storage.from("attachments").download(f.path);
+      if (error || !data){ $("pvBody").innerHTML = '<div class="pv-none">파일을 열 수 없어요.</div>'; return; }
+      if (pvUrl) URL.revokeObjectURL(pvUrl);
+      const isPdf = /\.pdf$/i.test(f.name) || f.mime === "application/pdf";
+      pvUrl = URL.createObjectURL(isPdf ? new Blob([data], { type: "application/pdf" }) : data);
+      $("pvBody").innerHTML = isPdf
+        ? '<iframe src="'+pvUrl+'#toolbar=1"></iframe>'
+        : '<img src="'+pvUrl+'" alt="">';
+      return;
+    }
+
+    // 브라우저가 직접 열 수 없는 형식
+    const isOffice = OFFICE_EXT.test(f.name);
+    $("pvBody").innerHTML =
+      '<div class="pv-none"><span class="big">'+FILE_ICON(f.mime, f.name)+'</span>'
+      + '<b>'+esc(f.name)+'</b><br>이 형식은 브라우저에서 바로 볼 수 없어요.'
+      + (isOffice
+          ? '<div style="margin-top:16px"><button class="btn-write" id="pvOffice">'
+            + 'Microsoft 뷰어로 열기</button>'
+            + '<div class="warn">파일을 잠깐 볼 수 있는 임시 링크가 Microsoft 뷰어 서비스로 전달돼요.<br>'
+            + '민감한 자료라면 <b>받기</b>로 내려받아 보는 편이 안전합니다.</div></div>'
+          : '<div class="warn">아래 <b>받기</b>로 내려받아서 열어주세요.<br>'
+            + '(한글 파일 .hwp / .hwpx 는 한글 프로그램이나 한컴독스에서 열 수 있어요)</div>')
+      + '</div>';
+
+    if (isOffice){
+      $("pvOffice").onclick = async ()=>{
+        const { data, error } = await sb.storage.from("attachments")
+          .createSignedUrl(f.path, 600);
+        if (error || !data){ toast("링크를 만들 수 없어요."); return; }
+        window.open("https://view.officeapps.live.com/op/embed.aspx?src="
+                    + encodeURIComponent(data.signedUrl), "_blank");
+      };
+    }
   }
 
   function renderWriteFiles(){
@@ -2379,8 +2610,34 @@
   });
 
   /* ================= init ================= */
+  // 새로고침·로그인 이동으로 페이지가 다시 열려도 진행 중이던 세션을 되살린다
+  function restoreTimer(){
+    let t = null;
+    try { t = JSON.parse(store.getItem(TKEY)); } catch(e){}
+    if (!t || !(t.elapsed >= 5)) return;
+
+    state.mode       = t.mode  || "free";
+    state.phase      = t.phase || "study";
+    state.pomoTarget = t.pomoTarget || 0;
+    state.target     = t.target || 0;
+    state.elapsed    = t.elapsed;
+    state.startedAt  = t.startedAt ? new Date(t.startedAt) : null;
+    state.lastActive = t.at || Date.now();
+
+    if (state.phase === "break") document.body.classList.add("breaking");
+    if (state.mode === "pomo"){
+      $("freeBtn").classList.remove("active");
+      document.querySelectorAll(".preset[data-min]").forEach(b=>
+        b.classList.toggle("active", Number(b.dataset.min) * 60 === state.pomoTarget));
+      modeText.textContent = state.phase === "break"
+        ? breakMin + "분 휴식" : Math.round(state.pomoTarget/60) + "분 포모도로";
+    }
+    setTimeout(()=> toast("진행 중이던 " + humanKo(state.elapsed) + " 세션을 불러왔어요."), 600);
+  }
+
   (function init(){
     $("freeBtn").classList.add("active");
+    restoreTimer();
     renderBreakRow();
     syncButtons();
     renderAll();

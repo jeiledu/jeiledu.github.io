@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>김포제일고 정보 교육 · 관리자</title>
+<title>정보·데이터과학 학습관리 · 관리자</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e2a3a'/%3E%3Ccircle cx='32' cy='34' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M32 24v11h8' stroke='white' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#f2f6fb; --card:#fff; --ink:#1e2a3a; --ink-soft:#5b7091; --ink-faint:#93a6c0;
@@ -157,6 +159,8 @@
     <button class="b pri" id="gBtn">구글 계정으로 로그인</button>
     <p style="margin-top:16px"><a href="index.html">← 타이머로 돌아가기</a></p>
   </div>
+  <p style="margin-top:18px;font-size:11.5px;color:var(--ink-faint)">
+    © 2026 김포제일고등학교</p>
 </div>
 
 <!-- 관리자 화면 -->
@@ -186,6 +190,11 @@
       <div class="who" id="headNote"></div>
     </div>
     <div id="page"></div>
+    <footer style="margin-top:34px;padding:18px 4px 0;border-top:1px solid var(--line);
+                   text-align:center;font-size:11.5px;color:var(--ink-faint);line-height:1.9">
+      <b style="color:var(--ink-soft)">정보·데이터과학 학습관리 · 관리자</b> · 김포제일고등학교<br>
+      © 2026 김포제일고등학교. 이 사이트의 모든 콘텐츠의 저작권은 김포제일고등학교에 있습니다.
+    </footer>
   </main>
 </div>
 
@@ -790,33 +799,88 @@
   }
 
   /* ===================== 사이트 설정 ===================== */
-  const SETTING_LABEL = {
-    notice_banner:   ["공지 배너", "타이머 화면 위에 뜨는 한 줄 공지. 비우면 배너가 사라져요."],
-    board_enabled:   ["커뮤니티 사용", "true / false"],
-    ranking_enabled: ["랭킹 사용", "true / false"]
-  };
+  let banners = [];
+
+  function parseBanners(v){
+    if (!v) return [];
+    try {
+      const a = JSON.parse(v);
+      if (Array.isArray(a)) return a.map(x=> String(x)).filter(s=> s.trim());
+      if (typeof a === "string") return a.trim() ? [a] : [];
+    } catch(e){}
+    return String(v).trim() ? [String(v)] : [];
+  }
+
   async function pageSettings(){
     const ss = await rpc("admin_settings");
+    const get = (k)=> (ss.find(s=> s.key === k) || {}).value || "";
+    banners = parseBanners(get("notice_banner"));
+
+    const yn = (k, label, help)=>
+      '<div class="f"><label>'+label+'</label><select id="'+k+'">'
+      + '<option value="true"'  + (get(k) !== "false" ? " selected" : "") + '>사용함</option>'
+      + '<option value="false"' + (get(k) === "false" ? " selected" : "") + '>사용 안 함</option>'
+      + '</select><p class="muted" style="margin:5px 0 0;font-size:11.5px">'+help+'</p></div>';
+
     $("page").innerHTML =
-      '<div class="card"><h3>사이트 설정</h3>'
-      + ss.map(s=>{
-          const [label, help] = SETTING_LABEL[s.key] || [s.key, ""];
-          return '<div class="f"><label>'+esc(label)+' <span class="muted">('+esc(s.key)+')</span></label>'
-               + '<input data-k="'+esc(s.key)+'" value="'+esc(s.value||"")+'">'
-               + (help ? '<p class="muted" style="margin:5px 0 0;font-size:11.5px">'+esc(help)+'</p>' : '')
-               + '</div>';
-        }).join("")
-      + '<div class="dlg-btns"><button class="b pri" id="sSave">저장</button></div></div>'
+      '<div class="card"><h3>공지 배너</h3>'
+      + '<p class="muted" style="margin:-6px 0 14px;font-size:12px">'
+      + '타이머·커뮤니티 화면 맨 위에 표시됩니다. 여러 개를 넣으면 위에서부터 순서대로 쌓입니다 (최대 5개).</p>'
+      + '<div id="bList"></div>'
+      + '<button class="b" id="bAdd" style="margin-top:8px">+ 배너 추가</button>'
+      + '</div>'
+      + '<div class="card"><h3>기능 켜고 끄기</h3>'
+      + yn("board_enabled",   "커뮤니티",
+           "끄면 학생 화면에서 커뮤니티 탭이 사라집니다. 글과 자료는 지워지지 않습니다.")
+      + yn("ranking_enabled", "랭킹",
+           "끄면 랭킹 카드가 숨겨집니다. 공부 기록은 계속 쌓입니다.")
+      + '</div>'
+      + '<div class="card"><div class="dlg-btns" style="margin:0">'
+      + '<button class="b pri" id="sSave">전체 저장</button></div></div>'
       + '<div class="card"><h3>참고</h3>'
       + '<p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.8">'
-      + '· 학교 도메인 제한과 하루 공부시간 상한은 데이터베이스(schema.sql)에서 관리해요.<br>'
+      + '· 학교 도메인 제한과 하루 공부시간 상한은 데이터베이스에서 관리합니다.<br>'
       + '· 관리자 지정은 <b>사용자</b> 메뉴에서 역할을 admin 으로 바꾸면 됩니다.</p></div>';
 
-    $("sSave").onclick = async ()=>{
-      const inputs = $("page").querySelectorAll("[data-k]");
-      for (const i of inputs) await rpc("admin_set_setting", { p_key: i.dataset.k, p_value: i.value });
-      toast("저장했어요.");
+    renderBanners();
+    $("bAdd").onclick = ()=>{
+      if (banners.length >= 5){ toast("배너는 5개까지예요."); return; }
+      banners.push(""); renderBanners();
+      const inputs = $("bList").querySelectorAll("input");
+      if (inputs.length) inputs[inputs.length-1].focus();
     };
+    $("sSave").onclick = async ()=>{
+      collectBanners();
+      const clean = banners.filter(t=> t.trim());
+      await rpc("admin_set_setting", { p_key: "notice_banner", p_value: JSON.stringify(clean) });
+      await rpc("admin_set_setting", { p_key: "board_enabled",   p_value: $("board_enabled").value });
+      await rpc("admin_set_setting", { p_key: "ranking_enabled", p_value: $("ranking_enabled").value });
+      banners = clean; renderBanners();
+      toast("저장했어요. 학생 화면은 새로고침하면 반영됩니다.");
+    };
+  }
+
+  function collectBanners(){
+    banners = Array.from($("bList").querySelectorAll("input")).map(i=> i.value);
+  }
+
+  function renderBanners(){
+    const box = $("bList");
+    if (!banners.length){
+      box.innerHTML = '<p class="muted" style="font-size:12.5px;margin:0">'
+        + '배너가 없습니다. 아래 버튼으로 추가하세요.</p>';
+      return;
+    }
+    box.innerHTML = banners.map((t,i)=>
+      '<div style="display:flex;gap:8px;margin-bottom:8px">'
+      + '<span class="muted" style="width:18px;line-height:36px;text-align:center">'+(i+1)+'</span>'
+      + '<input value="'+esc(t)+'" maxlength="120" placeholder="예) 중간고사 D-14, 다들 화이팅!" style="flex:1">'
+      + '<button class="b danger" data-bx="'+i+'">삭제</button></div>').join("");
+    box.querySelectorAll("[data-bx]").forEach(b=> b.onclick = ()=>{
+      collectBanners();
+      banners.splice(Number(b.dataset.bx), 1);
+      renderBanners();
+    });
   }
 
   /* ---------- 페이지네이션 ---------- */

@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>순공 타이머 · 관리자</title>
+<style>
+  :root{
+    --bg:#f2f6fb; --card:#fff; --ink:#1e2a3a; --ink-soft:#5b7091; --ink-faint:#93a6c0;
+    --line:#e2ebf6; --blue:#2f6fd0; --blue-dark:#245bad; --blue-soft:#e8f0fc; --blue-tint:#f6f9fe;
+    --red:#c25b5b; --red-soft:#fdf1f1; --green:#4fa89e;
+    --shadow:0 1px 2px rgba(31,58,102,.04), 0 8px 24px rgba(31,58,102,.06);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+    -webkit-font-smoothing:antialiased; font-size:14px;
+  }
+  a{color:var(--blue)}
+
+  /* 레이아웃 */
+  .shell{display:grid; grid-template-columns:212px minmax(0,1fr); min-height:100vh}
+  .side{background:#fff; border-right:1px solid var(--line); padding:22px 14px; position:sticky; top:0; height:100vh}
+  .side .logo{display:flex; align-items:center; gap:9px; padding:0 8px 20px; }
+  .side .logo b{font-size:15px; letter-spacing:-.3px}
+  .side .logo i{width:9px;height:9px;border-radius:50%;background:var(--blue);
+                box-shadow:0 0 0 4px var(--blue-soft); font-style:normal}
+  .side nav{display:flex; flex-direction:column; gap:2px}
+  .side nav button{
+    display:flex; align-items:center; gap:9px; text-align:left; width:100%;
+    background:none; border:0; padding:10px 12px; border-radius:10px; cursor:pointer;
+    font-family:inherit; font-size:13.5px; font-weight:600; color:var(--ink-soft); letter-spacing:-.2px;
+  }
+  .side nav button:hover{background:var(--blue-tint); color:var(--ink)}
+  .side nav button.on{background:var(--blue); color:#fff}
+  .side .foot{position:absolute; bottom:18px; left:14px; right:14px; font-size:11.5px; color:var(--ink-faint)}
+  .side .foot a{display:block; margin-bottom:8px; text-decoration:none; font-weight:600}
+
+  .main{padding:28px 32px 60px; min-width:0}
+  .head{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px; flex-wrap:wrap}
+  .head h1{margin:0; font-size:21px; letter-spacing:-.5px}
+  .head .who{font-size:12.5px; color:var(--ink-faint)}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px;
+        box-shadow:var(--shadow); padding:20px 22px; margin-bottom:18px}
+  .card h3{margin:0 0 14px; font-size:12px; font-weight:700; letter-spacing:.9px;
+           text-transform:uppercase; color:var(--ink-faint)}
+
+  /* 통계 */
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:18px}
+  .kpi{background:#fff; border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow)}
+  .kpi b{display:block; font-size:23px; letter-spacing:-.8px; font-variant-numeric:tabular-nums;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .kpi span{display:block; margin-top:4px; font-size:11.5px; color:var(--ink-faint)}
+  .kpi.blue b{color:var(--blue-dark)}
+
+  .bars{display:flex; align-items:flex-end; gap:6px; height:130px; padding-top:8px}
+  .bars div{flex:1; background:var(--blue-soft); border-radius:5px 5px 0 0; position:relative; min-height:2px}
+  .bars div i{position:absolute; inset:auto 0 -19px; text-align:center; font-size:9.5px;
+              color:var(--ink-faint); font-style:normal}
+  .bars div b{position:absolute; inset:-17px 0 auto; text-align:center; font-size:9.5px;
+              color:var(--ink-soft); font-weight:600}
+  .bars div.today{background:var(--blue)}
+
+  /* 툴바 */
+  .tools{display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap}
+  input, select, textarea{
+    padding:9px 12px; border:1px solid var(--line); border-radius:10px; font-family:inherit;
+    font-size:13px; background:var(--blue-tint); color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{outline:0; border-color:var(--blue); background:#fff}
+  .grow{flex:1}
+  button.b{
+    padding:9px 14px; border-radius:10px; border:1px solid var(--line); background:#fff;
+    font-family:inherit; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer;
+  }
+  button.b:hover{background:var(--blue-tint); color:var(--ink)}
+  button.b.pri{background:var(--blue); border-color:var(--blue); color:#fff}
+  button.b.pri:hover{background:var(--blue-dark)}
+  button.b.danger{color:var(--red); border-color:#f0dada}
+  button.b.danger:hover{background:var(--red-soft)}
+  button.b.sm{padding:5px 10px; font-size:12px; border-radius:8px}
+
+  /* 표 */
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th{
+    text-align:left; font-size:11px; font-weight:700; letter-spacing:.5px; color:var(--ink-faint);
+    padding:0 10px 10px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  td{padding:11px 10px; border-bottom:1px solid var(--line); vertical-align:middle}
+  tr:hover td{background:var(--blue-tint)}
+  td.num{font-variant-numeric:tabular-nums; white-space:nowrap}
+  td.act{text-align:right; white-space:nowrap}
+  .tag{display:inline-block; padding:3px 8px; border-radius:7px; font-size:11px; font-weight:700}
+  .tag.admin{background:#e9e2fb; color:#5b3fb0}
+  .tag.teacher{background:var(--blue-soft); color:var(--blue-dark)}
+  .tag.student{background:#eef2f8; color:var(--ink-soft)}
+  .tag.ban{background:var(--red-soft); color:var(--red)}
+  .tag.hid{background:#f4f0e6; color:#96762e}
+  .muted{color:var(--ink-faint)}
+  .empty{padding:26px 4px; text-align:center; color:var(--ink-faint); font-size:13px}
+
+  .pager{display:flex; gap:6px; justify-content:center; margin-top:16px}
+  .pager button{min-width:30px;height:30px;border:1px solid var(--line);background:#fff;
+                border-radius:8px;font-size:12px;color:var(--ink-soft);cursor:pointer}
+  .pager button.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+  .pager button:disabled{opacity:.35}
+
+  /* 모달 */
+  .back{position:fixed; inset:0; background:rgba(24,40,66,.4); display:none;
+        align-items:center; justify-content:center; padding:20px; z-index:50}
+  .back.on{display:flex}
+  .dlg{background:#fff; border-radius:18px; padding:24px; width:100%; max-width:520px;
+       max-height:86vh; overflow:auto; box-shadow:0 24px 60px rgba(24,40,66,.25)}
+  .dlg h3{margin:0 0 4px; font-size:17px; letter-spacing:-.4px; text-transform:none;
+          color:var(--ink); font-weight:700}
+  .dlg .sub{margin:0 0 18px; font-size:12.5px; color:var(--ink-faint)}
+  .f{margin-bottom:12px}
+  .f label{display:block; font-size:11.5px; font-weight:700; color:var(--ink-faint); margin-bottom:5px}
+  .f input, .f select, .f textarea{width:100%}
+  .f textarea{min-height:90px; resize:vertical; line-height:1.6}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .dlg-btns{display:flex; gap:8px; justify-content:flex-end; margin-top:18px}
+  .err{color:var(--red); font-size:12.5px; min-height:17px; margin:6px 0 0}
+
+  /* 로그인/권한 */
+  .gate{max-width:420px; margin:14vh auto; text-align:center}
+  .gate .card{padding:34px 28px}
+  .gate h2{margin:0 0 10px; font-size:19px; letter-spacing:-.4px}
+  .gate p{margin:0 0 20px; color:var(--ink-soft); font-size:13.5px; line-height:1.6}
+
+  #toast{
+    position:fixed; left:50%; bottom:28px; transform:translate(-50%,16px); opacity:0;
+    background:#22314a; color:#fff; padding:12px 18px; border-radius:11px; font-size:13.5px;
+    transition:.22s; pointer-events:none; z-index:80;
+  }
+  #toast.on{opacity:1; transform:translate(-50%,0)}
+
+  @media (max-width:820px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static; height:auto; border-right:0; border-bottom:1px solid var(--line)}
+    .side nav{flex-direction:row; overflow-x:auto}
+    .side .foot{position:static; margin-top:14px}
+    .main{padding:20px 16px 50px}
+  }
+</style>
+</head>
+<body>
+
+<!-- 로그인 / 권한 안내 -->
+<div id="gate" class="gate" style="display:none">
+  <div class="card">
+    <h2 id="gTitle">관리자 로그인</h2>
+    <p id="gText">학교 구글 계정으로 로그인해주세요.</p>
+    <button class="b pri" id="gBtn">구글 계정으로 로그인</button>
+    <p style="margin-top:16px"><a href="index.html">← 타이머로 돌아가기</a></p>
+  </div>
+</div>
+
+<!-- 관리자 화면 -->
+<div class="shell" id="shell" style="display:none">
+  <aside class="side">
+    <div class="logo"><i></i><b>관리자</b></div>
+    <nav id="nav">
+      <button data-p="dash" class="on">대시보드</button>
+      <button data-p="users">사용자</button>
+      <button data-p="records">공부 기록</button>
+      <button data-p="groups">그룹</button>
+      <button data-p="posts">게시글</button>
+      <button data-p="comments">댓글</button>
+      <button data-p="cats">게시판 설정</button>
+      <button data-p="settings">사이트 설정</button>
+    </nav>
+    <div class="foot">
+      <a href="index.html">← 타이머 화면</a>
+      <span id="whoAmI"></span>
+      <button class="b sm" id="logout" style="margin-top:8px">로그아웃</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="head">
+      <h1 id="pageTitle">대시보드</h1>
+      <div class="who" id="headNote"></div>
+    </div>
+    <div id="page"></div>
+  </main>
+</div>
+
+<!-- 공용 모달 -->
+<div class="back" id="modal"><div class="dlg" id="dlg"></div></div>
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+  "use strict";
+  const CFG = window.APP_CONFIG || {};
+  const $ = (id)=> document.getElementById(id);
+  const esc = (s)=> String(s==null?"":s).replace(/[&<>"]/g, c=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+  const cleanErr = (e)=> String((e&&e.message)||e).replace(/^.*?:\s*/, "");
+
+  let sb = null, meRole = "guest", meNick = "";
+
+  /* ---------- 공통 UI ---------- */
+  let toastT;
+  function toast(msg){
+    $("toast").textContent = msg; $("toast").classList.add("on");
+    clearTimeout(toastT); toastT = setTimeout(()=> $("toast").classList.remove("on"), 3000);
+  }
+  function openDlg(html){ $("dlg").innerHTML = html; $("modal").classList.add("on"); }
+  function closeDlg(){ $("modal").classList.remove("on"); }
+  $("modal").onclick = (e)=>{ if (e.target.id === "modal") closeDlg(); };
+  document.addEventListener("keydown", e=>{ if (e.key === "Escape") closeDlg(); });
+
+  const hhm = (sec)=>{
+    sec = Math.floor(sec||0);
+    const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60);
+    return h ? h+"시간 "+m+"분" : m+"분";
+  };
+  const dt = (ts)=>{
+    if (!ts) return "-";
+    const d = new Date(ts);
+    return d.getFullYear()+"."+String(d.getMonth()+1).padStart(2,"0")+"."
+         + String(d.getDate()).padStart(2,"0")+" "+String(d.getHours()).padStart(2,"0")
+         + ":"+String(d.getMinutes()).padStart(2,"0");
+  };
+  const ymd = (ts)=> ts ? String(ts).slice(0,10) : "-";
+
+  async function rpc(fn, args){
+    const { data, error } = await sb.rpc(fn, args || {});
+    if (error) throw error;
+    return data;
+  }
+
+  /* ---------- 진입 ---------- */
+  async function boot(){
+    if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY || !window.supabase){
+      $("gate").style.display = "block";
+      $("gTitle").textContent = "서버가 연결되지 않았어요";
+      $("gText").textContent = "config.js 에 Supabase 주소와 키를 넣어주세요.";
+      $("gBtn").style.display = "none";
+      return;
+    }
+    sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    sb.auth.onAuthStateChange(()=> check());
+    check();
+  }
+
+  async function check(){
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session){ showGate("관리자 로그인", "학교 구글 계정으로 로그인해주세요.", true); return; }
+
+    let info = null;
+    try { info = await rpc("am_i_admin"); } catch(e){}
+    meRole = (info && info.role) || "guest";
+    meNick = (info && info.nickname) || "";
+
+    if (meRole !== "admin"){
+      showGate("접근 권한이 없어요",
+        "이 페이지는 관리자만 볼 수 있어요. 관리자 계정으로 로그인하거나, "
+        + "관리자에게 권한을 요청하세요. (현재: " + esc(session.user.email || "") + ")", false);
+      return;
+    }
+    $("gate").style.display = "none";
+    $("shell").style.display = "grid";
+    $("whoAmI").textContent = meNick + " · 관리자";
+    go("dash");
+  }
+
+  function showGate(title, text, showLogin){
+    $("shell").style.display = "none";
+    $("gate").style.display = "block";
+    $("gTitle").textContent = title;
+    $("gText").textContent = text;
+    $("gBtn").style.display = showLogin ? "" : "none";
+    $("gBtn").textContent = "구글 계정으로 로그인";
+  }
+
+  $("gBtn").onclick = ()=>{
+    const q = { prompt:"select_account" };
+    if (CFG.SCHOOL_DOMAIN) q.hd = CFG.SCHOOL_DOMAIN;
+    sb.auth.signInWithOAuth({ provider:"google",
+      options:{ redirectTo: location.href.split("#")[0], queryParams:q }});
+  };
+  $("logout").onclick = async ()=>{ await sb.auth.signOut(); location.reload(); };
+
+  /* ---------- 라우팅 ---------- */
+  const PAGES = {
+    dash:     ["대시보드",     pageDash],
+    users:    ["사용자",       pageUsers],
+    records:  ["공부 기록",    pageRecords],
+    groups:   ["그룹",         pageGroups],
+    posts:    ["게시글",       pagePosts],
+    comments: ["댓글",         pageComments],
+    cats:     ["게시판 설정",  pageCats],
+    settings: ["사이트 설정",  pageSettings]
+  };
+  function go(p){
+    const [title, fn] = PAGES[p] || PAGES.dash;
+    document.querySelectorAll("#nav button").forEach(b=> b.classList.toggle("on", b.dataset.p === p));
+    $("pageTitle").textContent = title;
+    $("headNote").textContent = "";
+    $("page").innerHTML = '<div class="card"><div class="empty">불러오는 중…</div></div>';
+    fn().catch(e=> $("page").innerHTML = '<div class="card"><div class="empty">'+esc(cleanErr(e))+'</div></div>');
+  }
+  $("nav").onclick = (e)=>{ const b = e.target.closest("button[data-p]"); if (b) go(b.dataset.p); };
+
+  /* ===================== 대시보드 ===================== */
+  async function pageDash(){
+    const s = await rpc("admin_stats");
+    const daily = await rpc("admin_daily", { p_days: 14 });
+    const max = Math.max(1, ...daily.map(d=> Number(d.seconds)));
+
+    $("page").innerHTML =
+      '<div class="kpis">'
+      + kpi(s.users, "전체 사용자", true)
+      + kpi(s.users_today, "오늘 공부한 사람")
+      + kpi(Math.floor(s.seconds_today/3600) + "h " + Math.floor(s.seconds_today%3600/60) + "m", "오늘 총 공부시간")
+      + kpi(Math.floor(s.seconds_all/3600) + "시간", "누적 공부시간")
+      + kpi(s.sessions_today, "오늘 세션 수")
+      + kpi(s.groups, "그룹")
+      + kpi(s.posts, "게시글")
+      + kpi(s.comments, "댓글")
+      + '</div>'
+      + '<div class="card"><h3>최근 14일 공부량</h3><div class="bars">'
+      + daily.map((d,i)=>{
+          const h = Math.round(Number(d.seconds)/max*100);
+          return '<div class="'+(i===daily.length-1?"today":"")+'" style="height:'+Math.max(h,2)+'%">'
+               + '<b>'+(Number(d.seconds) ? Math.round(Number(d.seconds)/3600)+"h" : "")+'</b>'
+               + '<i>'+String(d.day).slice(5).replace("-","/")+'</i></div>';
+        }).join("")
+      + '</div><div style="height:22px"></div></div>'
+      + '<div class="card"><h3>알아두기</h3>'
+      + '<p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.8">'
+      + '· 정지된 계정: <b>'+s.banned+'</b>명 · 최근 7일 신규 가입: <b>'+s.new_users_7d+'</b>명<br>'
+      + '· 기록이 비정상적으로 많은 학생은 <b>공부 기록</b> 메뉴에서 날짜별로 수정·삭제할 수 있어요.'
+      + '</p></div>';
+  }
+  const kpi = (v, label, blue)=>
+    '<div class="kpi'+(blue?" blue":"")+'"><b>'+esc(v)+'</b><span>'+label+'</span></div>';
+
+  /* ===================== 사용자 ===================== */
+  let uQ = "", uPage = 0;
+  async function pageUsers(){
+    $("page").innerHTML =
+      '<div class="card">'
+      + '<div class="tools"><input id="uSearch" placeholder="닉네임·이메일 검색" value="'+esc(uQ)+'">'
+      + '<button class="b" id="uGo">검색</button><span class="grow"></span>'
+      + '<span class="muted" id="uCount"></span></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>닉네임</th><th>이메일</th><th>역할</th><th>오늘</th><th>누적</th>'
+      + '<th>마지막 기록</th><th>가입</th><th></th></tr></thead><tbody id="uBody"></tbody></table></div>'
+      + '<div class="pager" id="uPager"></div></div>';
+
+    $("uGo").onclick = ()=>{ uQ = $("uSearch").value.trim(); uPage = 0; loadUsers(); };
+    $("uSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("uGo").click(); };
+    await loadUsers();
+  }
+
+  async function loadUsers(){
+    const rows = await rpc("admin_users", { p_q: uQ, p_limit: 30, p_offset: uPage*30 });
+    const total = rows.length ? Number(rows[0].total) : 0;
+    $("uCount").textContent = total + "명";
+    $("uBody").innerHTML = rows.length ? rows.map(u=>
+      '<tr><td><b>'+esc(u.nickname)+'</b>'+(u.banned?' <span class="tag ban">정지</span>':'')
+      + (u.show_rank ? '' : ' <span class="tag hid">랭킹숨김</span>')+'</td>'
+      + '<td class="muted">'+esc(u.email)+'</td>'
+      + '<td><span class="tag '+u.role+'">'+u.role+'</span></td>'
+      + '<td class="num">'+hhm(u.today_seconds)+'</td>'
+      + '<td class="num">'+hhm(u.total_seconds)+'</td>'
+      + '<td class="num muted">'+ymd(u.last_day)+'</td>'
+      + '<td class="num muted">'+ymd(u.created_at)+'</td>'
+      + '<td class="act"><button class="b sm" data-edit="'+u.id+'">관리</button> '
+      + '<button class="b sm" data-rec="'+u.id+'">기록</button></td></tr>'
+    ).join("") : '<tr><td colspan="8" class="empty">사용자가 없어요.</td></tr>';
+
+    pager($("uPager"), total, 30, uPage, p=>{ uPage = p; loadUsers(); });
+
+    $("uBody").querySelectorAll("[data-edit]").forEach(b=>{
+      b.onclick = ()=> editUser(rows.find(r=> r.id === b.dataset.edit));
+    });
+    $("uBody").querySelectorAll("[data-rec]").forEach(b=>{
+      b.onclick = ()=>{ recUser = rows.find(r=> r.id === b.dataset.rec); go("records"); };
+    });
+  }
+
+  function editUser(u){
+    openDlg(
+      '<h3>'+esc(u.nickname)+' 관리</h3><p class="sub">'+esc(u.email)+'</p>'
+      + '<div class="f"><label>닉네임</label><input id="eNick" value="'+esc(u.nickname)+'" maxlength="12"></div>'
+      + '<div class="row2">'
+      +   '<div class="f"><label>역할</label><select id="eRole">'
+      +     ['student','teacher','admin'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>').join("")
+      +   '</select></div>'
+      +   '<div class="f"><label>상태</label><select id="eBan">'
+      +     '<option value="false"'+(!u.banned?' selected':'')+'>정상</option>'
+      +     '<option value="true"'+(u.banned?' selected':'')+'>정지 (글·댓글 금지)</option>'
+      +   '</select></div>'
+      + '</div>'
+      + '<div class="f"><label>랭킹 표시</label><select id="eRank">'
+      +   '<option value="true"'+(u.show_rank?' selected':'')+'>표시</option>'
+      +   '<option value="false"'+(!u.show_rank?' selected':'')+'>숨김</option></select></div>'
+      + '<p class="err" id="eErr"></p>'
+      + '<div class="dlg-btns">'
+      +   '<button class="b danger" id="eDel">계정 삭제</button><span class="grow"></span>'
+      +   '<button class="b" id="eCancel">취소</button>'
+      +   '<button class="b pri" id="eSave">저장</button></div>');
+
+    $("eCancel").onclick = closeDlg;
+    $("eSave").onclick = async ()=>{
+      try{
+        await rpc("admin_update_user", {
+          p_id: u.id, p_nickname: $("eNick").value.trim(),
+          p_role: $("eRole").value,
+          p_banned: $("eBan").value === "true",
+          p_show_rank: $("eRank").value === "true"
+        });
+        closeDlg(); toast("저장했어요."); loadUsers();
+      }catch(e){ $("eErr").textContent = cleanErr(e); }
+    };
+    $("eDel").onclick = async ()=>{
+      if (!confirm(u.nickname + " 계정과 모든 기록을 삭제할까요?\n되돌릴 수 없습니다.")) return;
+      try{ await rpc("admin_delete_user", { p_id: u.id }); closeDlg(); toast("삭제했어요."); loadUsers(); }
+      catch(e){ $("eErr").textContent = cleanErr(e); }
+    };
+  }
+
+  /* ===================== 공부 기록 ===================== */
+  let recUser = null;
+  async function pageRecords(){
+    if (!recUser){
+      $("page").innerHTML =
+        '<div class="card"><div class="tools">'
+        + '<input id="rSearch" placeholder="학생 닉네임·이메일로 찾기" class="grow">'
+        + '<button class="b pri" id="rGo">찾기</button></div>'
+        + '<div id="rList"><div class="empty">학생을 검색하면 날짜별 기록을 보고 고칠 수 있어요.</div></div></div>';
+      $("rGo").onclick = async ()=>{
+        const rows = await rpc("admin_users", { p_q: $("rSearch").value.trim(), p_limit: 20 });
+        $("rList").innerHTML = rows.length
+          ? '<div class="tbl-wrap"><table><tbody>' + rows.map(u=>
+              '<tr><td><b>'+esc(u.nickname)+'</b> <span class="muted">'+esc(u.email)+'</span></td>'
+              + '<td class="num">'+hhm(u.total_seconds)+'</td>'
+              + '<td class="act"><button class="b sm" data-pick="'+u.id+'">기록 보기</button></td></tr>').join("")
+            + '</tbody></table></div>'
+          : '<div class="empty">결과가 없어요.</div>';
+        $("rList").querySelectorAll("[data-pick]").forEach(b=>{
+          b.onclick = ()=>{ recUser = rows.find(r=> r.id === b.dataset.pick); pageRecords(); };
+        });
+      };
+      $("rSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("rGo").click(); };
+      return;
+    }
+
+    const days = await rpc("admin_user_days", { p_id: recUser.id, p_days: 60 });
+    const sess = await rpc("admin_user_sessions", { p_id: recUser.id, p_limit: 30 });
+    $("headNote").textContent = recUser.nickname + " · " + recUser.email;
+
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<button class="b" id="rBack">← 다른 학생</button><span class="grow"></span>'
+      + '<button class="b pri" id="rAdd">날짜 기록 추가/수정</button></div>'
+      + '<h3>날짜별 기록 (최근 60일)</h3><div class="tbl-wrap"><table><thead><tr>'
+      + '<th>날짜</th><th>공부시간</th><th>마지막 저장</th><th></th></tr></thead><tbody>'
+      + (days.length ? days.map(d=>
+          '<tr><td class="num">'+d.day+'</td><td class="num">'+hhm(d.seconds)+'</td>'
+          + '<td class="num muted">'+dt(d.updated_at)+'</td>'
+          + '<td class="act"><button class="b sm" data-d="'+d.day+'" data-s="'+d.seconds+'">수정</button> '
+          + '<button class="b sm danger" data-dd="'+d.day+'">삭제</button></td></tr>').join("")
+        : '<tr><td colspan="4" class="empty">기록이 없어요.</td></tr>')
+      + '</tbody></table></div></div>'
+      + '<div class="card"><h3>최근 세션</h3><div class="tbl-wrap"><table><thead><tr>'
+      + '<th>날짜</th><th>시작</th><th>종료</th><th>시간</th><th>종류</th><th></th></tr></thead><tbody>'
+      + (sess.length ? sess.map(s=>
+          '<tr><td class="num">'+s.day+'</td><td class="num">'+dt(s.started_at).slice(11)+'</td>'
+          + '<td class="num">'+dt(s.ended_at).slice(11)+'</td><td class="num">'+hhm(s.seconds)+'</td>'
+          + '<td>'+(s.target_seconds ? Math.round(s.target_seconds/60)+'분 포모' : '순공')+'</td>'
+          + '<td class="act"><button class="b sm danger" data-ds="'+s.id+'">삭제</button></td></tr>').join("")
+        : '<tr><td colspan="6" class="empty">세션이 없어요.</td></tr>')
+      + '</tbody></table></div></div>';
+
+    $("rBack").onclick = ()=>{ recUser = null; $("headNote").textContent=""; pageRecords(); };
+    $("rAdd").onclick  = ()=> editDay("", 0);
+    $("page").querySelectorAll("[data-d]").forEach(b=>
+      b.onclick = ()=> editDay(b.dataset.d, Number(b.dataset.s)));
+    $("page").querySelectorAll("[data-dd]").forEach(b=> b.onclick = async ()=>{
+      if (!confirm(b.dataset.dd + " 기록을 삭제할까요?")) return;
+      await rpc("admin_set_day", { p_id: recUser.id, p_day: b.dataset.dd, p_seconds: 0 });
+      toast("삭제했어요."); pageRecords();
+    });
+    $("page").querySelectorAll("[data-ds]").forEach(b=> b.onclick = async ()=>{
+      if (!confirm("이 세션 기록을 삭제할까요? (날짜 합계는 따로 수정해야 해요)")) return;
+      await rpc("admin_delete_session", { p_id: Number(b.dataset.ds) });
+      toast("삭제했어요."); pageRecords();
+    });
+  }
+
+  function editDay(day, sec){
+    openDlg(
+      '<h3>기록 수정</h3><p class="sub">'+esc(recUser.nickname)+' · 시간을 0으로 두면 삭제됩니다</p>'
+      + '<div class="row2">'
+      + '<div class="f"><label>날짜</label><input type="date" id="dDay" value="'+esc(day)+'"></div>'
+      + '<div class="f"><label>공부 시간(분)</label><input type="number" id="dMin" min="0" max="1080" value="'+Math.round(sec/60)+'"></div>'
+      + '</div><p class="err" id="dErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="dCancel">취소</button>'
+      + '<button class="b pri" id="dSave">저장</button></div>');
+    $("dCancel").onclick = closeDlg;
+    $("dSave").onclick = async ()=>{
+      const d = $("dDay").value;
+      if (!d){ $("dErr").textContent = "날짜를 선택해주세요."; return; }
+      try{
+        await rpc("admin_set_day", { p_id: recUser.id, p_day: d,
+                                     p_seconds: Math.round(Number($("dMin").value||0) * 60) });
+        closeDlg(); toast("저장했어요."); pageRecords();
+      }catch(e){ $("dErr").textContent = cleanErr(e); }
+    };
+  }
+
+  /* ===================== 그룹 ===================== */
+  async function pageGroups(){
+    const gs = await rpc("admin_groups");
+    $("page").innerHTML =
+      '<div class="card"><h3>그룹 '+gs.length+'개</h3><div class="tbl-wrap"><table><thead><tr>'
+      + '<th>이름</th><th>초대코드</th><th>방장</th><th>인원</th><th>생성</th><th></th>'
+      + '</tr></thead><tbody>'
+      + (gs.length ? gs.map(g=>
+          '<tr><td><b>'+esc(g.name)+'</b></td><td class="num">'+esc(g.code)+'</td>'
+          + '<td class="muted">'+esc(g.owner||"-")+'</td><td class="num">'+g.members+'명</td>'
+          + '<td class="num muted">'+ymd(g.created_at)+'</td>'
+          + '<td class="act"><button class="b sm" data-gm="'+g.id+'">멤버</button> '
+          + '<button class="b sm" data-gr="'+g.id+'" data-n="'+esc(g.name)+'">이름</button> '
+          + '<button class="b sm danger" data-gd="'+g.id+'">삭제</button></td></tr>').join("")
+        : '<tr><td colspan="6" class="empty">그룹이 없어요.</td></tr>')
+      + '</tbody></table></div></div>';
+
+    $("page").querySelectorAll("[data-gm]").forEach(b=> b.onclick = async ()=>{
+      const ms = await rpc("admin_group_members", { p_group: Number(b.dataset.gm) });
+      openDlg('<h3>그룹 멤버</h3><p class="sub">'+ms.length+'명</p><div class="tbl-wrap"><table><tbody>'
+        + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname)+'</b></td>'
+            + '<td class="num muted">'+ymd(m.joined_at)+' 참여</td>'
+            + '<td class="num">오늘 '+hhm(m.today_seconds)+'</td></tr>').join("")
+           : '<tr><td class="empty">멤버가 없어요.</td></tr>')
+        + '</tbody></table></div><div class="dlg-btns"><button class="b" onclick="this.closest(\'.back\').classList.remove(\'on\')">닫기</button></div>');
+    });
+    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
+      const n = prompt("새 그룹 이름", b.dataset.n); if (!n) return;
+      await rpc("admin_save_group", { p_id: Number(b.dataset.gr), p_name: n });
+      toast("바꿨어요."); pageGroups();
+    });
+    $("page").querySelectorAll("[data-gd]").forEach(b=> b.onclick = async ()=>{
+      if (!confirm("그룹을 삭제할까요? 멤버들의 공부 기록은 남습니다.")) return;
+      await rpc("admin_delete_group", { p_id: Number(b.dataset.gd) });
+      toast("삭제했어요."); pageGroups();
+    });
+  }
+
+  /* ===================== 게시글 ===================== */
+  let pQ = "", pPage = 0;
+  async function pagePosts(){
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<input id="pSearch" placeholder="제목·작성자 검색" value="'+esc(pQ)+'">'
+      + '<button class="b" id="pGo">검색</button><span class="grow"></span>'
+      + '<a href="index.html" class="b" style="text-decoration:none;padding:9px 14px">글쓰기는 커뮤니티에서 →</a></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>게시판</th><th>제목</th><th>작성자</th><th>조회</th><th>댓글</th><th>작성일</th><th></th>'
+      + '</tr></thead><tbody id="pBody"></tbody></table></div>'
+      + '<div class="pager" id="pPager"></div></div>';
+    $("pGo").onclick = ()=>{ pQ = $("pSearch").value.trim(); pPage = 0; loadPosts(); };
+    $("pSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("pGo").click(); };
+    await loadPosts();
+  }
+
+  async function loadPosts(){
+    const rows = await rpc("admin_posts", { p_q: pQ, p_limit: 30, p_offset: pPage*30 });
+    const total = rows.length ? Number(rows[0].total) : 0;
+    $("pBody").innerHTML = rows.length ? rows.map(p=>
+      '<tr><td><span class="tag teacher">'+esc(p.category_name)+'</span></td>'
+      + '<td>'+(p.pinned?'📌 ':'')+'<b>'+esc(p.title)+'</b>'
+      +   (p.hidden?' <span class="tag hid">숨김</span>':'')+'</td>'
+      + '<td class="muted">'+esc(p.author||"-")+'</td>'
+      + '<td class="num">'+p.views+'</td><td class="num">'+p.comment_count+'</td>'
+      + '<td class="num muted">'+ymd(p.created_at)+'</td>'
+      + '<td class="act">'
+      +   '<button class="b sm" data-pin="'+p.id+'" data-v="'+(!p.pinned)+'">'+(p.pinned?'고정해제':'고정')+'</button> '
+      +   '<button class="b sm" data-hid="'+p.id+'" data-v="'+(!p.hidden)+'">'+(p.hidden?'공개':'숨김')+'</button> '
+      +   '<button class="b sm danger" data-pd="'+p.id+'">삭제</button></td></tr>'
+    ).join("") : '<tr><td colspan="7" class="empty">게시글이 없어요.</td></tr>';
+
+    pager($("pPager"), total, 30, pPage, n=>{ pPage = n; loadPosts(); });
+
+    $("pBody").querySelectorAll("[data-pin]").forEach(b=> b.onclick = async ()=>{
+      await rpc("admin_set_post", { p_id:Number(b.dataset.pin), p_pinned: b.dataset.v === "true" });
+      loadPosts();
+    });
+    $("pBody").querySelectorAll("[data-hid]").forEach(b=> b.onclick = async ()=>{
+      await rpc("admin_set_post", { p_id:Number(b.dataset.hid), p_hidden: b.dataset.v === "true" });
+      loadPosts();
+    });
+    $("pBody").querySelectorAll("[data-pd]").forEach(b=> b.onclick = async ()=>{
+      if (!confirm("글과 댓글, 첨부파일을 모두 삭제할까요?")) return;
+      const id = Number(b.dataset.pd);
+      // 첨부파일은 저장소에서도 지웁니다 (폴더 이름 = 글 번호)
+      try{
+        const { data: files } = await sb.storage.from("attachments").list(String(id));
+        if (files && files.length)
+          await sb.storage.from("attachments").remove(files.map(f=> id + "/" + f.name));
+      }catch(e){}
+      await rpc("delete_post", { p_id: id });
+      toast("삭제했어요."); loadPosts();
+    });
+  }
+
+  /* ===================== 댓글 ===================== */
+  let cQ = "", cPage = 0;
+  async function pageComments(){
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<input id="cSearch" placeholder="내용·작성자 검색" value="'+esc(cQ)+'">'
+      + '<button class="b" id="cGo">검색</button></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>내용</th><th>작성자</th><th>원글</th><th>작성일</th><th></th>'
+      + '</tr></thead><tbody id="cBody"></tbody></table></div>'
+      + '<div class="pager" id="cPager"></div></div>';
+    $("cGo").onclick = ()=>{ cQ = $("cSearch").value.trim(); cPage = 0; loadComments(); };
+    $("cSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("cGo").click(); };
+    await loadComments();
+  }
+
+  async function loadComments(){
+    const rows = await rpc("admin_comments", { p_q: cQ, p_limit: 30, p_offset: cPage*30 });
+    const total = rows.length ? Number(rows[0].total) : 0;
+    $("cBody").innerHTML = rows.length ? rows.map(c=>
+      '<tr><td>'+esc(c.body.length > 60 ? c.body.slice(0,60)+"…" : c.body)+'</td>'
+      + '<td class="muted">'+esc(c.author||"-")+'</td>'
+      + '<td class="muted">'+esc(c.post_title)+'</td>'
+      + '<td class="num muted">'+ymd(c.created_at)+'</td>'
+      + '<td class="act"><button class="b sm danger" data-cd="'+c.id+'">삭제</button></td></tr>'
+    ).join("") : '<tr><td colspan="5" class="empty">댓글이 없어요.</td></tr>';
+
+    pager($("cPager"), total, 30, cPage, n=>{ cPage = n; loadComments(); });
+    $("cBody").querySelectorAll("[data-cd]").forEach(b=> b.onclick = async ()=>{
+      if (!confirm("댓글을 삭제할까요?")) return;
+      await rpc("delete_comment", { p_id: Number(b.dataset.cd) });
+      toast("삭제했어요."); loadComments();
+    });
+  }
+
+  /* ===================== 게시판(과목) 설정 ===================== */
+  let allCats = [];
+
+  async function pageCats(){
+    allCats = await rpc("list_categories");
+    const live = allCats.filter(c=> !c.archived);
+    const old  = allCats.filter(c=>  c.archived);
+    const secs = [...new Set(live.map(c=> c.section || "").filter(Boolean))];
+
+    const row = (c)=>
+      '<tr'+(c.archived?' style="opacity:.6"':'')+'>'
+      + '<td class="num">'+c.sort+'</td>'
+      + '<td>'+(c.section ? '<span class="tag teacher">'+esc(c.section)+'</span>'
+                          : '<span class="muted">-</span>')+'</td>'
+      + '<td><b>'+esc(c.name)+'</b>'+(c.archived?' <span class="tag hid">보관</span>':'')+'</td>'
+      + '<td class="num muted">'+(c.posts||0)+'</td>'
+      + '<td class="muted">'+esc(c.slug)+'</td>'
+      + '<td>'+({all:"모두",teacher:"선생님·관리자",admin:"관리자만"}[c.write_role])+'</td>'
+      + '<td class="act">'
+      +   (c.archived ? ''
+            : '<button class="b sm" data-up="'+c.id+'">↑</button> '
+            + '<button class="b sm" data-dn="'+c.id+'">↓</button> ')
+      +   '<button class="b sm" data-ce="'+c.id+'">수정</button> '
+      +   '<button class="b sm" data-ar="'+c.id+'" data-v="'+(!c.archived)+'">'
+      +     (c.archived ? '되돌리기' : '보관')+'</button> '
+      +   '<button class="b sm danger" data-cx="'+c.id+'">삭제</button></td></tr>';
+
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<select id="secPick"><option value="">학기 정리할 구분 선택…</option>'
+      +   secs.map(s=>'<option value="'+esc(s)+'">'+esc(s)+' 통째로 보관</option>').join("")
+      + '</select><button class="b" id="secGo">보관</button>'
+      + '<span class="grow"></span><button class="b pri" id="cNew">게시판 추가</button></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>순서</th><th>구분</th><th>이름</th><th>글 수</th><th>주소(slug)</th>'
+      + '<th>글쓰기 권한</th><th></th></tr></thead><tbody>'
+      + live.map(row).join("")
+      + (old.length
+          ? '<tr><td colspan="7" style="padding-top:18px;font-size:11px;font-weight:700;'
+            + 'letter-spacing:.5px;color:var(--ink-faint)">지난 학기 (보관됨)</td></tr>'
+            + old.map(row).join("")
+          : "")
+      + '</tbody></table></div>'
+      + '<p class="muted" style="margin:14px 0 0;font-size:12px;line-height:1.9">'
+      + '· <b>구분</b>이 같은 게시판끼리 학생 화면에서 한 줄로 묶여 보입니다 '
+      + '(예: <b>1학년</b> · <b>2학년</b>).<br>'
+      + '· <b>보관</b>하면 학생 화면 맨 아래 "지난 학기" 줄로 내려가고, 새 글은 못 쓰지만 '
+      + '기존 글과 자료는 계속 볼 수 있습니다. 되돌리기도 한 번에 됩니다.<br>'
+      + '· <b>↑ ↓</b> 로 같은 구분 안에서 순서를 바꿉니다.<br>'
+      + '· 삭제는 글·댓글·첨부파일까지 영구히 사라집니다. 학기가 끝났을 뿐이라면 '
+      + '<b>삭제 대신 보관</b>을 쓰세요.</p></div>';
+
+    $("cNew").onclick = ()=> editCat(null);
+    $("secGo").onclick = async ()=>{
+      const s = $("secPick").value;
+      if (!s){ toast("구분을 선택해주세요."); return; }
+      if (!confirm('"'+s+'" 구분의 게시판을 모두 보관할까요?\n글은 그대로 남고 새 글만 막힙니다.')) return;
+      const n = await rpc("admin_archive_section", { p_section: s, p_archived: true });
+      toast(n + "개 게시판을 보관했어요."); pageCats();
+    };
+    $("page").querySelectorAll("[data-ce]").forEach(b=>
+      b.onclick = ()=> editCat(allCats.find(c=> String(c.id) === b.dataset.ce)));
+    $("page").querySelectorAll("[data-ar]").forEach(b=> b.onclick = async ()=>{
+      await rpc("admin_archive_category",
+        { p_id: Number(b.dataset.ar), p_archived: b.dataset.v === "true" });
+      toast(b.dataset.v === "true" ? "보관했어요." : "되돌렸어요."); pageCats();
+    });
+    $("page").querySelectorAll("[data-up]").forEach(b=> b.onclick = async ()=>{
+      await rpc("admin_move_category", { p_id: Number(b.dataset.up), p_dir: -1 }); pageCats();
+    });
+    $("page").querySelectorAll("[data-dn]").forEach(b=> b.onclick = async ()=>{
+      await rpc("admin_move_category", { p_id: Number(b.dataset.dn), p_dir: 1 }); pageCats();
+    });
+    $("page").querySelectorAll("[data-cx]").forEach(b=> b.onclick = async ()=>{
+      const c = allCats.find(x=> String(x.id) === b.dataset.cx);
+      if (!confirm('"'+c.name+'" 게시판과 안의 글 '+(c.posts||0)+'개를 영구 삭제할까요?\n'
+                   + '되돌릴 수 없습니다. 학기 정리라면 "보관"을 권해요.')) return;
+      await rpc("admin_delete_category", { p_id: c.id });
+      toast("삭제했어요."); pageCats();
+    });
+  }
+
+  function editCat(c){
+    const others = allCats.filter(x=> !c || x.id !== c.id);
+    openDlg(
+      '<h3>'+(c?"게시판 수정":"게시판 추가")+'</h3><p class="sub">주소(slug)는 영문 소문자로</p>'
+      + '<div class="row2">'
+      + '<div class="f"><label>이름</label><input id="kName" maxlength="20" value="'+esc(c?c.name:"")+'"></div>'
+      + '<div class="f"><label>주소(slug)</label><input id="kSlug" value="'+esc(c?c.slug:"")+'"></div></div>'
+      + '<div class="f"><label>구분 (학생 화면에서 이 이름으로 묶임)</label>'
+      + '<input id="kSec" list="secList" placeholder="예) 1학년" value="'+esc(c&&c.section?c.section:"")+'">'
+      + '<datalist id="secList"><option value="1학년"><option value="2학년"><option value="3학년">'
+      + '<option value="공통"><option value="공지"><option value="소통"></datalist></div>'
+      + '<div class="row2">'
+      + '<div class="f"><label>정렬 순서</label><input type="number" id="kSort" value="'+(c?c.sort:10)+'"></div>'
+      + '<div class="f"><label>글쓰기 권한</label><select id="kRole">'
+      +   '<option value="all"'+(c&&c.write_role==="all"?" selected":"")+'>모두</option>'
+      +   '<option value="teacher"'+(!c||c.write_role==="teacher"?" selected":"")+'>선생님·관리자</option>'
+      +   '<option value="admin"'+(c&&c.write_role==="admin"?" selected":"")+'>관리자만</option>'
+      + '</select></div></div>'
+      + '<div class="f"><label>상태</label><select id="kArch">'
+      +   '<option value="false"'+(!c||!c.archived?" selected":"")+'>사용 중</option>'
+      +   '<option value="true"'+(c&&c.archived?" selected":"")+'>보관 (지난 학기 · 새 글 금지)</option>'
+      + '</select></div>'
+      + (c && c.posts
+          ? '<div class="f"><label>이 게시판의 글 '+c.posts+'개를 다른 게시판으로 옮기기</label>'
+            + '<div style="display:flex;gap:8px"><select id="kMove" style="flex:1">'
+            + '<option value="">옮기지 않음</option>'
+            + others.map(x=>'<option value="'+x.id+'">'
+                + esc((x.section?x.section+" · ":"")+x.name)+(x.archived?" (보관)":"")+'</option>').join("")
+            + '</select><button class="b" id="kMoveGo">옮기기</button></div></div>'
+          : "")
+      + '<p class="err" id="kErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="kCancel">취소</button>'
+      + '<button class="b pri" id="kSave">저장</button></div>');
+
+    $("kCancel").onclick = closeDlg;
+    if (c && c.posts){
+      $("kMoveGo").onclick = async ()=>{
+        const to = $("kMove").value;
+        if (!to){ $("kErr").textContent = "옮길 게시판을 선택해주세요."; return; }
+        if (!confirm("글 "+c.posts+"개를 옮길까요?")) return;
+        try{
+          const n = await rpc("admin_move_posts", { p_from: c.id, p_to: Number(to) });
+          closeDlg(); toast(n + "개 글을 옮겼어요."); pageCats();
+        }catch(e){ $("kErr").textContent = cleanErr(e); }
+      };
+    }
+    $("kSave").onclick = async ()=>{
+      try{
+        await rpc("admin_save_category", {
+          p_id: c ? c.id : null, p_name: $("kName").value.trim(),
+          p_slug: $("kSlug").value.trim().toLowerCase(),
+          p_sort: Number($("kSort").value||0), p_write_role: $("kRole").value,
+          p_section: $("kSec").value.trim(), p_archived: $("kArch").value === "true" });
+        closeDlg(); toast("저장했어요."); pageCats();
+      }catch(e){ $("kErr").textContent = cleanErr(e); }
+    };
+  }
+
+  /* ===================== 사이트 설정 ===================== */
+  const SETTING_LABEL = {
+    notice_banner:   ["공지 배너", "타이머 화면 위에 뜨는 한 줄 공지. 비우면 배너가 사라져요."],
+    board_enabled:   ["커뮤니티 사용", "true / false"],
+    ranking_enabled: ["랭킹 사용", "true / false"]
+  };
+  async function pageSettings(){
+    const ss = await rpc("admin_settings");
+    $("page").innerHTML =
+      '<div class="card"><h3>사이트 설정</h3>'
+      + ss.map(s=>{
+          const [label, help] = SETTING_LABEL[s.key] || [s.key, ""];
+          return '<div class="f"><label>'+esc(label)+' <span class="muted">('+esc(s.key)+')</span></label>'
+               + '<input data-k="'+esc(s.key)+'" value="'+esc(s.value||"")+'">'
+               + (help ? '<p class="muted" style="margin:5px 0 0;font-size:11.5px">'+esc(help)+'</p>' : '')
+               + '</div>';
+        }).join("")
+      + '<div class="dlg-btns"><button class="b pri" id="sSave">저장</button></div></div>'
+      + '<div class="card"><h3>참고</h3>'
+      + '<p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.8">'
+      + '· 학교 도메인 제한과 하루 공부시간 상한은 데이터베이스(schema.sql)에서 관리해요.<br>'
+      + '· 관리자 지정은 <b>사용자</b> 메뉴에서 역할을 admin 으로 바꾸면 됩니다.</p></div>';
+
+    $("sSave").onclick = async ()=>{
+      const inputs = $("page").querySelectorAll("[data-k]");
+      for (const i of inputs) await rpc("admin_set_setting", { p_key: i.dataset.k, p_value: i.value });
+      toast("저장했어요.");
+    };
+  }
+
+  /* ---------- 페이지네이션 ---------- */
+  function pager(el, total, size, cur, onGo){
+    const pages = Math.ceil(total / size);
+    if (pages <= 1){ el.innerHTML = ""; return; }
+    const from = Math.max(0, Math.min(cur - 3, pages - 7)), to = Math.min(pages, from + 7);
+    let h = '<button data-g="'+(cur-1)+'"'+(cur===0?" disabled":"")+'>‹</button>';
+    for (let i = from; i < to; i++)
+      h += '<button data-g="'+i+'" class="'+(i===cur?"on":"")+'">'+(i+1)+'</button>';
+    h += '<button data-g="'+(cur+1)+'"'+(cur>=pages-1?" disabled":"")+'>›</button>';
+    el.innerHTML = h;
+    el.onclick = (e)=>{
+      const b = e.target.closest("button[data-g]");
+      if (b && !b.disabled) onGo(Number(b.dataset.g));
+    };
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

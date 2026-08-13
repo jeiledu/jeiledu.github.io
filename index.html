@@ -2658,6 +2658,7 @@
      ===================================================================== */
   const PAGE_SIZE = 15;
   let cats = [], catId = null, tagFilter = "", page = 0, query = "", authorFilter = null;
+  let canFilterAuthor = true;   // DB에 작성자 필터가 아직 없으면 자동으로 꺼집니다
   let curPost = null, editingId = null, boardLoaded = false;
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
 
@@ -2760,11 +2761,24 @@
   async function loadPosts(){
     $("posts").innerHTML = '<div class="empty">불러오는 중…</div>';
     renderFilterBar();
-    const { data, error } = await sb.rpc("list_posts", {
+    const args = {
       p_category: catId, p_q: query, p_tag: tagFilter || null,
-      p_author: authorFilter ? authorFilter.id : null,
       p_limit: PAGE_SIZE, p_offset: page * PAGE_SIZE
-    });
+    };
+    if (canFilterAuthor && authorFilter) args.p_author = authorFilter.id;
+
+    let { data, error } = await sb.rpc("list_posts", args);
+
+    // DB 업데이트 전에 파일만 먼저 올라간 경우를 대비 (기능만 잠시 비활성)
+    if (error && /Could not find the function/i.test(String(error.message || ""))){
+      canFilterAuthor = false;
+      delete args.p_author;
+      ({ data, error } = await sb.rpc("list_posts", args));
+      if (!error && authorFilter){
+        authorFilter = null; renderFilterBar();
+        toast("작성자별 보기는 아직 준비 중이에요.");
+      }
+    }
     if (error){
       $("posts").innerHTML = '<div class="empty">목록을 불러오지 못했어요.</div>';
       showError(error, "게시글 목록"); return;
@@ -2835,7 +2849,14 @@
     if (error && !isFriendly(cleanErr(error))){ showError(error, "글 열기"); return; }
     if (error || !p){ toast("글을 찾을 수 없어요. 삭제됐거나 볼 수 없는 글이에요."); return; }
     curPost = p;
-    sb.rpc("bump_view", { p_id: id });
+    // await 하지 않으면 요청이 전송되지 않습니다 (supabase 라이브러리 특성)
+    sb.rpc("bump_view", { p_id: id }).then(({ error })=>{
+      if (!error){
+        p.views = (p.views || 0) + 1;
+        const el = document.getElementById("pvCount");
+        if (el) el.textContent = "조회 " + p.views;
+      }
+    });
 
     const { data: cs } = await sb.rpc("list_comments", { p_post: id });
     renderDetail(p, cs || []);
@@ -2868,7 +2889,7 @@
       + '<h2>'+(p.pinned?'📌 ':'')+(p.secret?'🔒 ':'')+esc(p.title)+'</h2>'
       + '<div class="meta"><b>' + whoBtn(p.author, p.author_id) + '</b>'
       +   '<span>'+fmtDate(p.created_at, true)+(edited?' (수정됨)':'')+'</span>'
-      +   '<span>조회 '+p.views+'</span>'
+      +   '<span id="pvCount">조회 '+p.views+'</span>'
       +   (p.hidden?'<span style="color:#c25b5b">숨김 상태</span>':'')
       + '</div>'
       + ((p.tags && p.tags.length)
@@ -2908,7 +2929,7 @@
         const paths = (p.files || []).map(f=> f.path);
         const { error } = await sb.rpc("delete_post", { p_id: p.id });
         if (!handled(error, "글 삭제")) return;
-        if (paths.length) sb.storage.from("attachments").remove(paths);
+        if (paths.length) sb.storage.from("attachments").remove(paths).then(()=>{}, ()=>{});
         toast("글을 삭제했어요."); showList(); loadPosts();
       };
     }
@@ -3349,7 +3370,7 @@ _imgs
     toast("파일을 준비하고 있어요…");
     const { data, error } = await sb.storage.from("attachments").download(path);
     if (error || !data){ showError(error || "파일을 받을 수 없어요.", "파일 받기"); return; }
-    try { sb.rpc("log_download", { p_size: data.size || 0 }); } catch(e){}
+    sb.rpc("log_download", { p_size: data.size || 0 }).then(()=>{}, ()=>{});
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
     a.href = url; a.download = name || "file";
@@ -3439,7 +3460,7 @@ _imgs
     box.querySelectorAll("[data-rm]").forEach(b=> b.onclick = async ()=>{
       if (!await ask("첨부파일을 삭제할까요?", { title:"첨부파일 삭제", yes:"삭제", danger:true })) return;
       const { data: path } = await sb.rpc("delete_post_file", { p_id: Number(b.dataset.rm) });
-      if (path) sb.storage.from("attachments").remove([path]);
+      if (path) await sb.storage.from("attachments").remove([path]);
       attached = attached.filter(f=> String(f.id) !== b.dataset.rm);
       renderWriteFiles();
     });

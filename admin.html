@@ -198,6 +198,8 @@
       <button data-p="posts">게시글</button>
       <button data-p="comments">댓글</button>
       <button data-p="cats">게시판 설정</button>
+      <button data-p="blocks">차단 현황</button>
+      <button data-p="words">금지어</button>
       <button data-p="settings">사이트 설정</button>
     </nav>
     <div class="foot">
@@ -354,6 +356,8 @@
     posts:    ["게시글",       pagePosts],
     comments: ["댓글",         pageComments],
     cats:     ["게시판 설정",  pageCats],
+    blocks:   ["차단 현황",    pageBlocks],
+    words:    ["금지어 관리",  pageWords],
     settings: ["사이트 설정",  pageSettings]
   };
   function go(p){
@@ -370,6 +374,7 @@
   async function pageDash(){
     const s = await rpc("admin_stats");
     const daily = await rpc("admin_daily", { p_days: 14 });
+    let tr = null; try { tr = await rpc("admin_traffic"); } catch(e){}
     const max = Math.max(1, ...daily.map(d=> Number(d.seconds)));
 
     $("page").innerHTML =
@@ -391,12 +396,42 @@
                + '<i>'+String(d.day).slice(5).replace("-","/")+'</i></div>';
         }).join("")
       + '</div><div style="height:22px"></div></div>'
+      + (tr ? trafficCard(tr) : "")
       + '<div class="card"><h3>알아두기</h3>'
       + '<p style="margin:0;font-size:13px;color:var(--ink-soft);line-height:1.8">'
       + '· 정지된 계정: <b>'+s.banned+'</b>명 · 최근 7일 신규 가입: <b>'+s.new_users_7d+'</b>명<br>'
       + '· 기록이 비정상적으로 많은 학생은 <b>공부 기록</b> 메뉴에서 날짜별로 수정·삭제할 수 있어요.'
       + '</p></div>';
   }
+  const mb = (b)=>{
+    b = Number(b||0);
+    if (b >= 1073741824) return (b/1073741824).toFixed(2) + "GB";
+    if (b >= 1048576) return (b/1048576).toFixed(1) + "MB";
+    return Math.round(b/1024) + "KB";
+  };
+
+  function trafficCard(t){
+    const used = Number(t.month_bytes || 0);
+    const pct  = Math.min(100, Math.round(used / (5 * 1073741824) * 1000) / 10);
+    const stored = Number(t.stored || 0);
+    const spct = Math.min(100, Math.round(stored / 1073741824 * 1000) / 10);
+    const bar = (p, warn)=>
+      '<div style="height:9px;background:#eef3fa;border-radius:99px;overflow:hidden;margin:8px 0 6px">'
+      + '<div style="height:100%;width:'+Math.max(p,1)+'%;border-radius:99px;background:'
+      + (warn ? "#d9694f" : "var(--blue)") + '"></div></div>';
+
+    return '<div class="card"><h3>첨부파일 사용량 (무료 플랜 기준)</h3>'
+      + '<div style="font-size:13px;color:var(--ink-soft);line-height:1.9">'
+      + '<b>이번 달 전송량</b> ' + mb(used) + ' / 5GB (' + pct + '%) · 다운로드 '
+      +   (t.month_count||0) + '회'
+      + bar(pct, pct > 70)
+      + '<b>저장된 파일</b> ' + mb(stored) + ' / 1GB (' + spct + '%) · ' + (t.files||0) + '개'
+      + bar(spct, spct > 70)
+      + '<p class="muted" style="margin:10px 0 0;font-size:11.5px;line-height:1.7">'
+      + '전송량은 학생이 첨부파일을 내려받은 양을 앱에서 집계한 값이라 실제 수치와 조금 다를 수 있어요. '
+      + '70%를 넘으면 큰 파일은 유튜브·구글드라이브 링크로 돌리는 걸 권해요.</p></div></div>';
+  }
+
   const kpi = (v, label, blue)=>
     '<div class="kpi'+(blue?" blue":"")+'"><b>'+esc(v)+'</b><span>'+label+'</span></div>';
 
@@ -862,6 +897,86 @@
         closeDlg(); toast("저장했어요."); pageCats();
       }catch(e){ $("kErr").textContent = cleanErr(e); }
     };
+  }
+
+  /* ===================== 차단 현황 ===================== */
+  async function pageBlocks(){
+    const stats = await rpc("admin_block_stats");
+    const list  = await rpc("admin_blocks", { p_limit: 100 });
+    const risky = stats.filter(s=> s.blocked_by >= 3);
+
+    $("page").innerHTML =
+      (risky.length
+        ? '<div class="card" style="border-color:#f0dada;background:#fdf7f6">'
+          + '<h3 style="color:#b3564f">살펴볼 학생</h3>'
+          + '<p style="margin:0 0 10px;font-size:13px;color:var(--ink-soft);line-height:1.8">'
+          + '3명 이상에게 차단당한 학생이에요. 따돌림이나 갈등의 신호일 수 있으니 한 번 확인해보세요. '
+          + '반대로 그 학생이 문제 행동을 했을 수도 있어요.</p>'
+          + risky.map(s=>'<div style="padding:8px 0;font-size:14px"><b>'+esc(s.nickname)+'</b> '
+              + '<span class="muted">— '+s.blocked_by+'명에게 차단당함</span></div>').join("")
+          + '</div>'
+        : '')
+      + '<div class="card"><h3>사람별 집계</h3><div class="tbl-wrap"><table><thead><tr>'
+      + '<th>닉네임</th><th>차단당한 수</th><th>차단한 수</th><th>마지막 차단</th>'
+      + '</tr></thead><tbody>'
+      + (stats.length ? stats.map(s=>
+          '<tr><td><b>'+esc(s.nickname)+'</b></td>'
+          + '<td class="num">'+(s.blocked_by ? '<span class="tag ban">'+s.blocked_by+'</span>' : '0')+'</td>'
+          + '<td class="num muted">'+s.blocking+'</td>'
+          + '<td class="num muted">'+(s.last_at ? ymd(s.last_at) : '-')+'</td></tr>').join("")
+        : '<tr><td colspan="4" class="empty">차단 기록이 없어요.</td></tr>')
+      + '</tbody></table></div></div>'
+      + '<div class="card"><h3>최근 차단 내역</h3><div class="tbl-wrap"><table><thead><tr>'
+      + '<th>차단한 사람</th><th></th><th>차단당한 사람</th><th>시각</th>'
+      + '</tr></thead><tbody>'
+      + (list.length ? list.map(b=>
+          '<tr><td>'+esc(b.blocker || "-")+'</td><td class="muted">→</td>'
+          + '<td><b>'+esc(b.blocked || "-")+'</b></td>'
+          + '<td class="num muted">'+dt(b.created_at)+'</td></tr>').join("")
+        : '<tr><td colspan="4" class="empty">차단 기록이 없어요.</td></tr>')
+      + '</tbody></table></div>'
+      + '<p class="muted" style="margin:14px 0 0;font-size:12px;line-height:1.9">'
+      + '· 이 화면은 <b>관리자에게만</b> 보입니다. 학생 화면에는 차단 사실이 어떤 형태로도 드러나지 않아요.<br>'
+      + '· 차단은 학생이 스스로를 보호하는 정상적인 기능이기도 합니다. 숫자 하나로 단정하지 말고 '
+      + '흐름을 보세요. 갑자기 여러 명이 같은 학생을 차단했다면 그 시점에 무슨 일이 있었는지 확인해볼 만합니다.<br>'
+      + '· 관리자가 차단을 대신 풀어줄 수는 없습니다. 학생 본인만 해제할 수 있어요.</p></div>';
+  }
+
+  /* ===================== 금지어 관리 ===================== */
+  async function pageWords(){
+    const rows = await rpc("admin_banned_words");
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<input id="wNew" placeholder="추가할 단어 (2글자 이상)" style="flex:1;max-width:260px">'
+      + '<button class="b pri" id="wAdd">추가</button>'
+      + '<span class="grow"></span><span class="muted">' + rows.length + '개</span></div>'
+      + '<div class="tbl-wrap"><table><thead><tr><th>단어</th><th>등록일</th><th></th></tr></thead><tbody>'
+      + (rows.length ? rows.map(w=>
+          '<tr><td><b>'+esc(w.word)+'</b></td>'
+          + '<td class="num muted">'+ymd(w.created_at)+'</td>'
+          + '<td class="act"><button class="b sm danger" data-wx="'+esc(w.word)+'">삭제</button></td></tr>').join("")
+        : '<tr><td colspan="3" class="empty">등록된 금지어가 없어요.</td></tr>')
+      + '</tbody></table></div>'
+      + '<p class="muted" style="margin:14px 0 0;font-size:12px;line-height:1.9">'
+      + '· 글·댓글의 제목과 내용에 이 단어가 들어가면 <b>작성은 되지만 작성자가 지울 수 없게</b> 잠깁니다. '
+      + '관리자에게 알림도 갑니다.<br>'
+      + '· 띄어쓰기와 특수문자를 지우고 비교하므로 <b>ㅅ.ㅂ</b> 같은 우회도 일부 걸러집니다.<br>'
+      + '· 너무 짧거나 흔한 단어를 넣으면 멀쩡한 글이 잠길 수 있으니 주의하세요.</p></div>';
+
+    const add = async ()=>{
+      const v = $("wNew").value.trim();
+      if (!v) return;
+      try { await rpc("admin_add_banned_word", { p_word: v }); toast("추가했어요."); pageWords(); }
+      catch(e){ toast(cleanErr(e)); }
+    };
+    $("wAdd").onclick = add;
+    $("wNew").onkeydown = (e)=>{ if (e.key === "Enter") add(); };
+    $("page").querySelectorAll("[data-wx]").forEach(b=> b.onclick = async ()=>{
+      if (!await ask('"'+b.dataset.wx+'" 를 금지어에서 뺄까요?',
+                     { title:"금지어 삭제", yes:"삭제", danger:true })) return;
+      await rpc("admin_delete_banned_word", { p_word: b.dataset.wx });
+      toast("삭제했어요."); pageWords();
+    });
   }
 
   /* ===================== 사이트 설정 ===================== */

@@ -947,6 +947,14 @@
     .card{padding:22px}
   }
 
+  /* 태블릿·크롬북 (한 단으로 바뀌면서 가로 여유가 생기는 구간) */
+  @media (min-width:621px) and (max-width:1100px){
+    .ring-wrap{width:min(372px, 46vw); height:min(372px, 46vw)}
+    .time{font-size:clamp(40px, 6.4vw, 54px)}
+    .stat b{font-size:21px}
+    .btn{font-size:15.5px; padding:15px 10px}
+  }
+
   /* 태블릿 세로 (아이패드·갤럭시탭) */
   @media (max-width:900px){
     .layout{grid-template-columns:minmax(0,1fr)}
@@ -1009,7 +1017,8 @@
     .mcell em{font-size:8.5px}
 
     /* 입력창 16px 미만이면 아이폰에서 화면이 확대돼요 */
-    input, select, textarea{font-size:16px !important}
+    /* 코드 색칠 레이어(.code-hl)도 같이 키워야 글자가 어긋나지 않습니다 */
+    input, select, textarea, .code-hl{font-size:16px !important}
     .w-field textarea{min-height:200px}
 
     /* 팝업은 아래에서 올라오는 형태로 */

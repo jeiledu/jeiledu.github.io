@@ -170,12 +170,30 @@
   .cbtn.run{background:var(--blue); border-color:var(--blue); color:#fff}
   .cbtn.run:hover{background:var(--blue-dark)}
   .cbtn:disabled{opacity:.5; cursor:not-allowed}
-  .code-area{
-    width:100%; border:0; resize:vertical; min-height:150px; padding:14px 16px;
+  .code-wrap{position:relative; background:#fbfcfe}
+  .code-area, .code-hl{
     font-family:"SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size:13px;
-    line-height:1.75; color:#1c2a3d; background:#fbfcfe; tab-size:4; outline:0;
-    white-space:pre; overflow-x:auto; display:block;
+    line-height:1.75; padding:14px 16px; tab-size:4; white-space:pre;
+    letter-spacing:0; margin:0; border:0;
   }
+  .code-area{
+    width:100%; min-height:150px; resize:vertical; display:block; outline:0;
+    color:transparent; caret-color:#1c2a3d; background:transparent;
+    position:relative; z-index:2; overflow:auto;
+  }
+  .code-wrap > .code-area{ -webkit-text-fill-color:transparent }
+  .code-hl{
+    position:absolute; inset:0; z-index:1; overflow:auto; pointer-events:none;
+    color:#1c2a3d; background:#fbfcfe;
+  }
+  /* 편집이 아닌 곳(글쓰기 폼)에서는 하이라이팅 없이 그대로 */
+  .code-area.plain{color:#1c2a3d; -webkit-text-fill-color:currentColor; background:#fbfcfe}
+  .tk-kw{color:#0b62c4; font-weight:600}
+  .tk-bi{color:#7a4fd0}
+  .tk-str{color:#1f7a5a}
+  .tk-num{color:#b4632a}
+  .tk-cmt{color:#93a6c0; font-style:italic}
+  .tk-def{color:#245bad; font-weight:600}
   .code-out{
     border-top:1px solid var(--line); background:#f7f9fc; padding:12px 16px;
     font-family:"SF Mono", ui-monospace, Menlo, monospace; font-size:12.5px; line-height:1.7;
@@ -865,6 +883,23 @@
   }
   .foot-copy b{color:var(--ink-soft); font-weight:600}
 
+  .err-code{
+    margin:4px 0 12px; padding:12px; border-radius:12px; background:#fdf3f2; border:1px solid #f0dada;
+    color:#b3564f; font-size:18px; font-weight:700; letter-spacing:2px;
+    font-family:"SF Mono", ui-monospace, Menlo, monospace;
+  }
+  .err-more{text-align:left; margin-bottom:4px}
+  .err-more summary{
+    font-size:11.5px; color:var(--ink-faint); cursor:pointer; padding:4px 2px; list-style:none;
+  }
+  .err-more summary::-webkit-details-marker{display:none}
+  .err-more summary::before{content:"▸ "}
+  .err-more[open] summary::before{content:"▾ "}
+  .err-more pre{
+    margin:6px 0 0; padding:11px 13px; background:#f6f9fe; border:1px solid var(--line);
+    border-radius:10px; font-size:11px; line-height:1.6; color:var(--ink-soft);
+    white-space:pre-wrap; word-break:break-all; max-height:150px; overflow:auto;
+  }
   #askModal .modal{max-width:380px}
   #askModal p{white-space:pre-line; margin-bottom:4px}
   #askModal .btn-start.danger{background:#c0504a; box-shadow:0 6px 16px rgba(192,80,74,.22)}
@@ -1232,7 +1267,7 @@
           <div id="wCodeWrap" hidden style="margin-top:10px">
             <div class="code-block" style="margin:0">
               <div class="code-top"><span class="lang">PYTHON</span></div>
-              <textarea id="wCodeArea" class="code-area"
+              <textarea id="wCodeArea" class="code-area plain"
                 placeholder="여기에 파이썬 코드를 붙여넣으세요"></textarea>
             </div>
           </div>
@@ -1249,6 +1284,14 @@
             <span style="color:#5b3fb0">🔒 비밀글로 올리기
               <em>나와 관리자만 볼 수 있어요. 다른 학생에게는 목록에도 안 보여요.</em>
               <em id="wSecretNote" style="color:#5b3fb0"></em>
+            </span>
+          </label>
+        </div>
+        <div class="w-field" id="wCastWrap" hidden>
+          <label class="chk-row" style="background:#fdf3e8;border-color:#f0dfc4">
+            <input type="checkbox" id="wCast">
+            <span style="color:#8a6a22">📢 전교생에게 알림 보내기
+              <em>모든 학생·선생님의 알림에 이 글이 뜹니다. 공지에만 사용하세요.</em>
             </span>
           </label>
         </div>
@@ -1338,6 +1381,24 @@
         <button class="btn-write" id="dmSend">보내기</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- 오류 팝업 -->
+<div class="modal-back" id="errModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>문제가 생겼어요</h3>
+    <p id="errWhat">잠시 후 다시 시도해보세요. 계속 같은 문제가 생기면 아래 코드를 건의사항에 올려주세요.</p>
+    <div class="err-code" id="errCode">E-000000</div>
+    <details class="err-more">
+      <summary>자세한 내용</summary>
+      <pre id="errDetail"></pre>
+    </details>
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="errCopy">코드 복사</button>
+      <button class="btn btn-start" id="errSend">건의사항에 올리기</button>
+    </div>
+    <p class="modal-note"><button class="link-btn" id="errClose">닫기</button></p>
   </div>
 </div>
 
@@ -1975,6 +2036,108 @@
     if (e.target.closest("[data-tip]")) tip.classList.remove("on");
   });
 
+  /* =====================================================================
+     오류 알리기
+     - 사용자가 고칠 수 있는 문제(제목 없음, 권한 없음 등)는 그 자리에 글씨로
+     - 예상 못 한 문제(네트워크·서버·버그)는 팝업 + 오류코드로 안내
+     ===================================================================== */
+  const APP_VER = "2026.08.13";
+  let lastError = null;
+
+  // 우리가 일부러 낸 안내 메시지인지 (한글로 끝나는 문장이면 안내로 봄)
+  function isFriendly(msg){
+    const m = String(msg || "");
+    return /[가-힣]/.test(m) && /(요\.?|다\.?|세요\.?)$/.test(m.trim());
+  }
+
+  function makeCode(){
+    const t = now();
+    const p2 = (n)=> String(n).padStart(2,"0");
+    return "E-" + p2(t.getMonth()+1) + p2(t.getDate()) + p2(t.getHours()) + p2(t.getMinutes())
+         + "-" + Math.random().toString(36).slice(2,5).toUpperCase();
+  }
+
+  function showError(e, where){
+    const msg  = String((e && e.message) || e || "알 수 없는 오류");
+    const code = makeCode();
+    lastError = {
+      code, where: where || "-", msg,
+      when: now().toLocaleString("ko-KR"),
+      ua: navigator.userAgent,
+      url: location.href.split("#")[0],
+      who: me && me.nickname ? me.nickname : "(로그인 전)"
+    };
+
+    $("errCode").textContent = code;
+    $("errWhat").textContent = navigator.onLine === false
+      ? "인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 시도해주세요."
+      : "잠시 후 다시 시도해보세요. 계속 같은 문제가 생기면 아래 코드를 건의사항에 올려주세요.";
+    $("errDetail").textContent = errorText();
+    $("errSend").hidden = !(sb && me && me.nickname);
+    $("errModal").classList.add("on");
+  }
+
+  function errorText(){
+    const e = lastError || {};
+    return "오류코드 : " + e.code
+      + "\n발생시각 : " + e.when
+      + "\n위치     : " + e.where
+      + "\n내용     : " + e.msg
+      + "\n화면     : " + e.url
+      + "\n버전     : " + APP_VER
+      + "\n기기     : " + e.ua;
+  }
+
+  // rpc 결과를 받아 안내/오류를 알아서 나눠 처리 (true 면 정상)
+  function handled(error, where, inlineEl){
+    if (!error) return true;
+    const msg = cleanErr(error);
+    if (isFriendly(msg)){
+      if (inlineEl) inlineEl.textContent = msg; else toast(msg);
+    } else {
+      showError(error, where);
+    }
+    return false;
+  }
+
+  $("errClose").onclick = ()=> $("errModal").classList.remove("on");
+  $("errModal").onclick = (e)=>{ if (e.target.id === "errModal") $("errModal").classList.remove("on"); };
+  $("errCopy").onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText(errorText());
+      toast("오류 내용을 복사했어요. 건의사항에 붙여넣어 주세요.");
+    }catch(err){
+      // 클립보드가 막힌 환경에서는 선택할 수 있게 펼쳐줍니다
+      $("errDetail").parentElement.open = true;
+      toast("자동 복사가 안 돼요. 아래 내용을 길게 눌러 복사해주세요.");
+    }
+  };
+  $("errSend").onclick = async ()=>{
+    const e = lastError; if (!e) return;
+    $("errModal").classList.remove("on");
+    await switchView("board");
+    if (!boardLoaded) await openBoard();
+    const sug = cats.find(c=> c.slug === "suggest" && c.can_write)
+             || cats.find(c=> c.can_write);
+    if (!sug){ toast("건의사항 게시판을 찾을 수 없어요. 선생님께 알려주세요."); return; }
+    openWrite(null);
+    $("wCat").value = String(sug.id);
+    $("wCat").onchange && $("wCat").onchange();
+    $("wTitle").value = "[오류] " + e.code;
+    $("wBody").value  = "무엇을 하려다 생겼나요?\n(여기에 적어주세요)\n\n----- 자동 기록 -----\n" + errorText();
+    setTimeout(()=> { $("wBody").focus(); $("wBody").setSelectionRange(16, 30); }, 120);
+  };
+
+  // 어디서도 잡지 못한 오류
+  window.addEventListener("error", (ev)=>{
+    if (ev && ev.message && !$("errModal").classList.contains("on"))
+      showError(ev.error || ev.message, "화면");
+  });
+  window.addEventListener("unhandledrejection", (ev)=>{
+    if (!$("errModal").classList.contains("on"))
+      showError(ev.reason || "처리되지 않은 오류", "통신");
+  });
+
   /* ================= 확인 팝업 ================= */
   function ask(text, opts){
     opts = opts || {};
@@ -2069,6 +2232,7 @@
   let scopeId = null;     // 선택된 그룹 (null = 전체)
   let period  = "today";
   const dirty = new Set();
+  let flushFails = 0;
 
   function setSync(kind, text){
     const el = document.querySelector(".sync-dot");
@@ -2213,7 +2377,14 @@
     for (const k of keys){
       const { data, error } = await sb.rpc("upsert_day",
         { p_day: k, p_seconds: Math.floor(records[k] || 0) });
-      if (error){ setSync("err"); return; }
+      if (error){
+        setSync("err");
+        flushFails++;
+        if (flushFails === 3) showError(error, "공부시간 저장");   // 세 번 연속 실패하면 알림
+        dirty.add(k);
+        return;
+      }
+      flushFails = 0;
       if (typeof data === "number" && data > (records[k] || 0)){
         records[k] = data; save(); renderStats();
       }
@@ -2358,7 +2529,7 @@
     const v = $("nickInput").value.trim();
     if (v.length < 2 || v.length > 12){ $("nickErr").textContent = "2~12자로 입력해주세요."; return; }
     const { data, error } = await sb.rpc("set_nickname", { p_nickname: v });
-    if (error){ $("nickErr").textContent = error.message.replace(/^.*?:\s*/, ""); return; }
+    if (!handled(error, "닉네임 저장", $("nickErr"))) return;
     me.nickname  = data.nickname;
     me.show_rank = data.show_rank;
     $("nickModal").classList.remove("on");
@@ -2405,7 +2576,7 @@
     const { data, error } = groupTab === "join"
       ? await sb.rpc("join_group",   { p_code: v.toUpperCase() })
       : await sb.rpc("create_group", { p_name: v });
-    if (error){ $("groupErr").textContent = error.message.replace(/^.*?:\s*/, ""); return; }
+    if (!handled(error, "그룹", $("groupErr"))) return;
     const g = Array.isArray(data) ? data[0] : data;
     await loadGroups();
     renderMyGroups();
@@ -2551,7 +2722,10 @@
       p_category: catId, p_q: query, p_tag: tagFilter || null,
       p_limit: PAGE_SIZE, p_offset: page * PAGE_SIZE
     });
-    if (error){ $("posts").innerHTML = '<div class="empty">'+esc(cleanErr(error))+'</div>'; return; }
+    if (error){
+      $("posts").innerHTML = '<div class="empty">목록을 불러오지 못했어요.</div>';
+      showError(error, "게시글 목록"); return;
+    }
     renderPosts(data || []);
   }
 
@@ -2610,7 +2784,8 @@
   async function openPost(id){
     const { data, error } = await sb.rpc("get_post", { p_id: id });
     const p = Array.isArray(data) ? data[0] : data;
-    if (error || !p){ toast("글을 찾을 수 없어요."); return; }
+    if (error && !isFriendly(cleanErr(error))){ showError(error, "글 열기"); return; }
+    if (error || !p){ toast("글을 찾을 수 없어요. 삭제됐거나 볼 수 없는 글이에요."); return; }
     curPost = p;
     sb.rpc("bump_view", { p_id: id });
 
@@ -2684,7 +2859,7 @@
                        { title:"글 삭제", yes:"삭제", danger:true })) return;
         const paths = (p.files || []).map(f=> f.path);
         const { error } = await sb.rpc("delete_post", { p_id: p.id });
-        if (error){ toast(cleanErr(error)); return; }
+        if (!handled(error, "글 삭제")) return;
         if (paths.length) sb.storage.from("attachments").remove(paths);
         toast("글을 삭제했어요."); showList(); loadPosts();
       };
@@ -2730,7 +2905,7 @@
     if (!v) return;
     const { error } = await sb.rpc("add_comment",
       { p_post: postId, p_body: v, p_parent: parent, p_secret: !!secret });
-    if (error){ toast(cleanErr(error)); return; }
+    if (!handled(error, "댓글 작성")) return;
     openPost(postId);
   }
 
@@ -2840,6 +3015,59 @@ _imgs
     });
   }
 
+  /* 파이썬 색칠 (가벼운 정규식 방식) */
+  const PY_KW = /\b(and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield|True|False|None|match|case)\b/g;
+  const PY_BI = /\b(print|len|range|int|float|str|list|dict|set|tuple|sum|min|max|abs|round|sorted|enumerate|zip|map|filter|open|input|type|isinstance|super|self)\b/g;
+  const PY_ALL = new RegExp(
+    "(\\b\\d+\\.?\\d*\\b)|" + PY_KW.source + "|" + PY_BI.source, "g");
+
+  function hlPython(code){
+    const marks = [];
+    // 자리표시자는 숫자·문자가 아닌 전용 문자로 (숫자면 숫자 색칠 규칙에 걸립니다)
+    const keep = (html)=> String.fromCharCode(0xE000 + marks.push(html) - 1);
+    let t = esc(code);
+
+    // 주석과 문자열을 먼저 빼둔다 (안쪽은 색칠하지 않도록)
+    t = t.replace(/(&quot;&quot;&quot;[\s\S]*?&quot;&quot;&quot;|&#39;&#39;&#39;[\s\S]*?&#39;&#39;&#39;)/g,
+                  m=> keep('<span class="tk-str">'+m+'</span>'));
+    t = t.replace(/(#[^\n]*)/g, m=> keep('<span class="tk-cmt">'+m+'</span>'));
+    t = t.replace(/([frbu]{0,2}&quot;(?:(?!&quot;)[^\n])*&quot;|[frbu]{0,2}&#39;(?:(?!&#39;)[^\n])*&#39;)/g,
+                  m=> keep('<span class="tk-str">'+m+'</span>'));
+
+    // 한 번에 처리 (여러 번 돌리면 방금 넣은 class= 속성까지 다시 색칠됩니다)
+    t = t.replace(PY_ALL, (m, num, kw, bi)=>{
+      if (num) return '<span class="tk-num">'+num+'</span>';
+      if (kw)  return '<span class="tk-kw">'+kw+'</span>';
+      return '<span class="tk-bi">'+bi+'</span>';
+    });
+    t = t.replace(/(<span class="tk-kw">(?:def|class)<\/span>\s+)([A-Za-z_]\w*)/g,
+                  '$1<span class="tk-def">$2</span>');
+
+    return t.replace(/[\uE000-\uF8FF]/g, (ch)=> marks[ch.charCodeAt(0) - 0xE000] || ch);
+  }
+
+  // 텍스트영역 뒤에 색칠된 레이어를 겹쳐 놓습니다
+  function attachHighlight(ta){
+    const wrap = document.createElement("div");
+    wrap.className = "code-wrap";
+    ta.parentNode.insertBefore(wrap, ta);
+    const hl = document.createElement("pre");
+    hl.className = "code-hl";
+    wrap.appendChild(hl);
+    wrap.appendChild(ta);
+
+    const paint = ()=>{
+      hl.innerHTML = hlPython(ta.value + "\n");
+      hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft;
+      hl.style.height = ta.style.height || (ta.offsetHeight + "px");
+    };
+    ta.addEventListener("input", paint);
+    ta.addEventListener("scroll", ()=>{ hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; });
+    new ResizeObserver(paint).observe(ta);
+    paint();
+    return paint;
+  }
+
   // 본문에서 ```python 코드 ``` 를 찾아 실행 가능한 블록으로 그린다
   function renderBody(body){
     const parts = String(body || "").split(/```(?:python|py)?\n([\s\S]*?)```/g);
@@ -2868,6 +3096,7 @@ _imgs
       const st  = cell.querySelector(".st");
       const runBtn = cell.querySelector(".run");
       const original = ta.value;
+      const repaint = attachHighlight(ta);
 
       ta.addEventListener("keydown", (e)=>{
         if (e.key === "Tab"){
@@ -2875,12 +3104,13 @@ _imgs
           const a = ta.selectionStart, b = ta.selectionEnd;
           ta.value = ta.value.slice(0,a) + "    " + ta.value.slice(b);
           ta.selectionStart = ta.selectionEnd = a + 4;
+          repaint();
         }
         if (e.key === "Enter" && (e.metaKey || e.ctrlKey)){ e.preventDefault(); runBtn.click(); }
       });
 
       cell.querySelector(".reset").onclick = ()=>{
-        ta.value = original;
+        ta.value = original; repaint();
         out.innerHTML = '<span class="muted">되돌렸어요.</span>';
       };
 
@@ -2961,7 +3191,8 @@ _imgs
   async function downloadFile(path, name){
     toast("파일을 준비하고 있어요…");
     const { data, error } = await sb.storage.from("attachments").download(path);
-    if (error || !data){ toast("파일을 받을 수 없어요."); return; }
+    if (error || !data){ showError(error || "파일을 받을 수 없어요.", "파일 받기"); return; }
+    try { sb.rpc("log_download", { p_size: data.size || 0 }); } catch(e){}
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
     a.href = url; a.download = name || "file";
@@ -3074,7 +3305,7 @@ _imgs
       const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");
       const path = postId + "/" + Date.now() + "_" + Math.random().toString(36).slice(2,7) + "_" + safe;
       const { error } = await sb.storage.from("attachments").upload(path, f, { upsert: false });
-      if (error){ toast('"'+f.name+'" 업로드 실패: ' + cleanErr(error)); continue; }
+      if (error){ showError(error, '파일 업로드 · ' + f.name); continue; }
       await sb.rpc("add_post_file",
         { p_post: postId, p_path: path, p_name: f.name, p_size: f.size, p_mime: f.type || null });
     }
@@ -3135,6 +3366,8 @@ _imgs
     applySecretMode();
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
     $("wPinWrap").hidden = !canPin;
+    $("wCastWrap").hidden = !(me && me.role === "admin") || !!post;   // 새 글에만
+    $("wCast").checked = false;
     $("wPin").checked = !!(post && post.pinned);
     $("wErr").textContent = "";
     $("wSave").textContent = post ? "수정 완료" : "등록";
@@ -3192,7 +3425,7 @@ _imgs
     $("wSave").disabled = false;
     if (error){
       $("wSave").textContent = editingId ? "수정 완료" : "등록";
-      $("wErr").textContent = cleanErr(error); return;
+      handled(error, "글 저장", $("wErr")); return;
     }
 
     const id = editingId || data;
@@ -3205,6 +3438,12 @@ _imgs
         const { error: pe } = await sb.rpc("set_pinned", { p_post: id, p_pinned: wantPin });
         if (pe) toast("고정 설정에 실패했어요: " + cleanErr(pe));
       }
+    }
+
+    if (me && me.role === "admin" && !editingId && $("wCast").checked && !$("wSecret").checked){
+      const { data: n, error: be } = await sb.rpc("broadcast_post", { p_post: id });
+      if (be) toast("전체 알림 실패: " + cleanErr(be));
+      else toast(n + "명에게 알림을 보냈어요.");
     }
 
     if (pendingFiles.length){
@@ -3520,7 +3759,7 @@ _imgs
       { p_to: dmTo.id, p_title: title, p_body: $("dmBody").value });
     if (error){
       $("dmSend").disabled = false; $("dmSend").textContent = "보내기";
-      $("dmErr").textContent = cleanErr(error); return;
+      handled(error, "쪽지 보내기", $("dmErr")); return;
     }
     for (const f of dmFiles){
       const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");

@@ -460,6 +460,12 @@
   .stat b{display:block; font-size:19px; font-weight:700; letter-spacing:-.5px;
           font-variant-numeric:tabular-nums; color:var(--ink)}
   .stat span{display:block; margin-top:4px; font-size:11.5px; color:var(--ink-faint); letter-spacing:-.1px}
+  .help{
+    display:inline-flex; align-items:center; justify-content:center; width:13px; height:13px;
+    border-radius:50%; background:#dce6f2; color:#6b7f99; font-size:9px; font-weight:700;
+    font-style:normal; cursor:help; vertical-align:1px;
+  }
+  .help:hover{background:var(--blue); color:#fff}
 
   /* ---------- Sessions ---------- */
   .sessions{list-style:none; margin:0; padding:0; max-height:168px; overflow:auto}
@@ -859,6 +865,11 @@
   }
   .foot-copy b{color:var(--ink-soft); font-weight:600}
 
+  #askModal .modal{max-width:380px}
+  #askModal p{white-space:pre-line; margin-bottom:4px}
+  #askModal .btn-start.danger{background:#c0504a; box-shadow:0 6px 16px rgba(192,80,74,.22)}
+  #askModal .btn-start.danger:hover{background:#a8443f}
+
   /* toast */
   #toast{
     position:fixed; left:50%; bottom:34px; transform:translate(-50%,20px);
@@ -1022,8 +1033,7 @@
         <div class="noti-pop" id="notiPop" hidden>
           <div class="noti-head">
             <b>알림</b>
-            <span><button id="notiInbox">쪽지함</button>
-            <button id="notiAllRead">모두 읽음</button></span>
+            <button id="notiAllRead">모두 읽음</button>
           </div>
           <div class="noti-list" id="notiList"></div>
         </div>
@@ -1090,7 +1100,8 @@
         <div class="stats">
           <div class="stat"><b id="stToday">0h 0m</b><span>오늘</span></div>
           <div class="stat"><b id="stWeek">0h 0m</b><span>이번 주</span></div>
-          <div class="stat"><b id="stStreak">0일</b><span>연속</span></div>
+          <div class="stat"><b id="stStreak">0일</b>
+            <span>연속 <i class="help" data-tip="하루 30분 이상 공부한 날만 연속으로 인정돼요">?</i></span></div>
           <div class="stat"><b id="stTotal">0h</b><span>누적</span></div>
         </div>
       </div>
@@ -1140,7 +1151,7 @@
           <button data-p="today" class="on">오늘</button>
           <button data-p="week">이번 주</button>
           <button data-p="month">이번 달</button>
-          <button data-p="streak">연속</button>
+          <button data-p="streak">연속 <i class="help" data-tip="하루 30분 이상 공부한 날만 인정돼요. 오늘 30분을 채우면 이어집니다">?</i></button>
         </div>
         <ol class="rank-list" id="rankList"></ol>
         <div class="rank-foot" id="rankFoot"></div>
@@ -1237,6 +1248,7 @@
             <input type="checkbox" id="wSecret">
             <span style="color:#5b3fb0">🔒 비밀글로 올리기
               <em>나와 관리자만 볼 수 있어요. 다른 학생에게는 목록에도 안 보여요.</em>
+              <em id="wSecretNote" style="color:#5b3fb0"></em>
             </span>
           </label>
         </div>
@@ -1325,6 +1337,18 @@
         <button class="btn-ghost" id="dmCancel">취소</button>
         <button class="btn-write" id="dmSend">보내기</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 확인 팝업 -->
+<div class="modal-back" id="askModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3 id="askTitle">확인</h3>
+    <p id="askText"></p>
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="askNo">취소</button>
+      <button class="btn btn-start" id="askYes">확인</button>
     </div>
   </div>
 </div>
@@ -1651,14 +1675,15 @@
     commit();
   }
 
-  function setMode(mode, min){
+  async function setMode(mode, min){
     if (state.phase === "break"){
       pause();
       state.phase = "study";
       state.elapsed = 0;
       document.body.classList.remove("breaking");
     } else if (state.running){
-      if (!confirm("타이머가 진행 중이에요. 현재 세션을 저장하고 바꿀까요?")) return;
+      if (!await ask("타이머가 진행 중이에요.\n현재 세션을 저장하고 바꿀까요?",
+                     { title:"모드 변경", yes:"저장하고 변경" })) return;
       finish();
     } else if (state.elapsed > 0){
       commit();
@@ -1756,10 +1781,12 @@
     $("stTotal").textContent = Math.floor(total/3600) + "h";
 
     // 연속 일수 (오늘 기록이 없으면 어제부터 카운트)
+    // 하루 30분 이상 공부한 날만 연속으로 인정 (랭킹과 같은 기준)
     let streak = 0;
+    const STREAK_MIN = 1800;
     const cur = now();
-    if (!(records[keyOf(cur)] > 0)) cur.setDate(cur.getDate()-1);
-    while (records[keyOf(cur)] > 0){ streak++; cur.setDate(cur.getDate()-1); }
+    if (!((records[keyOf(cur)] || 0) >= STREAK_MIN)) cur.setDate(cur.getDate()-1);
+    while ((records[keyOf(cur)] || 0) >= STREAK_MIN){ streak++; cur.setDate(cur.getDate()-1); }
     $("stStreak").textContent = streak + "일";
   }
 
@@ -1947,6 +1974,29 @@
   document.addEventListener("mouseout", (e)=>{
     if (e.target.closest("[data-tip]")) tip.classList.remove("on");
   });
+
+  /* ================= 확인 팝업 ================= */
+  function ask(text, opts){
+    opts = opts || {};
+    return new Promise((resolve)=>{
+      $("askTitle").textContent = opts.title || "확인";
+      $("askText").textContent  = text;
+      $("askYes").textContent   = opts.yes || "확인";
+      $("askNo").textContent    = opts.no  || "취소";
+      $("askYes").classList.toggle("danger", !!opts.danger);
+      $("askModal").classList.add("on");
+      setTimeout(()=> $("askYes").focus(), 60);
+
+      const close = (v)=>{
+        $("askModal").classList.remove("on");
+        $("askYes").onclick = $("askNo").onclick = $("askModal").onclick = null;
+        resolve(v);
+      };
+      $("askYes").onclick = ()=> close(true);
+      $("askNo").onclick  = ()=> close(false);
+      $("askModal").onclick = (e)=>{ if (e.target.id === "askModal") close(false); };
+    });
+  }
 
   /* ================= toast / beep ================= */
   let toastTimer;
@@ -2372,7 +2422,7 @@
   };
   $("myGroups").onclick = async (e)=>{
     const b = e.target.closest("[data-out]"); if (!b) return;
-    if (!confirm("이 그룹에서 나갈까요?")) return;
+    if (!await ask("이 그룹에서 나갈까요?", { title:"그룹 나가기", yes:"나가기", danger:true })) return;
     await sb.rpc("leave_group", { p_group: Number(b.dataset.out) });
     if (scopeId === Number(b.dataset.out)) scopeId = null;
     await loadGroups(); renderMyGroups(); refreshRank();
@@ -2398,8 +2448,8 @@
   let curPost = null, editingId = null, boardLoaded = false;
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
 
-  function switchView(v){
-    if (v !== "board" && !$("boardWrite").hidden && !confirmLeaveWrite()) return;
+  async function switchView(v){
+    if (v !== "board" && !$("boardWrite").hidden && !(await confirmLeaveWrite())) return;
     // 커뮤니티는 로그인한 사람만
     if (v === "board" && (!sb || !me || !me.nickname)){
       document.querySelectorAll(".main-tabs button")
@@ -2630,7 +2680,8 @@
     if (p.can_edit){
       $("dEdit").onclick = ()=> openWrite(p);
       $("dDel").onclick  = async ()=>{
-        if (!confirm("이 글을 삭제할까요? 첨부파일과 댓글도 함께 사라져요.")) return;
+        if (!await ask("이 글을 삭제할까요?\n첨부파일과 댓글도 함께 사라져요.",
+                       { title:"글 삭제", yes:"삭제", danger:true })) return;
         const paths = (p.files || []).map(f=> f.path);
         const { error } = await sb.rpc("delete_post", { p_id: p.id });
         if (error){ toast(cleanErr(error)); return; }
@@ -2642,7 +2693,7 @@
 
     $("boardDetail").querySelectorAll("[data-cdel]").forEach(b=>{
       b.onclick = async ()=>{
-        if (!confirm("댓글을 삭제할까요?")) return;
+        if (!await ask("댓글을 삭제할까요?", { title:"댓글 삭제", yes:"삭제", danger:true })) return;
         await sb.rpc("delete_comment", { p_id: Number(b.dataset.cdel) });
         openPost(p.id);
       };
@@ -2998,7 +3049,7 @@ _imgs
     box.hidden = !rows.length;
     box.innerHTML = rows.join("");
     box.querySelectorAll("[data-rm]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm("첨부파일을 삭제할까요?")) return;
+      if (!await ask("첨부파일을 삭제할까요?", { title:"첨부파일 삭제", yes:"삭제", danger:true })) return;
       const { data: path } = await sb.rpc("delete_post_file", { p_id: Number(b.dataset.rm) });
       if (path) sb.storage.from("attachments").remove([path]);
       attached = attached.filter(f=> String(f.id) !== b.dataset.rm);
@@ -3044,9 +3095,10 @@ _imgs
     return !!($("wTitle").value.trim() || $("wBody").value.trim() || $("wCodeArea").value.trim()
            || $("wYt").value.trim() || $("wTags").value.trim() || pendingFiles.length);
   }
-  function confirmLeaveWrite(){
+  async function confirmLeaveWrite(){
     if (!writeHasContent()) return true;
-    return confirm("작성 중인 내용이 사라집니다.\n나가시겠어요?");
+    return await ask("작성 중인 내용이 사라집니다.\n나가시겠어요?",
+                     { title:"작성 취소", yes:"나가기", danger:true });
   }
   function closeWrite(){
     pendingFiles = []; editingId = null;
@@ -3065,7 +3117,12 @@ _imgs
     $("wCodeWrap").hidden = !split.code;
     $("wYt").value    = post && post.youtube_id ? "https://youtu.be/" + post.youtube_id : "";
     $("wTags").value  = post && post.tags ? post.tags.join(", ") : "";
-    $("wSecret").checked = !!(post && post.secret);
+    if (post){
+      $("wSecret").checked = !!post.secret;
+    } else {
+      const c0 = cats.find(x=> String(x.id) === $("wCat").value);
+      $("wSecret").checked = !!(c0 && c0.secret_mode && c0.secret_mode !== "off");
+    }
     if (post){
       const sel = $("wCat");
       if (!Array.from(sel.options).some(o=> o.value === String(post.category_id))){
@@ -3075,6 +3132,7 @@ _imgs
       sel.value = String(post.category_id);
     }
     renderWriteFiles();
+    applySecretMode();
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
     $("wPinWrap").hidden = !canPin;
     $("wPin").checked = !!(post && post.pinned);
@@ -3088,25 +3146,29 @@ _imgs
     try { history.pushState({ app: "write" }, ""); } catch(e){}
   }
 
-  $("wCancel").onclick = ()=>{
-    if (!confirmLeaveWrite()) return;
+  $("wCancel").onclick = async ()=>{
+    if (!await confirmLeaveWrite()) return;
     const back = editingId;
     pendingFiles = []; editingId = null;
     if (back) openPost(back); else closeWrite();
   };
 
   // 브라우저 뒤로가기로 글쓰기 화면을 벗어날 때
-  window.addEventListener("popstate", ()=>{
+  window.addEventListener("popstate", async ()=>{
     if (!$("boardWrite").hidden){
-      if (confirmLeaveWrite()){ closeWrite(); }
-      else { try { history.pushState({ app: "write" }, ""); } catch(e){} }
+      // 먼저 현재 화면을 유지해두고 물어봅니다
+      try { history.pushState({ app: "write" }, ""); } catch(e){}
+      if (await confirmLeaveWrite()) closeWrite();
       return;
     }
     if (!$("boardDetail").hidden){ showList(); loadPosts(); }
   });
   $("wSave").onclick = async ()=>{
     const title = $("wTitle").value.trim();
-    if (!title){ $("wErr").textContent = "제목을 입력해주세요."; return; }
+    if (!title){ $("wErr").textContent = "제목을 입력해주세요."; $("wTitle").focus(); return; }
+    if (!$("wBody").value.trim()){
+      $("wErr").textContent = "내용을 입력해주세요."; $("wBody").focus(); return;
+    }
     const cat = Number($("wCat").value);
     if (!cat){ $("wErr").textContent = "게시판을 선택해주세요."; return; }
 
@@ -3152,6 +3214,23 @@ _imgs
     toast(editingId ? "글을 수정했어요." : "글을 등록했어요.");
     editingId = null;
     openPost(id);
+  };
+
+  // 게시판마다 비밀글 기본/강제 설정을 반영
+  function applySecretMode(){
+    const c = cats.find(x=> String(x.id) === $("wCat").value);
+    const mode = (c && c.secret_mode) || "off";
+    const box = $("wSecret"), note = $("wSecretNote");
+    box.disabled = (mode === "force");
+    if (mode === "force"){ box.checked = true; note.textContent = "이 게시판은 항상 비밀글로 올라가요."; }
+    else if (mode === "default"){ note.textContent = "이 게시판은 비밀글이 기본이에요. 공개하려면 체크를 풀어주세요."; }
+    else { note.textContent = ""; }
+  }
+  $("wCat").onchange = ()=>{
+    const c = cats.find(x=> String(x.id) === $("wCat").value);
+    const mode = (c && c.secret_mode) || "off";
+    if (mode !== "off") $("wSecret").checked = true;
+    applySecretMode();
   };
 
   $("wCode").onchange = ()=>{
@@ -3343,7 +3422,7 @@ _imgs
 
     $("dmBack").onclick = ()=>{ dmLoad(); updateUnread(); };
     $("dmDel").onclick  = async ()=>{
-      if (!confirm("이 쪽지를 삭제할까요?")) return;
+      if (!await ask("이 쪽지를 삭제할까요?", { title:"쪽지 삭제", yes:"삭제", danger:true })) return;
       await sb.rpc("delete_message", { p_id: id });
       toast("삭제했어요."); dmLoad(); updateUnread();
     };
@@ -3469,7 +3548,6 @@ _imgs
   $("dmClose").onclick  = closeDM;
   $("dmCancel").onclick = ()=>{ dmBox = "in"; openDM("in"); };
   $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") closeDM(); };
-  $("notiInbox").onclick = (e)=>{ e.stopPropagation(); $("notiPop").hidden = true; openDM("in"); };
   $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; openDM("in"); };
 
   const updateUnread = updateBadges;
@@ -3523,8 +3601,9 @@ _imgs
     renderMini();
   };
 
-  $("resetBtn").onclick = ()=>{
-    if (!confirm("모든 공부 기록이 삭제됩니다. 계속할까요?")) return;
+  $("resetBtn").onclick = async ()=>{
+    if (!await ask("모든 공부 기록이 삭제됩니다.\n되돌릴 수 없어요. 계속할까요?",
+                   { title:"기록 초기화", yes:"모두 삭제", danger:true })) return;
     records = {}; sessions = {};
     store.removeItem(KEY); store.removeItem(SKEY);
     renderAll();

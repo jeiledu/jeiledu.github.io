@@ -223,6 +223,7 @@
 
 <!-- 공용 모달 -->
 <div class="back" id="modal"><div class="dlg" id="dlg"></div></div>
+<div class="back" id="askBack"><div class="dlg" id="askDlg" style="max-width:400px"></div></div>
 <div id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -244,6 +245,30 @@
     clearTimeout(toastT); toastT = setTimeout(()=> $("toast").classList.remove("on"), 3000);
   }
   function openDlg(html){ $("dlg").innerHTML = html; $("modal").classList.add("on"); }
+
+  // 브라우저 기본 팝업 대신 쓰는 확인창
+  function ask(text, opts){
+    opts = opts || {};
+    return new Promise((resolve)=>{
+      $("askDlg").innerHTML =
+        '<h3>' + esc(opts.title || "확인") + '</h3>'
+        + '<p class="sub" style="white-space:pre-line;margin-bottom:18px">' + esc(text) + '</p>'
+        + (opts.input !== undefined
+            ? '<div class="f"><input id="askInput" value="' + esc(opts.input) + '"></div>' : '')
+        + '<div class="dlg-btns"><button class="b" id="askNo">취소</button>'
+        + '<button class="b ' + (opts.danger ? "danger" : "pri") + '" id="askYes">'
+        + esc(opts.yes || "확인") + '</button></div>';
+      $("askBack").classList.add("on");
+      setTimeout(()=> ($("askInput") || $("askYes")).focus(), 60);
+
+      const close = (v)=>{ $("askBack").classList.remove("on"); resolve(v); };
+      $("askYes").onclick = ()=> close(opts.input !== undefined ? ($("askInput").value || "") : true);
+      $("askNo").onclick  = ()=> close(opts.input !== undefined ? null : false);
+      $("askBack").onclick = (e)=>{ if (e.target.id === "askBack") close(opts.input !== undefined ? null : false); };
+      const inp = $("askInput");
+      if (inp) inp.onkeydown = (e)=>{ if (e.key === "Enter") $("askYes").click(); };
+    });
+  }
   function closeDlg(){ $("modal").classList.remove("on"); }
   $("modal").onclick = (e)=>{ if (e.target.id === "modal") closeDlg(); };
   document.addEventListener("keydown", e=>{ if (e.key === "Escape") closeDlg(); });
@@ -455,7 +480,8 @@
       }catch(e){ $("eErr").textContent = cleanErr(e); }
     };
     $("eDel").onclick = async ()=>{
-      if (!confirm(u.nickname + " 계정과 모든 기록을 삭제할까요?\n되돌릴 수 없습니다.")) return;
+      if (!await ask(u.nickname + " 계정과 모든 기록을 삭제할까요?\n되돌릴 수 없습니다.",
+                     { title:"계정 삭제", yes:"삭제", danger:true })) return;
       try{ await rpc("admin_delete_user", { p_id: u.id }); closeDlg(); toast("삭제했어요."); loadUsers(); }
       catch(e){ $("eErr").textContent = cleanErr(e); }
     };
@@ -519,12 +545,12 @@
     $("page").querySelectorAll("[data-d]").forEach(b=>
       b.onclick = ()=> editDay(b.dataset.d, Number(b.dataset.s)));
     $("page").querySelectorAll("[data-dd]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm(b.dataset.dd + " 기록을 삭제할까요?")) return;
+      if (!await ask(b.dataset.dd + " 기록을 삭제할까요?", { title:"기록 삭제", yes:"삭제", danger:true })) return;
       await rpc("admin_set_day", { p_id: recUser.id, p_day: b.dataset.dd, p_seconds: 0 });
       toast("삭제했어요."); pageRecords();
     });
     $("page").querySelectorAll("[data-ds]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm("이 세션 기록을 삭제할까요? (날짜 합계는 따로 수정해야 해요)")) return;
+      if (!await ask("이 세션 기록을 삭제할까요?\n날짜 합계는 따로 수정해야 해요.", { title:"세션 삭제", yes:"삭제", danger:true })) return;
       await rpc("admin_delete_session", { p_id: Number(b.dataset.ds) });
       toast("삭제했어요."); pageRecords();
     });
@@ -578,12 +604,13 @@
         + '</tbody></table></div><div class="dlg-btns"><button class="b" onclick="this.closest(\'.back\').classList.remove(\'on\')">닫기</button></div>');
     });
     $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
-      const n = prompt("새 그룹 이름", b.dataset.n); if (!n) return;
+      const n = await ask("새 그룹 이름을 입력하세요.", { title:"그룹 이름 변경", yes:"저장", input:b.dataset.n });
+      if (!n) return;
       await rpc("admin_save_group", { p_id: Number(b.dataset.gr), p_name: n });
       toast("바꿨어요."); pageGroups();
     });
     $("page").querySelectorAll("[data-gd]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm("그룹을 삭제할까요? 멤버들의 공부 기록은 남습니다.")) return;
+      if (!await ask("그룹을 삭제할까요?\n멤버들의 공부 기록은 남습니다.", { title:"그룹 삭제", yes:"삭제", danger:true })) return;
       await rpc("admin_delete_group", { p_id: Number(b.dataset.gd) });
       toast("삭제했어요."); pageGroups();
     });
@@ -633,7 +660,7 @@
       loadPosts();
     });
     $("pBody").querySelectorAll("[data-pd]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm("글과 댓글, 첨부파일을 모두 삭제할까요?")) return;
+      if (!await ask("글과 댓글, 첨부파일을 모두 삭제할까요?", { title:"글 삭제", yes:"삭제", danger:true })) return;
       const id = Number(b.dataset.pd);
       // 첨부파일은 저장소에서도 지웁니다 (폴더 이름 = 글 번호)
       try{
@@ -675,7 +702,7 @@
 
     pager($("cPager"), total, 30, cPage, n=>{ cPage = n; loadComments(); });
     $("cBody").querySelectorAll("[data-cd]").forEach(b=> b.onclick = async ()=>{
-      if (!confirm("댓글을 삭제할까요?")) return;
+      if (!await ask("댓글을 삭제할까요?", { title:"댓글 삭제", yes:"삭제", danger:true })) return;
       await rpc("delete_comment", { p_id: Number(b.dataset.cd) });
       toast("삭제했어요."); loadComments();
     });
@@ -695,7 +722,10 @@
       + '<td class="num">'+c.sort+'</td>'
       + '<td>'+(c.section ? '<span class="tag teacher">'+esc(c.section)+'</span>'
                           : '<span class="muted">-</span>')+'</td>'
-      + '<td><b>'+esc(c.name)+'</b>'+(c.archived?' <span class="tag hid">보관</span>':'')+'</td>'
+      + '<td><b>'+esc(c.name)+'</b>'+(c.archived?' <span class="tag hid">보관</span>':'')
+      +   (c.secret_mode==='force' ? ' <span class="tag admin">비밀강제</span>'
+          : c.secret_mode==='default' ? ' <span class="tag admin">비밀기본</span>' : '')
+      +   (c.notify_admin ? ' <span class="tag teacher">알림</span>' : '')+'</td>'
       + '<td class="num muted">'+(c.posts||0)+'</td>'
       + '<td class="muted">'+esc(c.slug)+'</td>'
       + '<td>'+({all:"모두",teacher:"선생님·관리자",admin:"관리자만"}[c.write_role])+'</td>'
@@ -737,7 +767,8 @@
     $("secGo").onclick = async ()=>{
       const s = $("secPick").value;
       if (!s){ toast("구분을 선택해주세요."); return; }
-      if (!confirm('"'+s+'" 구분의 게시판을 모두 보관할까요?\n글은 그대로 남고 새 글만 막힙니다.')) return;
+      if (!await ask('"'+s+'" 구분의 게시판을 모두 보관할까요?\n글은 그대로 남고 새 글만 막힙니다.',
+                     { title:"학기 정리", yes:"보관" })) return;
       const n = await rpc("admin_archive_section", { p_section: s, p_archived: true });
       toast(n + "개 게시판을 보관했어요."); pageCats();
     };
@@ -756,8 +787,9 @@
     });
     $("page").querySelectorAll("[data-cx]").forEach(b=> b.onclick = async ()=>{
       const c = allCats.find(x=> String(x.id) === b.dataset.cx);
-      if (!confirm('"'+c.name+'" 게시판과 안의 글 '+(c.posts||0)+'개를 영구 삭제할까요?\n'
-                   + '되돌릴 수 없습니다. 학기 정리라면 "보관"을 권해요.')) return;
+      if (!await ask('"'+c.name+'" 게시판과 안의 글 '+(c.posts||0)+'개를 영구 삭제할까요?\n'
+                     + '되돌릴 수 없습니다. 학기 정리라면 "보관"을 권해요.',
+                     { title:"게시판 삭제", yes:"영구 삭제", danger:true })) return;
       await rpc("admin_delete_category", { p_id: c.id });
       toast("삭제했어요."); pageCats();
     });
@@ -781,6 +813,16 @@
       +   '<option value="teacher"'+(!c||c.write_role==="teacher"?" selected":"")+'>선생님·관리자</option>'
       +   '<option value="admin"'+(c&&c.write_role==="admin"?" selected":"")+'>관리자만</option>'
       + '</select></div></div>'
+      + '<div class="row2">'
+      + '<div class="f"><label>비밀글 설정</label><select id="kSec2">'
+      +   '<option value="off"'    +(!c||c.secret_mode==="off"?" selected":"")+'>보통 (학생이 선택)</option>'
+      +   '<option value="default"'+(c&&c.secret_mode==="default"?" selected":"")+'>비밀글 기본 켜짐 (풀 수 있음)</option>'
+      +   '<option value="force"'  +(c&&c.secret_mode==="force"?" selected":"")+'>무조건 비밀글</option>'
+      + '</select></div>'
+      + '<div class="f"><label>새 글 알림</label><select id="kNoti">'
+      +   '<option value="false"'+(!c||!c.notify_admin?" selected":"")+'>안 받음</option>'
+      +   '<option value="true"' +(c&&c.notify_admin?" selected":"")+'>관리자에게 알림</option>'
+      + '</select></div></div>'
       + '<div class="f"><label>상태</label><select id="kArch">'
       +   '<option value="false"'+(!c||!c.archived?" selected":"")+'>사용 중</option>'
       +   '<option value="true"'+(c&&c.archived?" selected":"")+'>보관 (지난 학기 · 새 글 금지)</option>'
@@ -802,7 +844,7 @@
       $("kMoveGo").onclick = async ()=>{
         const to = $("kMove").value;
         if (!to){ $("kErr").textContent = "옮길 게시판을 선택해주세요."; return; }
-        if (!confirm("글 "+c.posts+"개를 옮길까요?")) return;
+        if (!await ask("글 "+c.posts+"개를 옮길까요?", { title:"글 옮기기", yes:"옮기기" })) return;
         try{
           const n = await rpc("admin_move_posts", { p_from: c.id, p_to: Number(to) });
           closeDlg(); toast(n + "개 글을 옮겼어요."); pageCats();
@@ -815,7 +857,8 @@
           p_id: c ? c.id : null, p_name: $("kName").value.trim(),
           p_slug: $("kSlug").value.trim().toLowerCase(),
           p_sort: Number($("kSort").value||0), p_write_role: $("kRole").value,
-          p_section: $("kSec").value.trim(), p_archived: $("kArch").value === "true" });
+          p_section: $("kSec").value.trim(), p_archived: $("kArch").value === "true",
+          p_secret_mode: $("kSec2").value, p_notify: $("kNoti").value === "true" });
         closeDlg(); toast("저장했어요."); pageCats();
       }catch(e){ $("kErr").textContent = cleanErr(e); }
     };

@@ -446,15 +446,16 @@
 
   .grid-scroll{overflow-x:auto; padding:2px 3px 6px}
   .grid-inner{display:inline-block; min-width:100%}
-  .months{display:flex; height:16px; margin-left:26px; position:relative; font-size:10.5px; color:var(--ink-faint)}
-  .months span{position:absolute; top:0; letter-spacing:-.1px}
+  .months{display:block; height:16px; position:relative; font-size:10.5px; color:var(--ink-faint)}
+  .months span{position:absolute; top:0; letter-spacing:-.1px; white-space:nowrap}
   .grid-body{display:flex; gap:6px}
-  .wdays{display:grid; grid-template-rows:repeat(7,14px); gap:3px; font-size:10px; color:var(--ink-faint)}
-  .wdays i{font-style:normal; line-height:14px; height:14px; width:20px}
+  .grid-body{--cell:14px}
+  .wdays{display:grid; grid-template-rows:repeat(7,var(--cell)); gap:3px; font-size:10px; color:var(--ink-faint)}
+  .wdays i{font-style:normal; line-height:var(--cell); height:var(--cell); width:20px}
   .weeks{display:flex; gap:3px}
-  .week{display:grid; grid-template-rows:repeat(7,14px); gap:3px}
+  .week{display:grid; grid-template-rows:repeat(7,var(--cell)); gap:3px}
   .day{
-    width:14px; height:14px; border-radius:3.5px; background:var(--g0);
+    width:var(--cell); height:var(--cell); border-radius:3.5px; background:var(--g0);
     outline:1px solid rgba(31,58,102,.03); outline-offset:-1px;
     cursor:default; transition:transform .1s;
   }
@@ -481,6 +482,7 @@
     box-shadow:var(--shadow); transition:.15s; white-space:nowrap;
   }
   .acc-btn:hover{border-color:#c9dbf3}
+  .acc-btn[hidden]{display:none !important}
   .dm-btn .ava{background:var(--blue-soft); color:var(--blue-dark); font-size:14px}
   .dm-btn.has .ava{background:#d94f4f; color:#fff}
   .acc-btn .ava{
@@ -514,6 +516,50 @@
   }
   .acc-menu .sw.on{background:var(--blue)}
   .acc-menu .sw.on::after{transform:translateX(13px)}
+
+  /* ---------- 알림 ---------- */
+  .noti{position:relative}
+  .noti[hidden]{display:none}
+  .noti-btn{padding:0 12px !important; position:relative}
+  .noti-btn .bell{font-size:17px; line-height:1}
+  .noti-dot{
+    position:absolute; top:9px; right:9px; width:9px; height:9px; border-radius:50%;
+    background:#e04b4b; border:2px solid #fff; box-sizing:content-box;
+  }
+  .noti-dot[hidden]{display:none}
+  .noti-pop{
+    position:absolute; right:0; top:calc(100% + 8px); width:320px; background:#fff;
+    border:1px solid var(--line); border-radius:16px; box-shadow:0 16px 40px rgba(31,58,102,.16);
+    z-index:44; overflow:hidden; text-align:left;
+  }
+  .noti-pop[hidden]{display:none}
+  .noti-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 15px; border-bottom:1px solid var(--line);
+  }
+  .noti-head b{font-size:13.5px; letter-spacing:-.2px}
+  .noti-head button{
+    background:none;border:0;color:var(--blue);cursor:pointer;font:inherit;font-size:11.5px;
+    text-decoration:underline; text-underline-offset:2px;
+  }
+  .noti-list{max-height:340px; overflow:auto}
+  .noti-item{
+    display:flex; gap:10px; padding:12px 15px; border-bottom:1px solid var(--line);
+    cursor:pointer; transition:.12s;
+  }
+  .noti-item:last-child{border-bottom:0}
+  .noti-item:hover{background:var(--blue-tint)}
+  .noti-item.new{background:#f3f8fe}
+  .noti-item .ic{font-size:15px; flex:none; line-height:1.4}
+  .noti-item .tx{flex:1; min-width:0}
+  .noti-item .t1{font-size:13px; color:var(--ink); letter-spacing:-.2px}
+  .noti-item.new .t1{font-weight:700}
+  .noti-item .t2{
+    font-size:11.5px; color:var(--ink-faint); margin-top:2px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .noti-item .tm{font-size:10.5px; color:var(--ink-faint); flex:none}
+  .noti-empty{padding:28px 14px; text-align:center; color:var(--ink-faint); font-size:12.5px}
 
   /* ---------- 랭킹 ---------- */
   .rank-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px}
@@ -819,6 +865,9 @@
     .acc-btn .ava{width:26px;height:26px;border-radius:8px;font-size:12px}
     .clock-box .date{height:42px}
     #accName{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    #dmLabel{display:none}
+    .dm-btn{padding:0 10px 0 6px}
+    .noti-pop{width:min(320px, calc(100vw - 28px)); right:-60px}
     .acc-menu{width:200px}
 
     .main-tabs button{flex:1; padding:10px 0; font-size:14px}
@@ -841,10 +890,8 @@
     .rank-list li{padding:8px 8px; font-size:13px}
     .sessions li{font-size:12.5px}
 
-    .day{width:12px;height:12px}
-    .week{grid-template-rows:repeat(7,12px)}
-    .wdays{grid-template-rows:repeat(7,12px)}
-    .wdays i{line-height:12px; height:12px; width:16px}
+    .grid-body{--cell:12px}
+    .wdays i{width:16px}
     .mcell{font-size:11px; border-radius:8px}
     .mcell em{font-size:8.5px}
 
@@ -917,6 +964,19 @@
         <span class="src" id="clockSrc">내 기기 시간</span>
       </div>
       <div class="clock"><span id="clockHM">00:00</span><span class="sec" id="clockS">00</span></div>
+
+      <div class="noti" id="notiWrap" hidden>
+        <button class="acc-btn noti-btn" id="notiBtn" title="알림">
+          <span class="bell">🔔</span><span class="noti-dot" id="notiDot" hidden></span>
+        </button>
+        <div class="noti-pop" id="notiPop" hidden>
+          <div class="noti-head">
+            <b>알림</b>
+            <button id="notiAllRead">모두 읽음</button>
+          </div>
+          <div class="noti-list" id="notiList"></div>
+        </div>
+      </div>
 
       <button class="acc-btn dm-btn" id="dmBtn" hidden title="쪽지">
         <span class="ava">✉</span><span id="dmLabel">쪽지</span>
@@ -1652,6 +1712,7 @@
   }
 
   /* ---------- 잔디 ---------- */
+  let placeMonthLabels = ()=>{};
   const MONTH_KO = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
 
   function renderGrid(){
@@ -1688,17 +1749,30 @@
         col.appendChild(cell);
         cur.setDate(cur.getDate()+1);
       }
-      // 월 라벨
+      // 월 라벨 (위치는 아래에서 실제 칸 좌표에 맞춰 잡는다)
       const first = new Date(start); first.setDate(start.getDate() + w*7);
       if (first.getMonth() !== lastMonth && first.getDate() <= 7){
         lastMonth = first.getMonth();
         const lab = document.createElement("span");
         lab.textContent = MONTH_KO[lastMonth];
-        lab.style.left = (w * 17) + "px";
+        lab.dataset.w = w;
         months.appendChild(lab);
       }
       weeks.appendChild(col);
     }
+
+    // 칸 크기가 화면에 따라 달라지므로, 그려진 뒤 실제 좌표로 맞춘다
+    placeMonthLabels = ()=>{
+      const base = months.getBoundingClientRect();
+      if (!base.width) return;
+      months.querySelectorAll("span").forEach(lab=>{
+        const col = weeks.children[Number(lab.dataset.w)];
+        if (!col) return;
+        lab.style.left = Math.round(col.getBoundingClientRect().left - base.left) + "px";
+      });
+    };
+    requestAnimationFrame(placeMonthLabels);
+    setTimeout(placeMonthLabels, 120);
     $("yearTotal").textContent = Math.floor(yearSec/3600) + "시간";
 
     // 최근 날짜(오른쪽 끝)가 먼저 보이도록
@@ -1900,7 +1974,7 @@
 
     setInterval(flush, 20000);                                  // 20초마다 서버 저장
     setInterval(()=>{ if (!document.hidden) refreshRank(); }, 45000);
-    setInterval(()=>{ if (!document.hidden) updateUnread(); }, 60000);
+    setInterval(()=>{ if (!document.hidden) updateBadges(); }, 60000);
   }
 
   // 공지 배너는 여러 개(JSON 배열)일 수 있고, 예전처럼 한 줄 문자열일 수도 있다
@@ -2133,7 +2207,7 @@
   $("mOut").onclick   = async ()=>{
     await sb.auth.signOut();
     me = null; boardLoaded = false;
-    $("dmBtn").hidden = true;
+    $("dmBtn").hidden = true; $("notiWrap").hidden = true; $("notiPop").hidden = true;
     renderAccount(); renderRank();
     if (!$("boardView").hidden) openBoard();
     toast("로그아웃했어요.");
@@ -2828,6 +2902,71 @@
   };
 
   /* =====================================================================
+     알림
+     ===================================================================== */
+  const NOTI_ICON = { message:"✉️", comment:"💬", reply:"↩️", notice:"📢" };
+
+  async function loadNotifications(openPop){
+    if (!sb || !me || !me.nickname) return;
+    const { data, error } = await sb.rpc("list_notifications", { p_limit: 20 });
+    if (error){ $("notiList").innerHTML = '<div class="noti-empty">불러오지 못했어요.</div>'; return; }
+    const rows = data || [];
+    $("notiList").innerHTML = rows.length
+      ? rows.map(n=>
+          '<div class="noti-item'+(n.is_read ? "" : " new")+'" data-n="'+n.id+'"'
+          + ' data-lt="'+esc(n.link_type||"")+'" data-li="'+(n.link_id||"")+'">'
+          + '<span class="ic">'+(NOTI_ICON[n.kind] || "🔔")+'</span>'
+          + '<span class="tx"><span class="t1">'+esc(n.title)+'</span>'
+          + (n.body ? '<span class="t2">'+esc(n.body)+'</span>' : '') + '</span>'
+          + '<span class="tm">'+fmtDate(n.created_at)+'</span></div>').join("")
+      : '<div class="noti-empty">새로운 알림이 없어요.</div>';
+
+    $("notiList").querySelectorAll("[data-n]").forEach(el=>{
+      el.onclick = async ()=>{
+        await sb.rpc("mark_notifications_read", { p_id: Number(el.dataset.n) });
+        $("notiPop").hidden = true;
+        updateBadges();
+        const t = el.dataset.lt, id = Number(el.dataset.li);
+        if (t === "message"){ openDM("in"); dmOpen(id); }
+        else if (t === "post"){ switchView("board"); setTimeout(()=> openPost(id), 120); }
+      };
+    });
+    if (openPop) $("notiPop").hidden = false;
+  }
+
+  async function updateBadges(){
+    if (!sb || !me || !me.nickname){
+      $("notiWrap").hidden = true; $("dmBtn").hidden = true; return;
+    }
+    $("notiWrap").hidden = false;
+    $("dmBtn").hidden = false;
+
+    const [{ data: nn }, { data: mm }] = await Promise.all([
+      sb.rpc("unread_notifications"),
+      sb.rpc("unread_count")
+    ]);
+    const n = Number(nn || 0), m = Number(mm || 0);
+    $("notiDot").hidden = !(n > 0);
+    $("dmBtn").classList.toggle("has", m > 0);
+    $("dmLabel").textContent = m > 0 ? "쪽지 " + m : "쪽지";
+  }
+
+  $("notiBtn").onclick = (e)=>{
+    e.stopPropagation();
+    const pop = $("notiPop");
+    if (!pop.hidden){ pop.hidden = true; return; }
+    $("accMenu").hidden = true;
+    loadNotifications(true);
+  };
+  $("notiPop").onclick = (e)=> e.stopPropagation();
+  $("notiAllRead").onclick = async (e)=>{
+    e.stopPropagation();
+    await sb.rpc("mark_notifications_read");
+    loadNotifications(true); updateBadges();
+  };
+  document.addEventListener("click", ()=>{ $("notiPop").hidden = true; });
+
+  /* =====================================================================
      쪽지
      ===================================================================== */
   let dmBox = "in", dmPage = 0, dmTo = null, dmFiles = [], dmCur = null;
@@ -3032,14 +3171,7 @@
   $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") closeDM(); };
   $("dmBtn").onclick    = ()=> openDM("in");
 
-  async function updateUnread(){
-    if (!sb || !me || !me.nickname){ $("dmBtn").hidden = true; return; }
-    $("dmBtn").hidden = false;
-    const { data } = await sb.rpc("unread_count");
-    const n = Number(data || 0);
-    $("dmBtn").classList.toggle("has", n > 0);
-    $("dmLabel").textContent = n > 0 ? "쪽지 " + n : "쪽지";
-  }
+  const updateUnread = updateBadges;
 
   /* ---------- 게시판 helpers ---------- */
   function ytId(url){
@@ -3112,6 +3244,13 @@
     if (e.code === "Space"){ e.preventDefault(); state.running ? pause() : start(); }
     if (e.key === "Enter" && !$("finishBtn").disabled) finish();
   });
+
+  let resizeTimer;
+  window.addEventListener("resize", ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{ placeMonthLabels(); renderMiniTimer(); }, 150);
+  });
+  window.addEventListener("orientationchange", ()=> setTimeout(placeMonthLabels, 300));
 
   window.addEventListener("beforeunload", (e)=>{
     if (state.running) step();

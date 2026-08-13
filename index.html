@@ -585,6 +585,28 @@
   .acc-menu .sw.on{background:var(--blue)}
   .acc-menu .sw.on::after{transform:translateX(13px)}
 
+  /* ---------- 닉네임 메뉴 ---------- */
+  .who-btn{
+    background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer;
+    border-radius:5px; transition:.12s;
+  }
+  .who-btn:hover{background:var(--blue-soft); box-shadow:0 0 0 3px var(--blue-soft)}
+  .who-menu{
+    position:fixed; z-index:66; min-width:168px; background:#fff; border:1px solid var(--line);
+    border-radius:14px; box-shadow:0 14px 36px rgba(31,58,102,.18); padding:7px; text-align:left;
+  }
+  .who-menu[hidden]{display:none}
+  .who-menu .nm{
+    padding:8px 11px 9px; font-size:12.5px; font-weight:700; color:var(--blue-dark);
+    border-bottom:1px solid var(--line); margin-bottom:5px;
+  }
+  .who-menu button{
+    display:block; width:100%; text-align:left; background:none; border:0; padding:9px 11px;
+    border-radius:9px; cursor:pointer; font-family:inherit; font-size:13.5px;
+    color:var(--ink-soft); letter-spacing:-.2px;
+  }
+  .who-menu button:hover{background:var(--blue-tint); color:var(--ink)}
+
   /* ---------- 알림 ---------- */
   .noti{position:relative}
   .noti[hidden]{display:none}
@@ -1081,6 +1103,7 @@
         <div class="acc-menu" id="accMenu" hidden>
           <div class="mail"><b id="accRole"></b><span id="accMail"></span></div>
           <button id="mInbox">쪽지함</button>
+          <button id="mBlock">차단 목록</button>
           <button id="mNick">닉네임 변경</button>
           <button id="mRank">랭킹에 내 기록 표시<span class="sw on" id="rankSw"></span></button>
           <button id="mGroup">그룹 관리</button>
@@ -1330,6 +1353,24 @@
   <button class="mt-btn" id="mtToggle" title="일시정지 / 계속">⏸</button>
 </div>
 
+<!-- 차단 목록 -->
+<div class="modal-back" id="blockModal">
+  <div class="modal dm" role="dialog" aria-modal="true">
+    <div class="dm-head">
+      <h3>차단 목록</h3>
+      <button class="btn-ghost" id="blockClose">닫기</button>
+    </div>
+    <p style="text-align:left;margin:-4px 0 14px">차단하면 그 사람의 글·댓글이 보이지 않고, 쪽지도 오지 않아요.
+      선생님·관리자는 차단할 수 없어요.</p>
+    <div class="w-field" style="position:relative;text-align:left">
+      <label>닉네임으로 차단 추가</label>
+      <input id="blockTo" placeholder="닉네임 검색" autocomplete="off">
+      <div class="dm-sug" id="blockSug" hidden></div>
+    </div>
+    <div id="blockList"></div>
+  </div>
+</div>
+
 <!-- 쪽지 -->
 <div class="modal-back" id="dmModal">
   <div class="modal dm" role="dialog" aria-modal="true">
@@ -1490,6 +1531,7 @@
   </div>
 </div>
 
+<div class="who-menu" id="whoMenu" hidden></div>
 <div id="tip"></div>
 <div id="toast"></div>
 
@@ -2615,7 +2657,7 @@
      커뮤니티 (게시판)
      ===================================================================== */
   const PAGE_SIZE = 15;
-  let cats = [], catId = null, tagFilter = "", page = 0, query = "";
+  let cats = [], catId = null, tagFilter = "", page = 0, query = "", authorFilter = null;
   let curPost = null, editingId = null, boardLoaded = false;
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
 
@@ -2720,6 +2762,7 @@
     renderFilterBar();
     const { data, error } = await sb.rpc("list_posts", {
       p_category: catId, p_q: query, p_tag: tagFilter || null,
+      p_author: authorFilter ? authorFilter.id : null,
       p_limit: PAGE_SIZE, p_offset: page * PAGE_SIZE
     });
     if (error){
@@ -2731,11 +2774,16 @@
 
   function renderFilterBar(){
     const bar = $("filterBar");
-    if (!tagFilter){ bar.hidden = true; return; }
+    if (!tagFilter && !authorFilter){ bar.hidden = true; return; }
     bar.hidden = false;
-    bar.innerHTML = '<span>태그 <b>#'+esc(tagFilter)+'</b> 글만 보는 중</span>'
-                  + '<button id="clearTag">전체 보기</button>';
-    $("clearTag").onclick = ()=>{ tagFilter = ""; page = 0; loadPosts(); };
+    bar.innerHTML = '<span>'
+      + (authorFilter ? '<b>'+esc(authorFilter.nick)+'</b>님이 쓴 글' : '')
+      + (authorFilter && tagFilter ? ' · ' : '')
+      + (tagFilter ? '태그 <b>#'+esc(tagFilter)+'</b>' : '')
+      + ' 만 보는 중</span><button id="clearFilter">전체 보기</button>';
+    $("clearFilter").onclick = ()=>{
+      tagFilter = ""; authorFilter = null; page = 0; loadPosts();
+    };
   }
 
   function renderPosts(rows){
@@ -2805,7 +2853,7 @@
 
     const cmtHtml = (c, isReply) =>
       '<div class="cmt'+(isReply?" reply":"")+(c.secret?" secret":"")+'"><div class="c-body">'
-      + '<div class="c-who">'+esc(c.author || "탈퇴한 사용자")
+      + '<div class="c-who">' + whoBtn(c.author, c.author_id)
       +   (c.secret ? ' <span class="lock">🔒</span>' : '')
       +   '<span class="c-when">'+fmtDate(c.created_at, true)+'</span></div>'
       + esc(c.body) + '</div>'
@@ -2818,7 +2866,7 @@
       '<div class="post-head">'
       + '<span class="p-cat">'+esc(p.category_name)+'</span>'
       + '<h2>'+(p.pinned?'📌 ':'')+(p.secret?'🔒 ':'')+esc(p.title)+'</h2>'
-      + '<div class="meta"><b>'+esc(p.author || "탈퇴한 사용자")+'</b>'
+      + '<div class="meta"><b>' + whoBtn(p.author, p.author_id) + '</b>'
       +   '<span>'+fmtDate(p.created_at, true)+(edited?' (수정됨)':'')+'</span>'
       +   '<span>조회 '+p.views+'</span>'
       +   (p.hidden?'<span style="color:#c25b5b">숨김 상태</span>':'')
@@ -2899,6 +2947,115 @@
     });
     bindCodeCells($("boardDetail"));
   }
+
+  async function blockUser(uid, nick){
+    if (!await ask(nick + "님을 차단할까요?\n이 사람의 글과 댓글이 보이지 않게 되고,\n쪽지도 오지 않아요.",
+                   { title:"사용자 차단", yes:"차단", danger:true })) return;
+    const { error } = await sb.rpc("block_user", { p_id: uid });
+    if (!handled(error, "차단")) return;
+    toast(nick + "님을 차단했어요.");
+    if (!$("boardDetail").hidden){ showList(); }
+    loadPosts();
+  }
+
+  async function openBlocks(){
+    if (!sb || !me || !me.nickname){ openLogin(); return; }
+    $("blockTo").value = ""; $("blockSug").hidden = true;
+    $("blockModal").classList.add("on");
+    await loadBlocks();
+  }
+
+  async function loadBlocks(){
+    const { data, error } = await sb.rpc("my_blocks");
+    if (error){ $("blockList").innerHTML = '<div class="empty">불러오지 못했어요.</div>'; return; }
+    const rows = data || [];
+    $("blockList").innerHTML = rows.length
+      ? rows.map(b=>
+          '<div class="dm-row" style="cursor:default">'
+          + '<span class="who">'+esc(b.nickname || "탈퇴한 사용자")+'</span>'
+          + '<span class="sub"></span>'
+          + '<span class="when">'+fmtDate(b.created_at)+' 차단</span>'
+          + '<button class="btn-ghost" style="padding:5px 11px;font-size:12px" data-ub="'+esc(b.id)+'">해제</button>'
+          + '</div>').join("")
+      : '<div class="empty">차단한 사람이 없어요.</div>';
+
+    $("blockList").querySelectorAll("[data-ub]").forEach(b=> b.onclick = async ()=>{
+      await sb.rpc("unblock_user", { p_id: b.dataset.ub });
+      toast("차단을 풀었어요."); loadBlocks(); loadPosts();
+    });
+  }
+
+  let blockSugTimer;
+  $("blockTo").oninput = (e)=>{
+    const q = e.target.value.trim();
+    clearTimeout(blockSugTimer);
+    if (q.length < 2){ $("blockSug").hidden = true; return; }
+    blockSugTimer = setTimeout(async ()=>{
+      const { data } = await sb.rpc("search_members", { p_q: q });
+      const rows = (data || []).filter(r=> r.role === "student");
+      $("blockSug").hidden = !rows.length;
+      $("blockSug").innerHTML = rows.map(r=>
+        '<button data-u="'+r.id+'" data-n="'+esc(r.nickname)+'">'+esc(r.nickname)+'</button>').join("");
+      $("blockSug").querySelectorAll("[data-u]").forEach(b=> b.onclick = async ()=>{
+        $("blockSug").hidden = true; $("blockTo").value = "";
+        const { error } = await sb.rpc("block_user", { p_id: b.dataset.u });
+        if (!handled(error, "차단")) return;
+        toast(b.dataset.n + "님을 차단했어요.");
+        loadBlocks(); loadPosts();
+      });
+    }, 280);
+  };
+
+  $("mBlock").onclick    = ()=>{ $("accMenu").hidden = true; openBlocks(); };
+  $("blockClose").onclick = ()=> $("blockModal").classList.remove("on");
+  $("blockModal").onclick = (e)=>{ if (e.target.id === "blockModal") $("blockModal").classList.remove("on"); };
+
+  function whoBtn(nick, uid){
+    if (!nick) return '탈퇴한 사용자';
+    if (!uid)  return esc(nick);
+    return '<button class="who-btn" data-uid="'+esc(uid)+'" data-nick="'+esc(nick)+'">'
+         + esc(nick) + '</button>';
+  }
+
+  function openWhoMenu(btn){
+    const uid = btn.dataset.uid, nick = btn.dataset.nick;
+    const mine = me && me.id === uid;
+    const menu = $("whoMenu");
+    menu.innerHTML = '<div class="nm">' + esc(nick) + (mine ? " (나)" : "") + '</div>'
+      + (mine ? '' : '<button data-act="dm">✉️ 쪽지 보내기</button>')
+      + '<button data-act="posts">📄 작성한 글 보기</button>'
+      + (mine ? '' : '<button data-act="block" style="color:#c0504a">🚫 차단하기</button>');
+
+    const r = btn.getBoundingClientRect();
+    menu.hidden = false;
+    const w = menu.offsetWidth, h = menu.offsetHeight;
+    let left = r.left, top = r.bottom + 6;
+    if (left + w > innerWidth - 10)  left = innerWidth - w - 10;
+    if (top + h > innerHeight - 10)  top = Math.max(10, r.top - h - 6);
+    menu.style.left = Math.max(10, left) + "px";
+    menu.style.top  = top + "px";
+
+    menu.querySelectorAll("[data-act]").forEach(b=> b.onclick = (e)=>{
+      e.stopPropagation();
+      menu.hidden = true;
+      if (b.dataset.act === "dm"){ openDM("in"); showDmWrite({ id: uid, nick }); }
+      else if (b.dataset.act === "block"){ blockUser(uid, nick); }
+      else {
+        authorFilter = { id: uid, nick };
+        tagFilter = ""; query = ""; page = 0;
+        $("boardSearch").value = "";
+        showList(); loadPosts();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    });
+  }
+
+  document.addEventListener("click", (e)=>{
+    const b = e.target.closest(".who-btn");
+    if (b){ e.stopPropagation(); openWhoMenu(b); return; }
+    if (!e.target.closest("#whoMenu")) $("whoMenu").hidden = true;
+  });
+  window.addEventListener("scroll", ()=>{ $("whoMenu").hidden = true; }, true);
 
   async function sendComment(text, parent, postId, secret){
     const v = (text || "").trim();
@@ -3501,6 +3658,7 @@ _imgs
   $("cats").onclick = (e)=>{
     const b = e.target.closest("button[data-c]"); if (!b) return;
     catId = b.dataset.c ? Number(b.dataset.c) : null;
+    authorFilter = null;
     page = 0;
     document.querySelectorAll("#cats button").forEach(x=> x.classList.toggle("on", x === b));
     loadPosts();

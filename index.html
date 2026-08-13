@@ -287,6 +287,12 @@
     min-height:44px; line-height:1.6;
   }
   .cmt-form textarea:focus{outline:0; border-color:var(--blue); background:#fff}
+  .sec-chk{display:flex; align-items:center; gap:7px; margin-top:9px; cursor:pointer}
+  .sec-chk input{width:15px;height:15px;accent-color:#7a5bd0;margin:0;cursor:pointer}
+  .sec-chk span{font-size:11.5px; color:var(--ink-faint); letter-spacing:-.2px}
+  .cmt.secret .c-body{background:#faf8ff; border-radius:9px; padding:8px 11px; margin:-4px 0}
+  .lock{color:#7a5bd0; font-size:12px}
+  .p-title .lock{margin-right:1px}
 
   /* 글쓰기 */
   .w-field{margin-bottom:14px}
@@ -503,8 +509,12 @@
   }
   .acc-menu button:hover{background:var(--blue-tint); color:var(--ink)}
   .acc-menu .mail{
-    padding:8px 11px 10px; font-size:11.5px; color:var(--ink-faint);
+    padding:9px 11px 11px; font-size:11.5px; color:var(--ink-faint);
     border-bottom:1px solid var(--line); margin-bottom:5px; word-break:break-all;
+  }
+  .acc-menu .mail b{
+    display:block; font-size:12.5px; font-weight:700; color:var(--blue-dark);
+    letter-spacing:-.2px; margin-bottom:3px;
   }
   .acc-menu .sw{
     width:32px;height:19px;border-radius:99px;background:#dbe5f2; position:relative; flex:none;
@@ -520,11 +530,12 @@
   /* ---------- 알림 ---------- */
   .noti{position:relative}
   .noti[hidden]{display:none}
-  .noti-btn{padding:0 12px !important; position:relative}
-  .noti-btn .bell{font-size:17px; line-height:1}
+  .noti-btn{padding:0 13px !important; position:relative; color:var(--ink-soft)}
+  .noti-btn:hover{color:var(--blue-dark)}
+  .noti-btn .bell{width:19px; height:19px; display:block}
   .noti-dot{
-    position:absolute; top:9px; right:9px; width:9px; height:9px; border-radius:50%;
-    background:#e04b4b; border:2px solid #fff; box-sizing:content-box;
+    position:absolute; top:12px; right:11px; width:7px; height:7px; border-radius:50%;
+    background:#d9694f; border:2px solid #fff; box-sizing:content-box;
   }
   .noti-dot[hidden]{display:none}
   .noti-pop{
@@ -967,27 +978,30 @@
 
       <div class="noti" id="notiWrap" hidden>
         <button class="acc-btn noti-btn" id="notiBtn" title="알림">
-          <span class="bell">🔔</span><span class="noti-dot" id="notiDot" hidden></span>
+          <svg class="bell" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3.5a5.5 5.5 0 0 0-5.5 5.5v3.2l-1.3 2.6A.6.6 0 0 0 5.7 16h12.6a.6.6 0 0 0 .5-.9l-1.3-2.6V9A5.5 5.5 0 0 0 12 3.5Z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M9.8 18.4a2.3 2.3 0 0 0 4.4 0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span class="noti-dot" id="notiDot" hidden></span>
         </button>
         <div class="noti-pop" id="notiPop" hidden>
           <div class="noti-head">
             <b>알림</b>
-            <button id="notiAllRead">모두 읽음</button>
+            <span><button id="notiInbox">쪽지함</button>
+            <button id="notiAllRead">모두 읽음</button></span>
           </div>
           <div class="noti-list" id="notiList"></div>
         </div>
       </div>
-
-      <button class="acc-btn dm-btn" id="dmBtn" hidden title="쪽지">
-        <span class="ava">✉</span><span id="dmLabel">쪽지</span>
-      </button>
 
       <div class="account">
         <button class="acc-btn guest" id="accBtn">
           <span class="ava" id="accAva">?</span><span id="accName">로그인</span>
         </button>
         <div class="acc-menu" id="accMenu" hidden>
-          <div class="mail" id="accMail"></div>
+          <div class="mail"><b id="accRole"></b><span id="accMail"></span></div>
+          <button id="mInbox">쪽지함</button>
           <button id="mNick">닉네임 변경</button>
           <button id="mRank">랭킹에 내 기록 표시<span class="sw on" id="rankSw"></span></button>
           <button id="mGroup">그룹 관리</button>
@@ -1168,6 +1182,14 @@
           <div class="files" id="wFileList" hidden></div>
           <div class="drop" id="wDrop">파일을 끌어다 놓거나 클릭해서 선택하세요 · 하나당 20MB, 최대 10개</div>
           <input type="file" id="wFiles" multiple hidden>
+        </div>
+        <div class="w-field">
+          <label class="chk-row" style="background:#f4f1fb;border-color:#e2daf5">
+            <input type="checkbox" id="wSecret">
+            <span style="color:#5b3fb0">🔒 비밀글로 올리기
+              <em>나와 관리자만 볼 수 있어요. 다른 학생에게는 목록에도 안 보여요.</em>
+            </span>
+          </label>
         </div>
         <div class="w-field" id="wPinWrap" hidden>
           <label class="chk-row">
@@ -2175,13 +2197,15 @@
     ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 
   /* ---------- 계정 UI ---------- */
+  const ROLE_KO = { student:"학생", teacher:"선생님", admin:"관리자" };
   function renderAccount(){
     const btn = $("accBtn");
     if (me && me.nickname){
       btn.classList.remove("guest");
       $("accAva").textContent = me.nickname.slice(0,1);
       $("accName").textContent = me.nickname;
-      $("accMail").textContent = me.email + (me.role !== "student" ? " · " + me.role : "");
+      $("accRole").textContent = ROLE_KO[me.role] || "학생";
+      $("accMail").textContent = me.email;
       $("rankSw").classList.toggle("on", me.show_rank);
       $("mAdmin").hidden = me.role !== "admin";
     } else {
@@ -2207,7 +2231,7 @@
   $("mOut").onclick   = async ()=>{
     await sb.auth.signOut();
     me = null; boardLoaded = false;
-    $("dmBtn").hidden = true; $("notiWrap").hidden = true; $("notiPop").hidden = true;
+    $("notiWrap").hidden = true; $("notiPop").hidden = true;
     renderAccount(); renderRank();
     if (!$("boardView").hidden) openBoard();
     toast("로그아웃했어요.");
@@ -2453,6 +2477,7 @@
       + '<span class="p-cat">'+esc(p.category_name)+'</span>'
       + '<span class="p-main"><span class="p-title">'
       +   (p.pinned ? '<span class="pin">📌</span>' : '')
+      +   (p.secret ? '<span class="lock">🔒</span>' : '')
       +   (p.has_video ? '<span class="yt">▶</span>' : '')
       +   (p.file_count ? '<span class="yt">📎</span>' : '')
       +   esc(p.title)
@@ -2505,8 +2530,9 @@
     const kids   = (id) => cs.filter(c=> c.parent_id === id);
 
     const cmtHtml = (c, isReply) =>
-      '<div class="cmt'+(isReply?" reply":"")+'"><div class="c-body">'
+      '<div class="cmt'+(isReply?" reply":"")+(c.secret?" secret":"")+'"><div class="c-body">'
       + '<div class="c-who">'+esc(c.author || "탈퇴한 사용자")
+      +   (c.secret ? ' <span class="lock">🔒</span>' : '')
       +   '<span class="c-when">'+fmtDate(c.created_at, true)+'</span></div>'
       + esc(c.body) + '</div>'
       + (isReply ? '' : '<button class="c-reply" data-crep="'+c.id+'">답글</button>')
@@ -2517,7 +2543,7 @@
     $("boardDetail").innerHTML =
       '<div class="post-head">'
       + '<span class="p-cat">'+esc(p.category_name)+'</span>'
-      + '<h2>'+(p.pinned?'📌 ':'')+esc(p.title)+'</h2>'
+      + '<h2>'+(p.pinned?'📌 ':'')+(p.secret?'🔒 ':'')+esc(p.title)+'</h2>'
       + '<div class="meta"><b>'+esc(p.author || "탈퇴한 사용자")+'</b>'
       +   '<span>'+fmtDate(p.created_at, true)+(edited?' (수정됨)':'')+'</span>'
       +   '<span>조회 '+p.views+'</span>'
@@ -2536,9 +2562,10 @@
       + renderFiles(p.files || [])
       + '<div class="post-body">'+linkify(p.body)+'</div>'
       + '<div class="post-tools">'
-      +   '<button class="btn-ghost" id="dBack">목록</button><span class="grow"></span>'
+      +   '<span class="grow"></span>'
       +   (p.can_edit ? '<button class="btn-ghost" id="dEdit">수정</button>'
                       + '<button class="btn-ghost btn-danger" id="dDel">삭제</button>' : '')
+      +   '<button class="btn-ghost" id="dBack">목록</button>'
       + '</div>'
       + '<div class="cmts"><h4>댓글 '+cs.length+'</h4>'
       +   (roots.length
@@ -2546,6 +2573,8 @@
             : '<div class="empty">첫 댓글을 남겨보세요.</div>')
       +   '<div class="cmt-form"><textarea id="cInput" placeholder="댓글 입력"></textarea>'
       +   '<button class="btn-write" id="cSend">등록</button></div>'
+      +   '<label class="sec-chk"><input type="checkbox" id="cSecret">'
+      +   '<span>🔒 비밀댓글 (글쓴이와 관리자만 볼 수 있어요)</span></label>'
       + '</div>';
 
     $("dBack").onclick = ()=>{ showList(); loadPosts(); };
@@ -2560,7 +2589,7 @@
         toast("글을 삭제했어요."); showList(); loadPosts();
       };
     }
-    $("cSend").onclick = ()=> sendComment($("cInput").value, null, p.id);
+    $("cSend").onclick = ()=> sendComment($("cInput").value, null, p.id, $("cSecret").checked);
 
     $("boardDetail").querySelectorAll("[data-cdel]").forEach(b=>{
       b.onclick = async ()=>{
@@ -2574,10 +2603,14 @@
         const box = $("rf" + b.dataset.crep);
         if (box.innerHTML){ box.innerHTML = ""; return; }
         box.innerHTML = '<div class="reply-form"><textarea placeholder="답글 입력"></textarea>'
-                      + '<button class="btn-write">등록</button></div>';
+                      + '<button class="btn-write">등록</button></div>'
+                      + '<label class="sec-chk" style="margin-left:26px"><input type="checkbox">'
+                      + '<span>🔒 비밀댓글</span></label>';
         const ta = box.querySelector("textarea");
+        const sc = box.querySelector('input[type=checkbox]');
         ta.focus();
-        box.querySelector("button").onclick = ()=> sendComment(ta.value, Number(b.dataset.crep), p.id);
+        box.querySelector("button").onclick = ()=>
+          sendComment(ta.value, Number(b.dataset.crep), p.id, sc.checked);
       };
     });
     $("boardDetail").querySelectorAll("[data-tag]").forEach(b=>{
@@ -2591,11 +2624,11 @@
     });
   }
 
-  async function sendComment(text, parent, postId){
+  async function sendComment(text, parent, postId, secret){
     const v = (text || "").trim();
     if (!v) return;
     const { error } = await sb.rpc("add_comment",
-      { p_post: postId, p_body: v, p_parent: parent });
+      { p_post: postId, p_body: v, p_parent: parent, p_secret: !!secret });
     if (error){ toast(cleanErr(error)); return; }
     openPost(postId);
   }
@@ -2779,6 +2812,7 @@
     $("wBody").value  = post ? post.body : "";
     $("wYt").value    = post && post.youtube_id ? "https://youtu.be/" + post.youtube_id : "";
     $("wTags").value  = post && post.tags ? post.tags.join(", ") : "";
+    $("wSecret").checked = !!(post && post.secret);
     if (post){
       const sel = $("wCat");
       if (!Array.from(sel.options).some(o=> o.value === String(post.category_id))){
@@ -2832,7 +2866,7 @@
     $("wSave").disabled = true;
     $("wSave").textContent = "저장 중…";
     const args = { p_category: cat, p_title: title, p_body: $("wBody").value,
-                   p_youtube: yt, p_tags: tags };
+                   p_youtube: yt, p_tags: tags, p_secret: $("wSecret").checked };
     const { data, error } = editingId
       ? await sb.rpc("update_post", Object.assign({ p_id: editingId }, args))
       : await sb.rpc("create_post", args);
@@ -2935,20 +2969,16 @@
   }
 
   async function updateBadges(){
-    if (!sb || !me || !me.nickname){
-      $("notiWrap").hidden = true; $("dmBtn").hidden = true; return;
-    }
+    if (!sb || !me || !me.nickname){ $("notiWrap").hidden = true; return; }
     $("notiWrap").hidden = false;
-    $("dmBtn").hidden = false;
 
     const [{ data: nn }, { data: mm }] = await Promise.all([
       sb.rpc("unread_notifications"),
       sb.rpc("unread_count")
     ]);
     const n = Number(nn || 0), m = Number(mm || 0);
-    $("notiDot").hidden = !(n > 0);
-    $("dmBtn").classList.toggle("has", m > 0);
-    $("dmLabel").textContent = m > 0 ? "쪽지 " + m : "쪽지";
+    $("notiDot").hidden = !(n > 0 || m > 0);
+    $("notiBtn").title = m > 0 ? "안 읽은 쪽지 " + m + "개" : "알림";
   }
 
   $("notiBtn").onclick = (e)=>{
@@ -3169,7 +3199,8 @@
   $("dmClose").onclick  = closeDM;
   $("dmCancel").onclick = ()=>{ dmBox = "in"; openDM("in"); };
   $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") closeDM(); };
-  $("dmBtn").onclick    = ()=> openDM("in");
+  $("notiInbox").onclick = (e)=>{ e.stopPropagation(); $("notiPop").hidden = true; openDM("in"); };
+  $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; openDM("in"); };
 
   const updateUnread = updateBadges;
 

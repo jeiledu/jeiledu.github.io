@@ -3377,7 +3377,7 @@ _imgs
     if (!files.length) return "";
     return '<div class="files">' + files.map((f,i)=>
       '<div class="file-row"><span class="fi">'+FILE_ICON(f.mime, f.name)+'</span>'
-      + '<span class="fn">'+esc(f.name)+'</span>'
+      + '<span class="fn">'+esc(safeName(f.name))+'</span>'
       + '<span class="fs">'+fileSize(f.size)+'</span>'
       + '<button class="fp" data-pv="'+i+'">미리보기</button>'
       + '<button class="fd" data-dl="'+esc(f.path)+'" data-name="'+esc(f.name)+'">받기</button>'
@@ -3392,7 +3392,7 @@ _imgs
     sb.rpc("log_download", { p_size: data.size || 0 }).then(()=>{}, ()=>{});
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
-    a.href = url; a.download = name || "file";
+    a.href = url; a.download = safeName(name || "file");
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=> URL.revokeObjectURL(url), 4000);
   }
@@ -3411,7 +3411,7 @@ _imgs
 
   async function openPreview(f){
     pvFile = f;
-    $("pvName").textContent = f.name;
+    $("pvName").textContent = safeName(f.name);
     $("pvModal").classList.add("on");
 
     if (canPreview(f)){

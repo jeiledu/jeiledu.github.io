@@ -3360,6 +3360,16 @@ _imgs
     return b + "B";
   };
 
+  const rand7   = ()=> Math.random().toString(36).slice(2,9);
+  // 맥은 한글을 자모로 쪼개 저장해서, 표준형(NFC)으로 맞춰야 윈도우에서도 이름이 깔끔합니다.
+  // 윈도우에서 쓸 수 없는 문자( \ / : * ? " < > | )도 미리 바꿔둡니다.
+  const safeName = (name)=>
+    String(name || "파일").normalize("NFC").replace(/[\\/:*?"<>|]/g, "_").slice(0, 120);
+  const fileExt = (name)=>{
+    const m = String(name || "").match(/\.[A-Za-z0-9]{1,8}$/);
+    return m ? m[0].toLowerCase() : "";
+  };
+
   const canPreview = (f)=> /^image\//.test(f.mime || "") || /\.(pdf|png|jpe?g|gif|webp|svg)$/i.test(f.name);
   const OFFICE_EXT = /\.(pptx?|docx?|xlsx?)$/i;
 
@@ -3489,12 +3499,15 @@ _imgs
 
   async function uploadPending(postId){
     for (const f of pendingFiles){
-      const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");
-      const path = postId + "/" + Date.now() + "_" + Math.random().toString(36).slice(2,7) + "_" + safe;
+      // 저장소 경로에는 영문·숫자만 씁니다.
+      // (한글 파일명을 그대로 쓰면 윈도우에서 업로드가 거부됩니다.
+      //  실제 파일명은 DB에 따로 저장돼서 받을 때 그대로 복원됩니다)
+      const path = postId + "/" + Date.now() + "_" + rand7() + fileExt(f.name);
       const { error } = await sb.storage.from("attachments").upload(path, f, { upsert: false });
       if (error){ showError(error, '파일 업로드 · ' + f.name); continue; }
       await sb.rpc("add_post_file",
-        { p_post: postId, p_path: path, p_name: f.name, p_size: f.size, p_mime: f.type || null });
+        { p_post: postId, p_path: path, p_name: safeName(f.name),
+          p_size: f.size, p_mime: f.type || null });
     }
     pendingFiles = [];
   }
@@ -3950,12 +3963,12 @@ _imgs
       handled(error, "쪽지 보내기", $("dmErr")); return;
     }
     for (const f of dmFiles){
-      const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");
-      const path = "dm/" + data + "/" + Date.now() + "_" + Math.random().toString(36).slice(2,7) + "_" + safe;
+      const path = "dm/" + data + "/" + Date.now() + "_" + rand7() + fileExt(f.name);
       const up = await sb.storage.from("attachments").upload(path, f, { upsert: false });
       if (up.error){ toast('"'+f.name+'" 업로드 실패'); continue; }
       await sb.rpc("add_message_file",
-        { p_msg: data, p_path: path, p_name: f.name, p_size: f.size, p_mime: f.type || null });
+        { p_msg: data, p_path: path, p_name: safeName(f.name),
+          p_size: f.size, p_mime: f.type || null });
     }
     $("dmSend").disabled = false; $("dmSend").textContent = "보내기";
     dmFiles = [];
@@ -4038,7 +4051,10 @@ _imgs
   };
 
   document.addEventListener("keydown", (e)=>{
-    if (e.target.tagName === "INPUT") return;
+    // 글을 쓰는 중에는 단축키를 쓰지 않습니다 (스페이스·엔터가 먹히지 않던 문제)
+    const t = e.target;
+    if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
+    if (!$("boardView").hidden) return;      // 커뮤니티 화면에서도 끔
     const openModals = document.querySelectorAll(".modal-back.on");
     if (e.key === "Escape"){
       if (openModals.length) openModals.forEach(m=>{

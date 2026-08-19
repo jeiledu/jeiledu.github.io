@@ -371,6 +371,29 @@
     outline:0; border-color:var(--blue); background:#fff;
   }
   .w-field .tip{margin-top:6px; font-size:11.5px; color:var(--ink-faint)}
+  .body-tools{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
+  .body-tools .btn-ghost{padding:7px 13px; font-size:12.5px}
+  .img-strip{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  .img-strip figure{
+    margin:0; position:relative; width:86px; height:86px; border-radius:10px; overflow:hidden;
+    border:1px solid var(--line); background:var(--blue-tint);
+  }
+  .img-strip img{width:100%; height:100%; object-fit:cover; display:block}
+  .img-strip figcaption{
+    position:absolute; left:0; right:0; bottom:0; background:rgba(30,42,58,.72); color:#fff;
+    font-size:9.5px; text-align:center; padding:2px 0; letter-spacing:-.2px;
+  }
+  .img-strip button{
+    position:absolute; top:3px; right:3px; width:19px; height:19px; border-radius:50%;
+    border:0; background:rgba(30,42,58,.75); color:#fff; font-size:11px; line-height:1;
+    cursor:pointer; padding:0;
+  }
+  .post-img{
+    display:block; max-width:100%; border-radius:12px; margin:14px 0;
+    border:1px solid var(--line); background:var(--blue-tint); cursor:zoom-in;
+  }
+  .post-img.loading{min-height:120px}
+
   .w-btns{display:flex; gap:9px; justify-content:flex-end; margin-top:18px}
   .chk-row{
     display:flex; align-items:center; gap:10px; padding:13px 15px; border-radius:12px;
@@ -916,6 +939,18 @@
   }
   .foot-copy b{color:var(--ink-soft); font-weight:600}
 
+  .check-code{
+    margin:2px 0 12px; padding:14px; border-radius:14px; background:var(--blue-soft);
+    color:var(--blue-dark); font-size:34px; font-weight:700; letter-spacing:10px;
+    font-family:"SF Mono", ui-monospace, Menlo, Consolas, monospace; text-indent:10px;
+  }
+  #checkInput{text-transform:uppercase; letter-spacing:8px; font-size:20px; font-weight:700}
+  .check-bar{height:6px; border-radius:99px; background:#eef3fa; overflow:hidden; margin:14px 0 6px}
+  .check-bar i{display:block; height:100%; width:100%; background:var(--blue); border-radius:99px;
+               transition:width .5s linear}
+  .check-bar i.warn{background:#d9694f}
+  .check-left{font-size:12px; color:var(--ink-faint); margin:0}
+
   .err-code{
     margin:4px 0 12px; padding:12px; border-radius:12px; background:#fdf3f2; border:1px solid #f0dada;
     color:#b3564f; font-size:18px; font-weight:700; letter-spacing:2px;
@@ -1298,7 +1333,13 @@
         </div>
         <div class="w-field">
           <label>내용</label>
+          <div class="body-tools">
+            <button type="button" class="btn-ghost" id="wImgBtn">🖼 이미지 넣기</button>
+            <span class="tip" style="margin:0">글자 사이에 사진을 넣을 수 있어요. 복사해서 붙여넣거나 끌어다 놓아도 돼요.</span>
+          </div>
           <textarea id="wBody" placeholder="내용을 입력하세요. 링크를 붙여넣으면 자동으로 연결돼요."></textarea>
+          <input type="file" id="wImgInput" accept="image/*" multiple hidden>
+          <div class="img-strip" id="wImgStrip" hidden></div>
         </div>
         <div class="w-field">
           <label class="chk-row" style="background:#eef7f4;border-color:#cfe7e0">
@@ -1441,6 +1482,24 @@
         <button class="btn-ghost" id="dmCancel">취소</button>
         <button class="btn-write" id="dmSend">보내기</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 집중 확인 -->
+<div class="modal-back" id="checkModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>아직 공부 중인가요?</h3>
+    <p>자유 모드는 오래 켜두면 실제 공부 시간과 달라질 수 있어요.<br>
+      아래 코드를 입력하면 이어서 기록돼요.</p>
+    <div class="check-code" id="checkCode">A7K2</div>
+    <input id="checkInput" maxlength="4" placeholder="코드 입력" autocomplete="off"
+           autocapitalize="characters" spellcheck="false">
+    <div class="check-bar"><i id="checkBar"></i></div>
+    <p class="check-left" id="checkLeft">5:00 남음</p>
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="checkStop">지금 멈추기</button>
+      <button class="btn btn-start" id="checkOk">확인</button>
     </div>
   </div>
 </div>
@@ -1712,6 +1771,12 @@
     state.elapsed += d;
     if (state.phase === "study") addStudy(d);   // 휴식 시간은 순공에 포함하지 않음
 
+    // 자유 모드는 오래 켜두면 중간에 한 번 확인합니다
+    if (state.mode === "free" && state.phase === "study"){
+      checkRun += d;
+      if (checkRun >= CHECK_EVERY) openCheck();
+    }
+
     if (state.target > 0 && state.elapsed >= state.target){
       state.elapsed = state.target;
       pause();
@@ -1756,6 +1821,7 @@
 
   function pause(){
     if (!state.running) return;
+    if (checkCode) closeCheck();
     state.running = false;
     clearInterval(state.tick);
     document.body.classList.remove("running");
@@ -1811,6 +1877,8 @@
     } else if (state.elapsed > 0){
       commit();
     }
+    checkRun = 0;
+    if (checkCode) closeCheck();
     state.mode = mode;
     state.pomoTarget = mode === "pomo" ? min*60 : 0;
     state.target = state.pomoTarget;
@@ -1840,6 +1908,78 @@
                   + '</b> <button id="breakEdit">변경</button>';
     $("breakEdit").onclick = ()=> openModal(false);
   }
+
+  /* =====================================================================
+     자유 모드 집중 확인
+     1시간 15분마다 코드를 물어보고, 5분 안에 입력하지 않으면
+     그때까지만 인정하고 타이머를 멈춥니다. (포모도로 모드는 해당 없음)
+     ===================================================================== */
+  const CHECK_EVERY = 75 * 60;      // 75분마다
+  const CHECK_GRACE = 5 * 60;       // 5분 안에 입력
+  let checkRun = 0;                 // 마지막 확인 이후 흐른 자유모드 시간
+  let checkCode = null, checkDeadline = 0, checkTimer = null;
+
+  function makeCheckCode(){
+    const set = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let c = ""; for (let i=0;i<4;i++) c += set[Math.floor(Math.random()*set.length)];
+    return c;
+  }
+
+  function openCheck(){
+    if (checkCode) return;
+    checkCode = makeCheckCode();
+    checkDeadline = Date.now() + CHECK_GRACE * 1000;
+    $("checkCode").textContent = checkCode;
+    $("checkInput").value = "";
+    $("checkModal").classList.add("on");
+    setTimeout(()=> $("checkInput").focus(), 120);
+    chime("rest");
+    tickCheck();
+    checkTimer = setInterval(tickCheck, 500);
+  }
+
+  function tickCheck(){
+    const left = Math.max(0, Math.round((checkDeadline - Date.now()) / 1000));
+    const p = Math.max(0, left / CHECK_GRACE * 100);
+    $("checkBar").style.width = p + "%";
+    $("checkBar").classList.toggle("warn", left <= 60);
+    $("checkLeft").textContent = Math.floor(left/60) + ":" + pad(left % 60) + " 남음";
+    if (left <= 0) failCheck();
+  }
+
+  function closeCheck(){
+    clearInterval(checkTimer); checkTimer = null;
+    checkCode = null;
+    $("checkModal").classList.remove("on");
+  }
+
+  function passCheck(){
+    closeCheck();
+    checkRun = 0;
+    toast("확인됐어요. 계속 기록할게요 👍");
+  }
+
+  function failCheck(){
+    closeCheck();
+    checkRun = 0;
+    if (state.running) pause();
+    toast("확인이 없어서 타이머를 멈췄어요. 여기까지 기록됐어요.");
+    timeSub.textContent = "자리 비움으로 멈춤 · " + humanKo(state.elapsed) + " 기록";
+  }
+
+  $("checkOk").onclick = ()=>{
+    const v = $("checkInput").value.trim().toUpperCase();
+    if (!v){ $("checkInput").focus(); return; }
+    if (v === checkCode) passCheck();
+    else {
+      $("checkInput").value = "";
+      $("checkInput").placeholder = "코드가 달라요";
+      $("checkInput").focus();
+    }
+  };
+  $("checkStop").onclick = ()=>{ closeCheck(); checkRun = 0; if (state.running) pause();
+                                 toast("타이머를 멈췄어요."); };
+  $("checkInput").onkeydown = (e)=>{ if (e.key === "Enter") $("checkOk").click(); };
 
   /* ================= render ================= */
   function render(){
@@ -2987,6 +3127,10 @@
       b.onclick = ()=> openPreview((p.files || [])[Number(b.dataset.pv)]);
     });
     bindCodeCells($("boardDetail"));
+    fillInlineImages($("boardDetail"));
+    $("boardDetail").querySelectorAll(".post-img").forEach(im=>{
+      im.onclick = ()=>{ if (im.src) window.open(im.src, "_blank"); };
+    });
   }
 
   async function blockUser(uid, nick){
@@ -3105,6 +3249,143 @@
       { p_post: postId, p_body: v, p_parent: parent, p_secret: !!secret });
     if (!handled(error, "댓글 작성")) return;
     openPost(postId);
+  }
+
+  /* =====================================================================
+     본문 삽입 이미지
+     글을 저장한 뒤 이미지를 올리고, 본문의 표시(![n])를 실제 경로로 바꿉니다.
+     ===================================================================== */
+  /* 사진 용량 줄이기 — 화질은 최대한 유지하고 크기만 정리합니다.
+     · 긴 변 2000px 로 맞춤 (그보다 작으면 원본 그대로)
+     · 원본보다 커지면 원본을 씁니다
+     · 아이폰 사진의 회전 정보도 반영해서 바로 세웁니다 */
+  const IMG_MAX_SIDE = 2000;
+
+  async function compressImage(file){
+    if (!/^image\//.test(file.type) || /gif|svg/.test(file.type)) return file;
+    if (file.size < 300 * 1024) return file;                 // 이미 충분히 작으면 그대로
+
+    let bmp;
+    try { bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+    catch(e){ try { bmp = await createImageBitmap(file); } catch(_){ return file; } }
+
+    const scale = Math.min(1, IMG_MAX_SIDE / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+
+    const cv = document.createElement("canvas");
+    cv.width = w; cv.height = h;
+    const ctx = cv.getContext("2d");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close && bmp.close();
+
+    const encode = (type, q)=> new Promise(r=> cv.toBlob(r, type, q));
+    let out = await encode("image/webp", 0.92);              // webp 가 같은 화질에 가장 작아요
+    if (!out || out.type !== "image/webp") out = await encode("image/jpeg", 0.9);
+    if (!out || out.size >= file.size) return file;          // 줄지 않으면 원본 유지
+
+    const ext = out.type === "image/webp" ? ".webp" : ".jpg";
+    const base = (file.name || "image").replace(/\.[^.]+$/, "");
+    const f = new File([out], base + ext, { type: out.type, lastModified: Date.now() });
+    f.__from = file.size;                                     // 얼마나 줄었는지 표시용
+    return f;
+  }
+
+  let inlineImgs = [];        // [{file, url, token}] 아직 안 올린 것
+  let inlineKeep = [];        // 수정 중 이미 올라가 있는 경로
+
+  function insertAtCursor(ta, text){
+    const a = ta.selectionStart, b = ta.selectionEnd;
+    ta.value = ta.value.slice(0, a) + text + ta.value.slice(b);
+    ta.selectionStart = ta.selectionEnd = a + text.length;
+    ta.focus();
+  }
+
+  async function addInlineImages(files){
+    for (const raw of files){
+      if (!/^image\//.test(raw.type)) continue;
+      if (raw.size > 25 * 1024 * 1024){ toast('"'+raw.name+'" 은 너무 커요 (25MB 초과).'); continue; }
+      if (inlineImgs.length >= 20){ toast("사진은 20장까지예요."); break; }
+
+      const token = "img" + (Date.now().toString(36) + Math.random().toString(36).slice(2,5));
+      const item = { file: raw, url: URL.createObjectURL(raw), token, busy: true };
+      inlineImgs.push(item);
+      insertAtCursor($("wBody"), "\n![사진](" + token + ")\n");
+      renderImgStrip();
+
+      const small = await compressImage(raw);
+      item.file = small;
+      item.busy = false;
+      renderImgStrip();
+    }
+    renderImgStrip();
+  }
+
+  function renderImgStrip(){
+    const box = $("wImgStrip");
+    box.hidden = !inlineImgs.length;
+    box.innerHTML = inlineImgs.map((im, i)=>{
+      const from = im.file.__from;
+      const cap = im.busy ? "줄이는 중…"
+        : (from ? fileSize(from) + " → " + fileSize(im.file.size) : fileSize(im.file.size));
+      return '<figure><img src="'+im.url+'" alt="">'
+        + '<figcaption>'+cap+'</figcaption>'
+        + '<button type="button" data-ix="'+i+'" title="빼기">×</button></figure>';
+    }).join("");
+    box.querySelectorAll("[data-ix]").forEach(b=> b.onclick = ()=>{
+      const im = inlineImgs[Number(b.dataset.ix)];
+      $("wBody").value = $("wBody").value.replace("![사진](" + im.token + ")", "").replace(/\n{3,}/g, "\n\n");
+      URL.revokeObjectURL(im.url);
+      inlineImgs.splice(Number(b.dataset.ix), 1);
+      renderImgStrip();
+    });
+  }
+
+  $("wImgBtn").onclick    = ()=> $("wImgInput").click();
+  $("wImgInput").onchange = (e)=>{ addInlineImages(e.target.files); e.target.value = ""; };
+  $("wBody").addEventListener("paste", (e)=>{
+    const files = [...(e.clipboardData?.files || [])].filter(f=> /^image\//.test(f.type));
+    if (files.length){ e.preventDefault(); addInlineImages(files); }
+  });
+  $("wBody").addEventListener("dragover", (e)=> e.preventDefault());
+  $("wBody").addEventListener("drop", (e)=>{
+    const files = [...(e.dataTransfer?.files || [])].filter(f=> /^image\//.test(f.type));
+    if (files.length){ e.preventDefault(); addInlineImages(files); }
+  });
+
+  // 글 저장 뒤: 이미지를 올리고 본문의 표시를 실제 경로로 교체
+  async function uploadInlineImages(postId, body){
+    let out = body;
+    for (const im of inlineImgs){
+      const path = postId + "/img_" + rand7() + fileExt(im.file.name || ".png");
+      const { error } = await sb.storage.from("attachments").upload(path, im.file, { upsert:false });
+      if (error){ showError(error, "사진 올리기"); continue; }
+      await sb.rpc("add_post_file", {
+        p_post: postId, p_path: path, p_name: safeName(im.file.name || "image"),
+        p_size: im.file.size, p_mime: im.file.type || null, p_inline: true });
+      out = out.split("![사진](" + im.token + ")").join("![사진](" + path + ")");
+    }
+    inlineImgs.forEach(im=> URL.revokeObjectURL(im.url));
+    inlineImgs = [];
+    return out;
+  }
+
+  // 본문의 ![사진](경로) 를 실제 그림으로 (비공개 저장소라 서명 주소를 받아옵니다)
+  async function fillInlineImages(root){
+    const imgs = [...root.querySelectorAll("img[data-p]")];
+    if (!sb || !imgs.length) return;
+    const paths = [...new Set(imgs.map(i=> i.dataset.p))];
+    let data = null;
+    try { ({ data } = await sb.storage.from("attachments").createSignedUrls(paths, 3600)); }
+    catch(e){ data = null; }
+    const map = {};
+    (data || []).forEach(d=>{ if (d.path && d.signedUrl) map[d.path] = d.signedUrl; });
+    imgs.forEach(i=>{
+      const u = map[i.dataset.p];
+      if (u){ i.src = u; i.classList.remove("loading"); }
+      else { i.replaceWith(Object.assign(document.createElement("div"), {
+        className:"empty", textContent:"(사진을 불러올 수 없어요)" })); }
+    });
   }
 
   /* =====================================================================
@@ -3271,7 +3552,7 @@ _imgs
     const parts = String(body || "").split(/```(?:python|py)?\n([\s\S]*?)```/g);
     let html = "";
     parts.forEach((part, i)=>{
-      if (i % 2 === 0){ if (part.trim()) html += '<div>' + linkify(part) + '</div>'; }
+      if (i % 2 === 0){ if (part.trim()) html += '<div>' + withImages(part) + '</div>'; }
       else {
         html += '<div class="code-block" data-cell>'
              +   '<div class="code-top"><span class="lang">PYTHON</span><span class="grow"></span>'
@@ -3284,7 +3565,18 @@ _imgs
              + '</div>';
       }
     });
-    return html || '<div>' + linkify(body) + '</div>';
+    return html || '<div>' + withImages(body) + '</div>';
+  }
+
+  // ![사진](경로) 표시를 그림 자리로 바꿉니다
+  function withImages(text){
+    const parts = String(text || "").split(/!\[[^\]]*\]\(([^)\s]+)\)/g);
+    let out = "";
+    parts.forEach((p, i)=>{
+      if (i % 2 === 0) out += linkify(p);
+      else out += '<img class="post-img loading" data-p="' + esc(p) + '" alt="사진">';
+    });
+    return out;
   }
 
   function bindCodeCells(root){
@@ -3535,7 +3827,8 @@ _imgs
   function writeHasContent(){
     if ($("boardWrite").hidden) return false;
     return !!($("wTitle").value.trim() || $("wBody").value.trim() || $("wCodeArea").value.trim()
-           || $("wYt").value.trim() || $("wTags").value.trim() || pendingFiles.length);
+           || $("wYt").value.trim() || $("wTags").value.trim()
+           || pendingFiles.length || inlineImgs.length);
   }
   async function confirmLeaveWrite(){
     if (!writeHasContent()) return true;
@@ -3544,12 +3837,17 @@ _imgs
   }
   function closeWrite(){
     pendingFiles = []; editingId = null;
+    inlineImgs.forEach(im=> URL.revokeObjectURL(im.url));
+    inlineImgs = []; renderImgStrip();
     showList(); loadPosts();
   }
 
   function openWrite(post){
     editingId = post ? post.id : null;
     pendingFiles = [];
+    inlineImgs.forEach(im=> URL.revokeObjectURL(im.url));
+    inlineImgs = [];
+    renderImgStrip();
     attached = post && post.files ? post.files.slice() : [];
     $("wTitle").value = post ? post.title : "";
     const split = splitBodyCode(post ? post.body : "");
@@ -3640,6 +3938,18 @@ _imgs
     }
 
     const id = editingId || data;
+
+    // 본문에 넣은 사진 올리기 → 본문의 표시를 실제 경로로 교체
+    if (inlineImgs.length){
+      $("wSave").textContent = "사진 올리는 중…";
+      const finalBody = await uploadInlineImages(id, bodyText);
+      if (finalBody !== bodyText){
+        const { error: ue } = await sb.rpc("update_post", {
+          p_id: id, p_category: cat, p_title: title, p_body: finalBody,
+          p_youtube: yt, p_tags: tags, p_secret: $("wSecret").checked });
+        if (ue) showError(ue, "사진 반영");
+      }
+    }
 
     // 고정 체크 반영 (관리자: 모든 글 / 선생님: 자기 글)
     if (me && (me.role === "admin" || me.role === "teacher")){

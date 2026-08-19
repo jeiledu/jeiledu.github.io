@@ -3875,7 +3875,8 @@ _imgs
     applySecretMode();
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
     $("wPinWrap").hidden = !canPin;
-    $("wCastWrap").hidden = !(me && me.role === "admin") || !!post;   // 새 글에만
+    // 전교생 알림 — 선생님·관리자, 새 글에만
+    $("wCastWrap").hidden = !canPin || !!post;
     $("wCast").checked = false;
     $("wPin").checked = !!(post && post.pinned);
     $("wErr").textContent = "";
@@ -3961,7 +3962,8 @@ _imgs
       }
     }
 
-    if (me && me.role === "admin" && !editingId && $("wCast").checked && !$("wSecret").checked){
+    if (me && (me.role === "admin" || me.role === "teacher")
+        && !editingId && $("wCast").checked && !$("wSecret").checked){
       const { data: n, error: be } = await sb.rpc("broadcast_post", { p_post: id });
       if (be) toast("전체 알림 실패: " + cleanErr(be));
       else toast(n + "명에게 알림을 보냈어요.");

@@ -99,6 +99,57 @@
   :root[data-theme="dark"] .check-code{background:var(--blue-soft)}
   :root[data-theme="dark"] .google-btn{background:var(--card); border-color:var(--line); color:var(--ink)}
 
+  /* 다크 모드에서 밝은 색이 그대로 남는 곳들 정리 */
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+  }
+  :root[data-theme="dark"] .btn-finish{background:#28323f; color:#c8d6e6; border-color:#38465a}
+  :root[data-theme="dark"] .btn-finish:hover:not(:disabled){background:#313d4d; color:#e8eef6}
+  :root[data-theme="dark"] .btn-stop{background:#22303f; color:#9cc6ff; border-color:#39506d}
+  :root[data-theme="dark"] .btn-stop:hover:not(:disabled){background:#2a3b4d}
+  :root[data-theme="dark"] .btn:disabled{opacity:.35}
+
+  :root[data-theme="dark"] .brand:hover,
+  :root[data-theme="dark"] .main-tabs button:hover{background:#232e3c}
+  :root[data-theme="dark"] .banner{border-color:#33455e}
+  :root[data-theme="dark"] .cat-bar button.old{background:var(--card)}
+  :root[data-theme="dark"] .tag-chip{background:#26313e; color:var(--ink-soft)}
+  :root[data-theme="dark"] .tag-chip:hover{background:var(--blue-soft); color:var(--blue-dark)}
+  :root[data-theme="dark"] .code-area.plain{color:#dce6f2; background:#161d27}
+  :root[data-theme="dark"] .drop.over{background:#22303f}
+  :root[data-theme="dark"] .btn-danger{color:#ff9d95; border-color:#5a3838}
+  :root[data-theme="dark"] .btn-danger:hover{background:#3a2626}
+  :root[data-theme="dark"] .post-row.pinned:hover{background:#25344a}
+  :root[data-theme="dark"] .dm-row.unread{background:#1f2c3d}
+  :root[data-theme="dark"] .cmt.secret .c-body{background:#2a2740}
+  :root[data-theme="dark"] .assign-box{border-color:#33455e}
+  :root[data-theme="dark"] .assign-box textarea{background:#161d27; color:var(--ink)}
+  :root[data-theme="dark"] .check-bar{background:#26313e}
+  :root[data-theme="dark"] .badge.on{border-color:#3a5578}
+  :root[data-theme="dark"] .pv-body{background:#161d27}
+  :root[data-theme="dark"] .help{background:#33445a; color:#c3d3e6}
+  :root[data-theme="dark"] .acc-menu .sw{background:#3a4757}
+  :root[data-theme="dark"] .chk-row{background:#22303f !important; border-color:#39506d !important}
+  :root[data-theme="dark"] .chk-row span{color:#bcd6f8 !important}
+  :root[data-theme="dark"] .chk-row em{color:var(--ink-faint) !important}
+  :root[data-theme="dark"] .locked p, :root[data-theme="dark"] .empty{color:var(--ink-faint)}
+
+  /* 입력창은 어디서든 어두운 바탕 + 밝은 글씨 */
+  :root[data-theme="dark"] input,
+  :root[data-theme="dark"] select,
+  :root[data-theme="dark"] textarea{background:#1a222d; color:var(--ink); border-color:var(--line)}
+  :root[data-theme="dark"] input::placeholder,
+  :root[data-theme="dark"] textarea::placeholder{color:#63748a}
+  :root[data-theme="dark"] input:focus,
+  :root[data-theme="dark"] select:focus,
+  :root[data-theme="dark"] textarea:focus{background:#202936; border-color:var(--blue)}
+  :root[data-theme="dark"] .cmt-form textarea:focus,
+  :root[data-theme="dark"] .reply-form textarea:focus,
+  :root[data-theme="dark"] .board-actions input:focus,
+  :root[data-theme="dark"] .w-field input:focus,
+  :root[data-theme="dark"] .w-field textarea:focus{background:#202936}
+  :root[data-theme="dark"] .code-area{background:transparent; color:transparent}
+
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -1462,6 +1513,11 @@
           <label>유튜브 링크 (선택)</label>
           <input id="wYt" placeholder="https://youtu.be/... 붙여넣기">
           <div class="tip">링크만 넣으면 글 안에서 영상이 바로 재생돼요. 영상 파일은 올리지 않아서 용량 걱정이 없어요.</div>
+        </div>
+        <div class="w-field" id="wDueWrap" hidden>
+          <label>제출 마감일시</label>
+          <input type="datetime-local" id="wDue">
+          <div class="tip">비워두면 마감 없이 계속 제출할 수 있어요. 마감 후 제출은 '지각'으로 표시돼요.</div>
         </div>
         <div class="w-field">
           <label>태그 (선택)</label>
@@ -3323,7 +3379,8 @@
             + old.map(chip).join("")
           : "");
 
-    const writable = cats.filter(c=>c.can_write);
+    const writable = cats.filter(c=>
+      c.can_write && !(c.kind === "assign" && me && me.role === "student"));
     $("writeBtn").hidden = !writable.length;
     $("wCat").innerHTML = writable.map(c=>
       '<option value="'+c.id+'">'+esc(c.section ? c.section+" · "+c.name : c.name)+'</option>').join("");
@@ -3414,6 +3471,8 @@
   }
 
   /* ---------- 글 보기 ---------- */
+  let lastAssignInfo = null;
+
   async function openPost(id){
     const { data, error } = await sb.rpc("get_post", { p_id: id });
     const p = Array.isArray(data) ? data[0] : data;
@@ -3659,6 +3718,7 @@
     if (!sb || !me || !me.nickname) return;
     const { data, error } = await sb.rpc("assignment_info", { p_post: p.id });
     const a = data || {};
+    lastAssignInfo = a.is_assign ? a : null;
     if (error || !a.is_assign) return;
 
     const due = a.due_at ? new Date(a.due_at) : null;
@@ -4383,6 +4443,11 @@ _imgs
     }
     renderWriteFiles();
     applySecretMode();
+    applyAssignMode();
+    $("wDue").value = (post && lastAssignInfo && lastAssignInfo.due_at)
+      ? new Date(new Date(lastAssignInfo.due_at).getTime()
+                 - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)
+      : "";
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
     $("wPinWrap").hidden = !canPin;
     // 전교생 알림 — 선생님·관리자, 새 글에만
@@ -4468,6 +4533,14 @@ _imgs
       }
     }
 
+    // 과제 마감일 반영
+    if (!$("wDueWrap").hidden){
+      const dv = $("wDue").value;
+      const { error: de } = await sb.rpc("set_post_due",
+        { p_post: id, p_due: dv ? new Date(dv).toISOString() : null });
+      if (de) toast("마감일 저장 실패: " + cleanErr(de));
+    }
+
     // 고정 체크 반영 (관리자: 모든 글 / 선생님: 자기 글)
     if (me && (me.role === "admin" || me.role === "teacher")){
       const wantPin = $("wPin").checked;
@@ -4496,6 +4569,16 @@ _imgs
   };
 
   // 게시판마다 비밀글 기본/강제 설정을 반영
+  function applyAssignMode(){
+    const c = cats.find(x=> String(x.id) === $("wCat").value);
+    const isAssign = !!(c && c.kind === "assign");
+    $("wDueWrap").hidden = !isAssign;
+    $("wTitle").placeholder = isAssign ? "과제명을 입력하세요" : "제목을 입력하세요";
+    $("wBody").placeholder  = isAssign
+      ? "과제 내용과 제출 방법을 적어주세요."
+      : "내용을 입력하세요. 링크를 붙여넣으면 자동으로 연결돼요.";
+  }
+
   function applySecretMode(){
     const c = cats.find(x=> String(x.id) === $("wCat").value);
     const mode = (c && c.secret_mode) || "off";
@@ -4510,6 +4593,7 @@ _imgs
     const mode = (c && c.secret_mode) || "off";
     if (mode !== "off") $("wSecret").checked = true;
     applySecretMode();
+    applyAssignMode();
   };
 
   $("wCode").onchange = ()=>{

@@ -12,17 +12,26 @@
     --bg:#f2f6fb; --card:#fff; --ink:#1e2a3a; --ink-soft:#5b7091; --ink-faint:#93a6c0;
     --line:#e2ebf6; --blue:#2f6fd0; --blue-dark:#245bad; --blue-soft:#e8f0fc; --blue-tint:#f6f9fe;
     --red:#c25b5b; --red-soft:#fdf1f1; --green:#4fa89e;
+    --sans:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+           "Malgun Gothic", "맑은 고딕", "Noto Sans KR", "Segoe UI", sans-serif;
+    --mono:"SF Mono", ui-monospace, Menlo, Consolas, "D2Coding",
+           "Nanum Gothic Coding", "Malgun Gothic", monospace;
     --shadow:0 1px 2px rgba(31,58,102,.04), 0 8px 24px rgba(31,58,102,.06);
   }
   *{box-sizing:border-box}
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    font-family:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+    font-family:var(--sans);
     -webkit-font-smoothing:antialiased; font-size:14px;
   }
   a{color:var(--blue)}
 
   /* 레이아웃 */
+  *{scrollbar-width:thin; scrollbar-color:#cbd7e6 transparent}
+  *::-webkit-scrollbar{width:9px; height:9px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:#cbd7e6; border-radius:99px}
+
   .shell{display:grid; grid-template-columns:212px minmax(0,1fr); min-height:100vh}
   .side{background:#fff; border-right:1px solid var(--line); padding:22px 14px; position:sticky; top:0; height:100vh}
   .side .logo{display:flex; align-items:center; gap:9px; padding:0 8px 20px; }
@@ -198,6 +207,8 @@
       <button data-p="posts">게시글</button>
       <button data-p="comments">댓글</button>
       <button data-p="cats">게시판 설정</button>
+      <button data-p="assign">과제</button>
+      <button data-p="errors">오류 기록</button>
       <button data-p="blocks">차단 현황</button>
       <button data-p="words">금지어</button>
       <button data-p="settings">사이트 설정</button>
@@ -356,6 +367,8 @@
     posts:    ["게시글",       pagePosts],
     comments: ["댓글",         pageComments],
     cats:     ["게시판 설정",  pageCats],
+    assign:   ["과제 제출 현황", pageAssign],
+    errors:   ["오류 기록",    pageErrors],
     blocks:   ["차단 현황",    pageBlocks],
     words:    ["금지어 관리",  pageWords],
     settings: ["사이트 설정",  pageSettings]
@@ -442,6 +455,7 @@
       '<div class="card">'
       + '<div class="tools"><input id="uSearch" placeholder="닉네임·이메일 검색" value="'+esc(uQ)+'">'
       + '<button class="b" id="uGo">검색</button><span class="grow"></span>'
+      + '<button class="b" id="uCsv">공부기록 CSV</button>'
       + '<span class="muted" id="uCount"></span></div>'
       + '<div class="tbl-wrap"><table><thead><tr>'
       + '<th>닉네임</th><th>이메일</th><th>역할</th><th>오늘</th><th>누적</th>'
@@ -449,6 +463,15 @@
       + '<div class="pager" id="uPager"></div></div>';
 
     $("uGo").onclick = ()=>{ uQ = $("uSearch").value.trim(); uPage = 0; loadUsers(); };
+    $("uCsv").onclick = async ()=>{
+      const to = new Date(), from = new Date(); from.setDate(from.getDate() - 90);
+      const iso = (d)=> d.toISOString().slice(0,10);
+      const rows = await rpc("admin_export", { p_from: iso(from), p_to: iso(to) });
+      const head = "닉네임,이메일,날짜,공부시간(분)";
+      const body = rows.map(r=> [r.nickname, r.email, r.day, r.minutes].join(",")).join("\n");
+      downloadText("공부기록_최근90일.csv", "\uFEFF"+head+"\n"+body);
+      toast(rows.length + "줄을 내려받았어요.");
+    };
     $("uSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("uGo").click(); };
     await loadUsers();
   }
@@ -466,12 +489,16 @@
       + '<td class="num">'+hhm(u.total_seconds)+'</td>'
       + '<td class="num muted">'+ymd(u.last_day)+'</td>'
       + '<td class="num muted">'+ymd(u.created_at)+'</td>'
-      + '<td class="act"><button class="b sm" data-edit="'+u.id+'">관리</button> '
+      + '<td class="act"><button class="b sm" data-det="'+u.id+'">상세</button> '
+      + '<button class="b sm" data-edit="'+u.id+'">관리</button> '
       + '<button class="b sm" data-rec="'+u.id+'">기록</button></td></tr>'
     ).join("") : '<tr><td colspan="8" class="empty">사용자가 없어요.</td></tr>';
 
     pager($("uPager"), total, 30, uPage, p=>{ uPage = p; loadUsers(); });
 
+    $("uBody").querySelectorAll("[data-det]").forEach(b=>{
+      b.onclick = ()=> openUserDetail(b.dataset.det);
+    });
     $("uBody").querySelectorAll("[data-edit]").forEach(b=>{
       b.onclick = ()=> editUser(rows.find(r=> r.id === b.dataset.edit));
     });
@@ -629,15 +656,7 @@
         : '<tr><td colspan="6" class="empty">그룹이 없어요.</td></tr>')
       + '</tbody></table></div></div>';
 
-    $("page").querySelectorAll("[data-gm]").forEach(b=> b.onclick = async ()=>{
-      const ms = await rpc("admin_group_members", { p_group: Number(b.dataset.gm) });
-      openDlg('<h3>그룹 멤버</h3><p class="sub">'+ms.length+'명</p><div class="tbl-wrap"><table><tbody>'
-        + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname)+'</b></td>'
-            + '<td class="num muted">'+ymd(m.joined_at)+' 참여</td>'
-            + '<td class="num">오늘 '+hhm(m.today_seconds)+'</td></tr>').join("")
-           : '<tr><td class="empty">멤버가 없어요.</td></tr>')
-        + '</tbody></table></div><div class="dlg-btns"><button class="b" onclick="this.closest(\'.back\').classList.remove(\'on\')">닫기</button></div>');
-    });
+    $("page").querySelectorAll("[data-gm]").forEach(b=> b.onclick = ()=> openGroupMembers(Number(b.dataset.gm)));
     $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
       const n = await ask("새 그룹 이름을 입력하세요.", { title:"그룹 이름 변경", yes:"저장", input:b.dataset.n });
       if (!n) return;
@@ -648,6 +667,54 @@
       if (!await ask("그룹을 삭제할까요?\n멤버들의 공부 기록은 남습니다.", { title:"그룹 삭제", yes:"삭제", danger:true })) return;
       await rpc("admin_delete_group", { p_id: Number(b.dataset.gd) });
       toast("삭제했어요."); pageGroups();
+    });
+  }
+
+  async function openGroupMembers(gid){
+    const ms = await rpc("admin_group_members", { p_group: gid });
+    openDlg('<h3>그룹 멤버</h3><p class="sub">'+ms.length+'명</p>'
+      + '<div class="f" style="position:relative"><label>학생 추가</label>'
+      + '<input id="gmAdd" placeholder="닉네임으로 검색" autocomplete="off">'
+      + '<div id="gmSug" style="position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;'
+      + 'border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 20px rgba(31,58,102,.12);'
+      + 'margin-top:4px;max-height:180px;overflow:auto;display:none"></div></div>'
+      + '<div class="tbl-wrap"><table><tbody id="gmList">'
+      + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname)+'</b></td>'
+          + '<td class="num muted">'+ymd(m.joined_at)+' 참여</td>'
+          + '<td class="num">오늘 '+hhm(m.today_seconds)+'</td>'
+          + '<td class="act"><button class="b sm danger" data-rm="'+esc(m.nickname)+'">빼기</button></td></tr>').join("")
+         : '<tr><td class="empty">멤버가 없어요.</td></tr>')
+      + '</tbody></table></div>'
+      + '<div class="dlg-btns"><button class="b" id="gmClose">닫기</button></div>');
+
+    $("gmClose").onclick = closeDlg;
+
+    let t;
+    $("gmAdd").oninput = (e)=>{
+      const q = e.target.value.trim();
+      clearTimeout(t);
+      if (q.length < 2){ $("gmSug").style.display = "none"; return; }
+      t = setTimeout(async ()=>{
+        const rows = await rpc("admin_users", { p_q: q, p_limit: 8 });
+        $("gmSug").style.display = rows.length ? "block" : "none";
+        $("gmSug").innerHTML = rows.map(u=>
+          '<button class="b" style="display:block;width:100%;text-align:left;border:0;border-radius:0"'
+          + ' data-u="'+u.id+'" data-n="'+esc(u.nickname)+'">'+esc(u.nickname)
+          + ' <span class="muted">'+esc(u.email)+'</span></button>').join("");
+        $("gmSug").querySelectorAll("[data-u]").forEach(b=> b.onclick = async ()=>{
+          await rpc("admin_add_member", { p_group: gid, p_user: b.dataset.u });
+          toast(b.dataset.n + " 학생을 넣었어요.");
+          closeDlg(); openGroupMembers(gid);
+        });
+      }, 280);
+    };
+
+    $("gmList").querySelectorAll("[data-rm]").forEach(b=> b.onclick = async ()=>{
+      const rows = await rpc("admin_users", { p_q: b.dataset.rm, p_limit: 5 });
+      const u = rows.find(x=> x.nickname === b.dataset.rm);
+      if (!u) return;
+      await rpc("admin_remove_member", { p_group: gid, p_user: u.id });
+      toast("뺐어요."); closeDlg(); openGroupMembers(gid);
     });
   }
 
@@ -858,6 +925,10 @@
       +   '<option value="false"'+(!c||!c.notify_admin?" selected":"")+'>안 받음</option>'
       +   '<option value="true"' +(c&&c.notify_admin?" selected":"")+'>관리자에게 알림</option>'
       + '</select></div></div>'
+      + '<div class="f"><label>게시판 종류</label><select id="kKind">'
+      +   '<option value="board"'+(!c||c.kind!=="assign"?" selected":"")+'>일반 게시판</option>'
+      +   '<option value="assign"'+(c&&c.kind==="assign"?" selected":"")+'>과제 제출형</option>'
+      + '</select></div>'
       + '<div class="f"><label>상태</label><select id="kArch">'
       +   '<option value="false"'+(!c||!c.archived?" selected":"")+'>사용 중</option>'
       +   '<option value="true"'+(c&&c.archived?" selected":"")+'>보관 (지난 학기 · 새 글 금지)</option>'
@@ -888,15 +959,166 @@
     }
     $("kSave").onclick = async ()=>{
       try{
-        await rpc("admin_save_category", {
+        const savedId = await rpc("admin_save_category", {
           p_id: c ? c.id : null, p_name: $("kName").value.trim(),
           p_slug: $("kSlug").value.trim().toLowerCase(),
           p_sort: Number($("kSort").value||0), p_write_role: $("kRole").value,
           p_section: $("kSec").value.trim(), p_archived: $("kArch").value === "true",
           p_secret_mode: $("kSec2").value, p_notify: $("kNoti").value === "true" });
+        await rpc("admin_set_category_kind",
+          { p_id: c ? c.id : savedId, p_kind: $("kKind").value }).catch(()=>{});
         closeDlg(); toast("저장했어요."); pageCats();
       }catch(e){ $("kErr").textContent = cleanErr(e); }
     };
+  }
+
+  /* ===================== 학생 상세 ===================== */
+  async function openUserDetail(id){
+    const d = await rpc("admin_user_detail", { p_id: id });
+    const hm2 = (s)=> hhm(Number(s||0));
+    const days = d.recent_days || [];
+    const maxD = Math.max(1, ...days.map(x=> Number(x.seconds)));
+    const subs = d.subjects || [];
+    const maxS = Math.max(1, ...subs.map(x=> Number(x.seconds)));
+
+    openDlg(
+      '<h3>'+esc(d.nickname)+' <span class="tag '+d.role+'">'+d.role+'</span></h3>'
+      + '<p class="sub">'+esc(d.email)+' · 가입 '+ymd(d.joined)+'</p>'
+      + '<div class="kpis" style="margin-bottom:14px">'
+      +   kpi(hm2(d.today_seconds), "오늘", true) + kpi(hm2(d.week_seconds), "이번 주")
+      +   kpi(Math.floor(Number(d.total_seconds||0)/3600)+"시간", "누적")
+      +   kpi((d.study_days||0)+"일", "공부한 날")
+      + '</div>'
+      + '<div class="f"><label>최근 14일</label><div class="bars" style="height:70px">'
+      +   days.slice().reverse().map(x=>'<div style="height:'
+      +     Math.max(2, Math.round(Number(x.seconds)/maxD*100))+'%" title="'+x.day+'"></div>').join("")
+      + '</div></div>'
+      + (subs.length
+          ? '<div class="f"><label>과목별</label>'
+            + subs.map(x=>'<div style="display:flex;gap:8px;align-items:center;margin-bottom:5px;font-size:12.5px">'
+              + '<span style="width:46px;color:var(--ink-soft)">'+esc(x.subject)+'</span>'
+              + '<span style="flex:1;height:8px;background:var(--blue-tint);border-radius:99px;overflow:hidden">'
+              + '<i style="display:block;height:100%;width:'+Math.round(Number(x.seconds)/maxS*100)+'%;background:var(--blue)"></i></span>'
+              + '<span class="muted">'+hm2(x.seconds)+'</span></div>').join("") + '</div>'
+          : '')
+      + '<div class="f"><label>활동</label><p class="muted" style="margin:0;font-size:12.5px;line-height:1.9">'
+      +   '글 <b>'+(d.posts||0)+'</b> · 댓글 <b>'+(d.comments||0)+'</b>'
+      +   (Number(d.flagged) ? ' · <span style="color:var(--red)">표시된 글·댓글 '+d.flagged+'</span>' : '')
+      +   '<br>차단당함 <b>'+(d.blocked_by||0)+'</b> · 차단함 <b>'+(d.blocking||0)+'</b>'
+      +   '<br>그룹: '+((d.groups||[]).map(esc).join(", ") || "없음")
+      +   '<br>마지막 기록: '+(d.last_day ? ymd(d.last_day) : "없음")+'</p></div>'
+      + ((d.recent_posts||[]).length
+          ? '<div class="f"><label>최근 글</label>'
+            + d.recent_posts.map(r=>'<div style="font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line)">'
+              + esc(r.title)+' <span class="muted">'+ymd(r.at)+'</span></div>').join("") + '</div>'
+          : '')
+      + '<div class="dlg-btns"><button class="b" id="udClose">닫기</button></div>');
+    $("udClose").onclick = closeDlg;
+  }
+
+  /* ===================== 오류 기록 ===================== */
+  async function pageErrors(){
+    const rows = await rpc("admin_errors", { p_limit: 150 });
+    $("page").innerHTML =
+      '<div class="card"><div class="tools"><span class="muted">최근 '+rows.length+'건</span>'
+      + '<span class="grow"></span><button class="b danger" id="eClear">전체 지우기</button></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>시각</th><th>코드</th><th>위치</th><th>내용</th><th>사용자</th></tr></thead><tbody>'
+      + (rows.length ? rows.map(e=>
+          '<tr><td class="num muted">'+dt(e.created_at)+'</td>'
+          + '<td class="num">'+esc(e.code||"")+'</td>'
+          + '<td>'+esc(e.place||"")+'</td>'
+          + '<td style="max-width:340px">'+esc((e.message||"").slice(0,120))+'</td>'
+          + '<td class="muted">'+esc(e.nickname||"-")+'</td></tr>').join("")
+        : '<tr><td colspan="5" class="empty">기록된 오류가 없어요. 좋은 신호예요 🙂</td></tr>')
+      + '</tbody></table></div>'
+      + '<p class="muted" style="margin:14px 0 0;font-size:12px">'
+      + '학생 화면에서 예상 못 한 오류가 났을 때 자동으로 쌓입니다. 같은 코드가 여러 번 보이면 알려주세요.</p></div>';
+    $("eClear").onclick = async ()=>{
+      if (!await ask("오류 기록을 모두 지울까요?", { title:"오류 기록", yes:"지우기", danger:true })) return;
+      await rpc("admin_clear_errors"); toast("지웠어요."); pageErrors();
+    };
+  }
+
+  /* ===================== 과제 제출 현황 ===================== */
+  let assignPost = null;
+  async function pageAssign(){
+    if (!assignPost){
+      const rows = await rpc("admin_posts", { p_q: "", p_limit: 100 });
+      $("page").innerHTML =
+        '<div class="card"><h3>과제 글 고르기</h3>'
+        + '<p class="muted" style="margin:-6px 0 12px;font-size:12.5px">'
+        + '게시판 설정에서 종류를 <b>과제</b>로 지정한 게시판의 글이 과제가 됩니다.</p>'
+        + '<div class="tbl-wrap"><table><tbody>'
+        + (rows.length ? rows.map(p=>
+            '<tr><td><b>'+esc(p.title)+'</b> <span class="muted">'+esc(p.category_name)+'</span></td>'
+            + '<td class="num muted">'+ymd(p.created_at)+'</td>'
+            + '<td class="act"><button class="b sm" data-ap="'+p.id+'" data-t="'+esc(p.title)+'">제출 현황</button></td></tr>').join("")
+          : '<tr><td class="empty">글이 없어요.</td></tr>')
+        + '</tbody></table></div></div>';
+      $("page").querySelectorAll("[data-ap]").forEach(b=> b.onclick = ()=>{
+        assignPost = { id: Number(b.dataset.ap), title: b.dataset.t }; pageAssign();
+      });
+      return;
+    }
+
+    let rows = [];
+    try { rows = await rpc("assignment_list", { p_post: assignPost.id }); }
+    catch(e){
+      $("page").innerHTML = '<div class="card"><div class="empty">'+esc(cleanErr(e))+'</div>'
+        + '<div class="dlg-btns"><button class="b" id="aBack">← 다른 과제</button></div></div>';
+      $("aBack").onclick = ()=>{ assignPost = null; pageAssign(); };
+      return;
+    }
+    const done = rows.filter(r=> r.submitted).length;
+    $("headNote").textContent = assignPost.title;
+
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<button class="b" id="aBack">← 다른 과제</button><span class="grow"></span>'
+      + '<span class="muted">제출 '+done+' / '+rows.length+'명</span>'
+      + '<button class="b" id="aCsv">CSV</button></div>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
+      + '<th>학생</th><th>상태</th><th>제출 내용</th><th>제출 시각</th><th></th>'
+      + '</tr></thead><tbody>'
+      + rows.map(r=>
+          '<tr><td><b>'+esc(r.nickname)+'</b></td>'
+          + '<td>'+(r.submitted
+              ? (r.checked ? '<span class="tag teacher">확인함</span>'
+                           : '<span class="tag student">제출</span>')
+                + (r.late ? ' <span class="tag ban">지각</span>' : '')
+              : '<span class="tag hid">미제출</span>')+'</td>'
+          + '<td style="max-width:320px">'+esc((r.body||"").slice(0,90))+(r.body&&r.body.length>90?'…':'')+'</td>'
+          + '<td class="num muted">'+(r.at ? dt(r.at) : '-')+'</td>'
+          + '<td class="act">'+(r.submitted
+              ? '<button class="b sm" data-gr="'+r.user_id+'" data-n="'+esc(r.nickname)+'">확인·피드백</button>' : '')+'</td></tr>').join("")
+      + '</tbody></table></div></div>';
+
+    $("aBack").onclick = ()=>{ assignPost = null; $("headNote").textContent=""; pageAssign(); };
+    $("aCsv").onclick = ()=>{
+      const head = "학생,상태,지각,제출시각,내용";
+      const body = rows.map(r=> [r.nickname, r.submitted?"제출":"미제출", r.late?"지각":"",
+        r.at?dt(r.at):"", '"'+String(r.body||"").replace(/"/g,'""').replace(/\n/g," ")+'"'].join(",")).join("\n");
+      downloadText(assignPost.title+"_제출현황.csv", "\uFEFF"+head+"\n"+body);
+    };
+    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
+      const r = rows.find(x=> x.user_id === b.dataset.gr);
+      const fb = await ask(r.nickname + " 학생에게 남길 한마디 (비워도 돼요)",
+                           { title:"과제 확인", yes:"확인 처리", input: r.feedback || "" });
+      if (fb === null) return;
+      await rpc("grade_submission", { p_post: assignPost.id, p_user: r.user_id,
+                                      p_feedback: fb, p_checked: true });
+      toast("확인 처리했어요."); pageAssign();
+    });
+  }
+
+  function downloadText(name, text){
+    const blob = new Blob([text], { type:"text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 3000);
   }
 
   /* ===================== 차단 현황 ===================== */

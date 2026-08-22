@@ -49,6 +49,56 @@
     --g4:#2f6fd0;
   }
 
+  /* 다크 모드 — 색만 바꿔 끼웁니다 */
+  :root[data-theme="dark"]{
+    --bg:#141a23; --card:#1c2430; --ink:#e8eef6; --ink-soft:#a8b8cc; --ink-faint:#7a8ba0;
+    --line:#2a3644; --blue:#5b95e6; --blue-dark:#8ab6f5; --blue-soft:#24344a; --blue-tint:#1f2a37;
+    --rest:#5cbdb0; --rest-soft:#1e3330;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+    --g0:#26313e; --g1:#2c4463; --g2:#3a6396; --g3:#4b83c8; --g4:#5b95e6;
+  }
+  :root[data-theme="dark"] body{
+    background:radial-gradient(1200px 600px at 15% -10%, #1b2431 0%, rgba(27,36,49,0) 60%), var(--bg);
+  }
+  :root[data-theme="dark"] .clock,
+  :root[data-theme="dark"] .acc-btn,
+  :root[data-theme="dark"] .btn-stop,
+  :root[data-theme="dark"] .cbtn,
+  :root[data-theme="dark"] .btn-ghost,
+  :root[data-theme="dark"] .nav-btn,
+  :root[data-theme="dark"] .stat,
+  :root[data-theme="dark"] .acc-menu,
+  :root[data-theme="dark"] .noti-pop,
+  :root[data-theme="dark"] .who-menu,
+  :root[data-theme="dark"] .dm-sug,
+  :root[data-theme="dark"] .modal,
+  :root[data-theme="dark"] .tabs button.on,
+  :root[data-theme="dark"] .main-tabs button.on,
+  :root[data-theme="dark"] .code-bar,
+  :root[data-theme="dark"] .pager button{ background:var(--card); color:var(--ink); }
+  :root[data-theme="dark"] .code-block,
+  :root[data-theme="dark"] .code-area,
+  :root[data-theme="dark"] .code-hl,
+  :root[data-theme="dark"] .code-wrap,
+  :root[data-theme="dark"] .code-out{ background:#161d27; color:#dce6f2 }
+  :root[data-theme="dark"] .tk-kw{color:#7ab4ff}
+  :root[data-theme="dark"] .tk-bi{color:#c4a5ff}
+  :root[data-theme="dark"] .tk-str{color:#7fd8a8}
+  :root[data-theme="dark"] .tk-num{color:#f0a878}
+  :root[data-theme="dark"] .tk-cmt{color:#71829a}
+  :root[data-theme="dark"] .tk-def{color:#9cc6ff}
+  :root[data-theme="dark"] .ring .track{stroke:#26313e}
+  :root[data-theme="dark"] .post-row.pinned{background:#1f2c3d; box-shadow:inset 3px 0 0 var(--blue)}
+  :root[data-theme="dark"] .banner{background:var(--blue-soft); border-color:#2f4460; color:#bcd6f8}
+  :root[data-theme="dark"] .yt-wrap{background:#0b1017}
+  :root[data-theme="dark"] .demo-note,
+  :root[data-theme="dark"] .chk-row{filter:brightness(.85)}
+  :root[data-theme="dark"] img.post-img{background:#26313e}
+  :root[data-theme="dark"] .file-row{background:var(--blue-tint)}
+  :root[data-theme="dark"] .err-code{background:#3a2626; border-color:#5a3838; color:#ff9d95}
+  :root[data-theme="dark"] .check-code{background:var(--blue-soft)}
+  :root[data-theme="dark"] .google-btn{background:var(--card); border-color:var(--line); color:var(--ink)}
+
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
@@ -334,6 +384,25 @@
   .post-tools{display:flex; gap:8px; margin-top:22px; padding-top:18px; border-top:1px solid var(--line)}
   .post-tools .grow{flex:1}
 
+  .assign-box{
+    border:1px solid #d9e4f5; background:var(--blue-tint); border-radius:14px;
+    padding:16px; margin:18px 0;
+  }
+  .assign-head{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-soft);
+               flex-wrap:wrap; margin-bottom:10px}
+  .assign-head b{font-size:14px; color:var(--ink)}
+  .assign-head .over{color:#c0504a; font-weight:600}
+  .assign-head .grow{flex:1}
+  .assign-note{margin:0; font-size:12.5px; color:var(--ink-faint); line-height:1.7}
+  .assign-box textarea{
+    width:100%; min-height:110px; padding:12px 14px; border:1px solid var(--line);
+    border-radius:11px; font-family:inherit; font-size:13.5px; background:#fff;
+    color:var(--ink); resize:vertical; line-height:1.7;
+  }
+  .assign-box textarea:focus{outline:0; border-color:var(--blue)}
+  .assign-foot{display:flex; align-items:center; justify-content:space-between; gap:10px;
+               margin-top:10px; font-size:12px; color:var(--ink-faint)}
+
   .cmts{margin-top:26px}
   .cmts h4{margin:0 0 12px; font-size:13px; color:var(--ink-soft); letter-spacing:-.2px}
   .cmt{display:flex; gap:10px; padding:12px 2px; border-top:1px dashed var(--line)}
@@ -479,6 +548,23 @@
   .preset:hover{border-color:#c9dbf3; color:var(--blue-dark); background:#eef4fd}
   .preset.ghost{background:transparent}
   .preset.active{background:var(--blue); border-color:var(--blue); color:#fff}
+
+  .subj-row{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:14px}
+  .subj-row button{
+    background:var(--blue-tint); border:1px solid var(--line); color:var(--ink-soft);
+    padding:7px 12px; border-radius:9px; font-family:inherit; font-size:12.5px; font-weight:600;
+    cursor:pointer; transition:.15s; letter-spacing:-.2px;
+  }
+  .subj-row button:hover{border-color:#c9dbf3; color:var(--blue-dark)}
+  .subj-row button.on{background:var(--blue); border-color:var(--blue); color:#fff}
+  .goal-wrap{margin-top:16px}
+  .goal-bar{height:8px; border-radius:99px; background:var(--blue-tint); overflow:hidden}
+  .goal-bar i{display:block; height:100%; background:var(--blue); border-radius:99px; transition:width .4s}
+  .goal-bar i.done{background:var(--rest)}
+  .goal-txt{display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-faint);
+            margin-top:6px; letter-spacing:-.2px}
+  .goal-txt button{background:none;border:0;color:var(--blue);cursor:pointer;font:inherit;
+                   text-decoration:underline; text-underline-offset:2px}
 
   .break-row{
     margin-top:12px; font-size:12.5px; color:var(--ink-faint); letter-spacing:-.2px;
@@ -644,6 +730,8 @@
   /* ---------- 알림 ---------- */
   .noti{position:relative}
   .noti[hidden]{display:none}
+  .theme-btn{padding:0 10px !important}
+  .theme-btn .ava{background:transparent; font-size:16px; width:24px}
   .noti-btn{padding:0 13px !important; position:relative; color:var(--ink-soft)}
   .noti-btn:hover{color:var(--blue-dark)}
   .noti-btn .bell{width:19px; height:19px; display:block}
@@ -717,6 +805,12 @@
   .rank-list .nm{flex:1; color:var(--ink); letter-spacing:-.2px; overflow:hidden;
                  text-overflow:ellipsis; white-space:nowrap}
   .rank-list li.me .nm{font-weight:700; color:var(--blue-dark)}
+  .rank-list .cheer{
+    background:none; border:0; cursor:pointer; font-size:14px; opacity:.35; padding:2px 4px;
+    transition:.15s; flex:none;
+  }
+  .rank-list li:hover .cheer{opacity:1}
+  .rank-list .cheer:disabled{opacity:1; cursor:default}
   .rank-list .vl{font-weight:600; font-variant-numeric:tabular-nums; color:var(--ink-soft);
                  letter-spacing:-.2px}
   .rank-list li.me .vl{color:var(--blue-dark)}
@@ -939,6 +1033,38 @@
   }
   .foot-copy b{color:var(--ink-soft); font-weight:600}
 
+  .goal-picks{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px}
+  .goal-picks button{
+    padding:12px 0; border-radius:11px; border:1.5px solid var(--line); background:var(--blue-tint);
+    font-family:inherit; font-size:13.5px; font-weight:700; color:var(--ink-soft); cursor:pointer;
+  }
+  .goal-picks button.on{background:var(--blue); border-color:var(--blue); color:#fff}
+  .terms-body{text-align:left; max-height:60vh; overflow:auto; font-size:13px; line-height:1.85;
+              color:var(--ink-soft)}
+  .terms-body h4{margin:16px 0 4px; font-size:13px; color:var(--ink)}
+  .terms-body h4:first-child{margin-top:0}
+  .terms-body p{margin:0; font-size:12.5px}
+  .badges{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:4px}
+  .badge{
+    text-align:center; padding:13px 6px; border-radius:13px; border:1px solid var(--line);
+    background:var(--blue-tint); opacity:.45;
+  }
+  .badge.on{opacity:1; background:var(--blue-soft); border-color:#cadff8}
+  .badge .ic{font-size:22px; display:block}
+  .badge b{display:block; font-size:11.5px; margin-top:5px; letter-spacing:-.2px}
+  .badge span{display:block; font-size:10px; color:var(--ink-faint); margin-top:2px}
+  .wk{display:flex; gap:10px; margin-bottom:16px}
+  .wk div{flex:1; background:var(--blue-tint); border:1px solid var(--line); border-radius:13px;
+          padding:13px; text-align:center}
+  .wk b{display:block; font-size:18px; letter-spacing:-.5px}
+  .wk span{display:block; font-size:11px; color:var(--ink-faint); margin-top:3px}
+  .subj-list{margin:0 0 18px}
+  .subj-list .row{display:flex; align-items:center; gap:9px; margin-bottom:7px; font-size:12.5px}
+  .subj-list .nm{width:52px; color:var(--ink-soft); flex:none}
+  .subj-list .bar{flex:1; height:9px; background:var(--blue-tint); border-radius:99px; overflow:hidden}
+  .subj-list .bar i{display:block; height:100%; background:var(--blue); border-radius:99px}
+  .subj-list .vl{flex:none; color:var(--ink-faint); font-size:11.5px}
+
   .check-code{
     margin:2px 0 12px; padding:14px; border-radius:14px; background:var(--blue-soft);
     color:var(--blue-dark); font-size:34px; font-weight:700; letter-spacing:10px;
@@ -1133,6 +1259,10 @@
       </div>
       <div class="clock"><span id="clockHM">00:00</span><span class="sec" id="clockS">00</span></div>
 
+      <button class="acc-btn theme-btn" id="themeBtn" title="화면 밝기">
+        <span class="ava" id="themeIcon">🌙</span>
+      </button>
+
       <div class="noti" id="notiWrap" hidden>
         <button class="acc-btn noti-btn" id="notiBtn" title="알림">
           <svg class="bell" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1157,6 +1287,7 @@
         </button>
         <div class="acc-menu" id="accMenu" hidden>
           <div class="mail"><b id="accRole"></b><span id="accMail"></span></div>
+          <button id="mRecord">내 기록 · 뱃지</button>
           <button id="mInbox">쪽지함</button>
           <button id="mBlock">차단 목록</button>
           <button id="mNick">닉네임 변경</button>
@@ -1202,12 +1333,18 @@
           <button class="preset ghost" id="freeBtn">자유</button>
         </div>
 
+        <div class="subj-row" id="subjRow"></div>
         <div class="break-row" id="breakRow"></div>
 
         <div class="controls">
           <button class="btn btn-start" id="startBtn">Start</button>
           <button class="btn btn-stop" id="stopBtn" disabled>Stop</button>
           <button class="btn btn-finish" id="finishBtn" disabled>Finish</button>
+        </div>
+
+        <div class="goal-wrap" id="goalWrap" hidden>
+          <div class="goal-bar"><i id="goalBar" style="width:0%"></i></div>
+          <div class="goal-txt"><span id="goalTxt"></span><button id="goalEdit">목표 변경</button></div>
         </div>
 
         <div class="stats">
@@ -1400,7 +1537,8 @@
   <footer class="foot-copy">
     <b>정보·데이터과학 학습관리</b> · 김포제일고등학교<br>
     © 2026 김포제일고등학교. 이 사이트의 모든 콘텐츠(수업자료·게시물 포함)의 저작권은
-    김포제일고등학교에 있으며, 무단 복제 및 외부 배포를 금합니다.
+    김포제일고등학교에 있으며, 무단 복제 및 외부 배포를 금합니다.<br>
+    <button class="link-btn" id="termsOpen" style="margin-top:6px">이용 안내 · 개인정보</button>
   </footer>
 </div>
 
@@ -1482,6 +1620,64 @@
         <button class="btn-ghost" id="dmCancel">취소</button>
         <button class="btn-write" id="dmSend">보내기</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 처음 안내 -->
+<div class="modal-back" id="tourModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div id="tourBody"></div>
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="tourSkip">건너뛰기</button>
+      <button class="btn btn-start" id="tourNext">다음</button>
+    </div>
+    <p class="modal-note"><span id="tourDots"></span></p>
+  </div>
+</div>
+
+<!-- 하루 목표 -->
+<div class="modal-back" id="goalModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>하루 목표 정하기</h3>
+    <p>오늘 얼마나 공부할지 정해두면 진행률이 보여요.<br>랭킹과 상관없이 나만의 기준이에요.</p>
+    <div class="goal-picks" id="goalPicks"></div>
+    <input id="goalInput" type="number" min="0" max="720" placeholder="직접 입력 (분)">
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="goalOff">목표 없이</button>
+      <button class="btn btn-start" id="goalSave">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 내 기록 (뱃지·주간) -->
+<div class="modal-back" id="meModal">
+  <div class="modal dm" role="dialog" aria-modal="true">
+    <div class="dm-head"><h3>내 기록</h3><button class="btn-ghost" id="meClose">닫기</button></div>
+    <div id="meBody"></div>
+  </div>
+</div>
+
+<!-- 이용 안내 -->
+<div class="modal-back" id="termsModal">
+  <div class="modal dm" role="dialog" aria-modal="true">
+    <div class="dm-head"><h3>이용 안내 · 개인정보</h3><button class="btn-ghost" id="termsClose">닫기</button></div>
+    <div class="terms-body">
+      <h4>무엇을 저장하나요</h4>
+      <p>닉네임, 학교 구글 계정 이메일, 공부한 시간과 날짜, 직접 올린 글·댓글·쪽지·파일을 저장합니다.
+         실명·학번·연락처는 따로 받지 않습니다.</p>
+      <h4>누가 볼 수 있나요</h4>
+      <p>랭킹과 게시판에는 <b>닉네임만</b> 보입니다. 이메일은 다른 학생에게 보이지 않습니다.
+         선생님(관리자)은 학교 운영과 안전을 위해 필요한 범위에서 기록을 확인할 수 있습니다.</p>
+      <h4>비밀글·쪽지</h4>
+      <p>비밀글과 비밀댓글은 다른 학생에게 보이지 않지만, 선생님은 확인할 수 있습니다.
+         정말 알리고 싶지 않은 내용은 올리지 말아주세요.</p>
+      <h4>지우고 싶을 때</h4>
+      <p>내가 쓴 글과 댓글은 직접 지울 수 있습니다. 계정과 기록 전체를 지우고 싶으면 선생님께 말씀해주세요.
+         단, 부적절한 표현으로 표시된 글은 지도 목적상 본인이 지울 수 없습니다.</p>
+      <h4>저작권</h4>
+      <p>이 사이트의 수업자료와 게시물의 저작권은 김포제일고등학교에 있습니다.
+         외부에 공유하거나 다시 올리지 말아주세요.</p>
     </div>
   </div>
 </div>
@@ -1769,7 +1965,7 @@
     const d = (t - state.last) / 1000;
     state.last = state.lastActive = t;
     state.elapsed += d;
-    if (state.phase === "study") addStudy(d);   // 휴식 시간은 순공에 포함하지 않음
+    if (state.phase === "study"){ addStudy(d); addSubjectTime(d); }   // 휴식은 순공에 포함 안 함
 
     // 자유 모드는 오래 켜두면 중간에 한 번 확인합니다
     if (state.mode === "free" && state.phase === "study"){
@@ -1842,7 +2038,8 @@
         start: (state.startedAt || now()).toISOString(),
         end:   new Date(state.lastActive || Date.now()).toISOString(),
         sec:   sec,
-        target: state.mode === "pomo" ? state.pomoTarget : 0
+        target: state.mode === "pomo" ? state.pomoTarget : 0,
+        subject: subject || null
       };
       (sessions[k] = sessions[k] || []).push(row);
       dirty.add(k);
@@ -1981,6 +2178,193 @@
                                  toast("타이머를 멈췄어요."); };
   $("checkInput").onkeydown = (e)=>{ if (e.key === "Enter") $("checkOk").click(); };
 
+  /* =====================================================================
+     과목 · 목표 · 뱃지 · 주간 리포트 · 응원 · 다크모드 · 안내
+     ===================================================================== */
+  const SUBJECTS = ["국어","영어","수학","과학","사회","정보","예체능","기타"];
+  const SKEY_SUBJ = "sungong.subject.v1";
+  let subject = null, subjRun = {};      // 과목별 누적(초)
+
+  function renderSubjRow(){
+    $("subjRow").innerHTML =
+      '<span style="font-size:11.5px;color:var(--ink-faint);align-self:center;margin-right:2px">과목</span>'
+      + SUBJECTS.map(x=>'<button data-s="'+x+'" class="'+(subject===x?"on":"")+'">'+x+'</button>').join("");
+  }
+  $("subjRow").onclick = (e)=>{
+    const b = e.target.closest("button[data-s]"); if (!b) return;
+    subject = (subject === b.dataset.s) ? null : b.dataset.s;
+    try { store.setItem(SKEY_SUBJ, subject || ""); } catch(err){}
+    renderSubjRow();
+  };
+
+  function addSubjectTime(sec){
+    if (!subject) return;
+    const k = keyOf(now());
+    subjRun[k] = subjRun[k] || {};
+    subjRun[k][subject] = (subjRun[k][subject] || 0) + sec;
+  }
+
+  async function flushSubjects(){
+    if (!sb || !me || !me.nickname) return;
+    for (const day of Object.keys(subjRun)){
+      for (const su of Object.keys(subjRun[day])){
+        const v = Math.floor(subjRun[day][su]);
+        if (v > 0) await sb.rpc("upsert_subject_day", { p_day: day, p_subject: su, p_seconds: v });
+      }
+    }
+  }
+
+  /* ---------- 하루 목표 ---------- */
+  const GOALS = [60, 120, 180, 240, 300, 360, 480, 600];
+  let dailyGoal = 0;
+
+  function renderGoal(){
+    const wrap = $("goalWrap");
+    if (!dailyGoal){ wrap.hidden = true; return; }
+    wrap.hidden = false;
+    const done = Math.floor((records[keyOf(now())] || 0) / 60);
+    const pct = Math.min(100, Math.round(done / dailyGoal * 100));
+    $("goalBar").style.width = pct + "%";
+    $("goalBar").classList.toggle("done", pct >= 100);
+    $("goalTxt").textContent = pct >= 100
+      ? "오늘 목표 달성! " + humanKo(done*60) + " 🎉"
+      : humanKo(done*60) + " / " + humanKo(dailyGoal*60) + " · " + pct + "%";
+  }
+
+  function openGoal(){
+    $("goalPicks").innerHTML = GOALS.map(g=>
+      '<button data-g="'+g+'" class="'+(dailyGoal===g?"on":"")+'">'+(g/60)+'시간</button>').join("");
+    $("goalInput").value = (dailyGoal && !GOALS.includes(dailyGoal)) ? dailyGoal : "";
+    $("goalModal").classList.add("on");
+    $("goalPicks").querySelectorAll("[data-g]").forEach(b=> b.onclick = ()=>{
+      $("goalPicks").querySelectorAll("button").forEach(x=> x.classList.toggle("on", x === b));
+      $("goalInput").value = "";
+    });
+  }
+  async function saveGoal(min){
+    dailyGoal = Math.max(0, Math.min(720, min|0));
+    try { store.setItem("sungong.goal.v1", String(dailyGoal)); } catch(e){}
+    if (sb && me && me.nickname) await sb.rpc("set_daily_goal", { p_min: dailyGoal });
+    $("goalModal").classList.remove("on");
+    renderGoal();
+    toast(dailyGoal ? "오늘 목표를 " + humanKo(dailyGoal*60) + "으로 정했어요." : "목표를 껐어요.");
+  }
+  $("goalEdit").onclick = openGoal;
+  $("goalSave").onclick = ()=>{
+    const custom = Number($("goalInput").value || 0);
+    const picked = $("goalPicks").querySelector("button.on");
+    saveGoal(custom || (picked ? Number(picked.dataset.g) : 0));
+  };
+  $("goalOff").onclick  = ()=> saveGoal(0);
+  $("goalModal").onclick = (e)=>{ if (e.target.id === "goalModal") $("goalModal").classList.remove("on"); };
+
+  /* ---------- 내 기록 (주간 · 뱃지 · 과목 · 내보내기) ---------- */
+  const BADGE_ICON = { first:"🌱", ten:"⭐", hundred:"🏆", streak7:"🔥", streak30:"💎",
+                       marathon:"🏃", early:"🌅", night:"🌙", days50:"📚" };
+
+  async function openMe(){
+    if (!sb || !me || !me.nickname){ openLogin(); return; }
+    $("meModal").classList.add("on");
+    $("meBody").innerHTML = '<div class="empty">불러오는 중…</div>';
+
+    const [wk, bg, sj] = await Promise.all([
+      sb.rpc("my_weekly"), sb.rpc("my_badges"), sb.rpc("my_subjects", { p_days: 30 })
+    ]);
+    const w = wk.data || {}, badges = bg.data || [], subs = sj.data || [];
+    const diff = Number(w.this_week || 0) - Number(w.last_week || 0);
+    const maxS = Math.max(1, ...subs.map(x=> Number(x.seconds)));
+
+    $("meBody").innerHTML =
+      '<div class="wk">'
+      + '<div><b>'+humanKo(Number(w.this_week||0))+'</b><span>이번 주</span></div>'
+      + '<div><b>'+(diff>=0?"+":"")+humanKo(Math.abs(diff))+'</b><span>지난주 대비</span></div>'
+      + '<div><b>'+(w.days||0)+'일</b><span>공부한 날</span></div></div>'
+      + (subs.length
+          ? '<h4 style="margin:0 0 10px;font-size:12px;color:var(--ink-faint)">최근 30일 과목별</h4>'
+            + '<div class="subj-list">' + subs.map(x=>
+              '<div class="row"><span class="nm">'+esc(x.subject)+'</span>'
+              + '<span class="bar"><i style="width:'+Math.round(Number(x.seconds)/maxS*100)+'%"></i></span>'
+              + '<span class="vl">'+humanKo(Number(x.seconds))+'</span></div>').join("") + '</div>'
+          : '<p style="font-size:12.5px;color:var(--ink-faint);margin:0 0 16px">'
+            + '타이머 켤 때 과목을 고르면 과목별 기록이 쌓여요.</p>')
+      + '<h4 style="margin:0 0 10px;font-size:12px;color:var(--ink-faint)">뱃지</h4>'
+      + '<div class="badges">' + badges.map(b=>
+          '<div class="badge'+(b.earned?" on":"")+'"><span class="ic">'+(BADGE_ICON[b.code]||"🎖")+'</span>'
+          + '<b>'+esc(b.label)+'</b><span>'+(b.earned ? esc(b.note) : b.progress+" / "+b.goal)+'</span></div>').join("")
+      + '</div>'
+      + '<div class="modal-btns"><button class="btn btn-finish" id="meExport">내 기록 내려받기 (CSV)</button></div>'
+      + '<p class="modal-note">내려받은 파일은 커뮤니티의 파이썬 코드에서 바로 분석할 수 있어요.</p>';
+
+    $("meExport").onclick = exportMine;
+  }
+
+  async function exportMine(){
+    const { data, error } = await sb.rpc("my_export", { p_days: 365 });
+    if (!handled(error, "내 기록 내려받기")) return;
+    const rows = data || [];
+    const head = "날짜,요일,공부시간(분),과목,과목시간(분)";
+    const body = rows.map(r=> [r.day, r.weekday, r.minutes,
+                               r.subject || "", r.subject_seconds ? Math.round(r.subject_seconds/60) : ""].join(",")).join("\n");
+    downloadText("내_공부기록.csv", "\uFEFF" + head + "\n" + body);
+    toast(rows.length + "일치를 내려받았어요.");
+  }
+
+  function downloadText(name, text){
+    const blob = new Blob([text], { type:"text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 3000);
+  }
+
+  $("mRecord").onclick  = ()=>{ $("accMenu").hidden = true; openMe(); };
+  $("meClose").onclick  = ()=> $("meModal").classList.remove("on");
+  $("meModal").onclick  = (e)=>{ if (e.target.id === "meModal") $("meModal").classList.remove("on"); };
+
+  /* ---------- 다크 모드 ---------- */
+  function applyTheme(t){
+    document.documentElement.dataset.theme = t;
+    $("themeIcon").textContent = t === "dark" ? "☀️" : "🌙";
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = t === "dark" ? "#141a23" : "#2f6fd0";
+    try { store.setItem("sungong.theme.v1", t); } catch(e){}
+  }
+  $("themeBtn").onclick = ()=>
+    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+
+  /* ---------- 이용 안내 ---------- */
+  $("termsOpen").onclick  = ()=> $("termsModal").classList.add("on");
+  $("termsClose").onclick = ()=> $("termsModal").classList.remove("on");
+  $("termsModal").onclick = (e)=>{ if (e.target.id === "termsModal") $("termsModal").classList.remove("on"); };
+
+  /* ---------- 처음 안내 ---------- */
+  const TOUR = [
+    { i:"⏱", t:"공부한 시간을 재요",
+      d:"Start를 누르면 순공부 시간이 쌓여요. 30~60분 포모도로와 휴식도 고를 수 있어요.<br>과목을 고르면 과목별로 나눠서 기록돼요." },
+    { i:"🌱", t:"기록이 잔디로 남아요",
+      d:"공부한 날이 초록색으로 채워져요. 랭킹에서 친구들과 비교하고,<br>그룹을 만들면 우리 반끼리만 순위를 볼 수 있어요." },
+    { i:"💬", t:"수업자료와 질문은 커뮤니티에서",
+      d:"선생님이 올린 자료를 보고, 궁금한 건 질문 게시판에 남겨요.<br>파이썬 코드는 글 안에서 바로 실행해볼 수 있어요." }
+  ];
+  let tourAt = 0;
+  function showTour(){
+    const t = TOUR[tourAt];
+    $("tourBody").innerHTML = '<div style="font-size:44px;margin-bottom:10px">'+t.i+'</div>'
+      + '<h3>'+t.t+'</h3><p>'+t.d+'</p>';
+    $("tourDots").innerHTML = TOUR.map((_,i)=>
+      '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 3px;background:'
+      + (i===tourAt ? "var(--blue)" : "var(--line)") + '"></span>').join("");
+    $("tourNext").textContent = tourAt === TOUR.length-1 ? "시작하기" : "다음";
+    $("tourModal").classList.add("on");
+  }
+  function endTour(){
+    $("tourModal").classList.remove("on");
+    try { store.setItem("sungong.tour.v1", "1"); } catch(e){}
+  }
+  $("tourNext").onclick = ()=>{ if (tourAt < TOUR.length-1){ tourAt++; showTour(); } else endTour(); };
+  $("tourSkip").onclick = endTour;
+
   /* ================= render ================= */
   function render(){
     const countDown = state.target > 0;
@@ -2005,6 +2389,7 @@
                      : "버튼을 눌러 공부를 시작하세요");
     }
     renderMiniTimer();
+    renderGoal();
     renderStats();
   }
 
@@ -2275,6 +2660,8 @@
       ? "인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 시도해주세요."
       : "잠시 후 다시 시도해보세요. 계속 같은 문제가 생기면 아래 코드를 건의사항에 올려주세요.";
     $("errDetail").textContent = errorText();
+    if (sb) sb.rpc("log_error", { p_code: code, p_place: lastError.where,
+                                  p_message: msg, p_ua: navigator.userAgent }).then(()=>{}, ()=>{});
     $("errSend").hidden = !(sb && me && me.nickname);
     $("errModal").classList.add("on");
   }
@@ -2506,6 +2893,7 @@
     me.nickname  = prof.nickname;
     me.show_rank = prof.show_rank;
     me.role      = prof.role || "student";
+    me.daily_goal = prof.daily_goal || 0;
     if (prof.banned) toast("이 계정은 글쓰기가 제한된 상태예요.");
     renderAccount();
     await afterLogin();
@@ -2518,6 +2906,12 @@
     refreshRank();
     updateUnread();
     boardLoaded = false;
+
+    dailyGoal = Number(me.daily_goal || 0);
+    renderGoal();
+    try {
+      if (!store.getItem("sungong.tour.v1")){ tourAt = 0; showTour(); }
+    } catch(e){}
 
     // 로그인하려고 커뮤니티에서 넘어온 경우 다시 커뮤니티로
     let rv = null;
@@ -2591,6 +2985,7 @@
         records[k] = data; save(); renderStats();
       }
     }
+    await flushSubjects();
     setSync("ok");
   }
 
@@ -2649,8 +3044,20 @@
         return '<li class="'+(r.is_me?"me ":"")+(r.rk<=3?"top"+r.rk:"")+'">'
              + '<span class="rk">'+medal+'</span>'
              + '<span class="nm">'+esc(r.nickname)+'</span>'
+             + (r.is_me ? '' : '<button class="cheer" data-cheer="'+esc(r.nickname)+'" title="응원 보내기">👏</button>')
              + '<span class="vl">'+val(r)+'</span></li>';
       }).join("");
+
+      list.querySelectorAll("[data-cheer]").forEach(b=> b.onclick = async (e)=>{
+        e.stopPropagation();
+        const { data: found } = await sb.rpc("search_members", { p_q: b.dataset.cheer });
+        const u = (found || []).find(x=> x.nickname === b.dataset.cheer);
+        if (!u){ toast("응원을 보낼 수 없어요."); return; }
+        const { error } = await sb.rpc("send_cheer", { p_to: u.id });
+        if (error){ toast(cleanErr(error)); return; }
+        b.textContent = "✅"; b.disabled = true;
+        toast(b.dataset.cheer + "님에게 응원을 보냈어요 👏");
+      });
 
       const mine = rows.find(r=>r.is_me);
       const total = rows.length;
@@ -2659,7 +3066,11 @@
                          : "내 순위 "+mine.rk+"위 / "+total+"명")
         : (me.show_rank ? "오늘 기록이 쌓이면 순위에 올라가요" : "랭킹 표시를 꺼둔 상태예요");
       foot.innerHTML = '<span>'+where+'</span>'
-                     + '<span class="sync-dot ok"><i></i> 저장됨</span>';
+                     + '<span><span id="cheerGot"></span> <span class="sync-dot ok"><i></i> 저장됨</span></span>';
+      sb.rpc("my_cheers").then(({ data })=>{
+        const el = $("cheerGot");
+        if (el && Number(data) > 0) el.textContent = "오늘 받은 응원 👏 " + data + " · ";
+      });
       return;
     }
     foot.innerHTML = '<span class="sync-dot ok"><i></i> 저장됨</span>';
@@ -3128,6 +3539,7 @@
     });
     bindCodeCells($("boardDetail"));
     fillInlineImages($("boardDetail"));
+    renderAssign(p);
     $("boardDetail").querySelectorAll(".post-img").forEach(im=>{
       im.onclick = ()=>{ if (im.src) window.open(im.src, "_blank"); };
     });
@@ -3241,6 +3653,57 @@
     if (!e.target.closest("#whoMenu")) $("whoMenu").hidden = true;
   });
   window.addEventListener("scroll", ()=>{ $("whoMenu").hidden = true; }, true);
+
+  /* 과제 제출 (과제 게시판 글일 때만 표시) */
+  async function renderAssign(p){
+    if (!sb || !me || !me.nickname) return;
+    const { data, error } = await sb.rpc("assignment_info", { p_post: p.id });
+    const a = data || {};
+    if (error || !a.is_assign) return;
+
+    const due = a.due_at ? new Date(a.due_at) : null;
+    const box = document.createElement("div");
+    box.className = "assign-box";
+    box.innerHTML =
+      '<div class="assign-head"><b>📝 과제 제출</b>'
+      + (due ? '<span class="'+(a.over_due?"over":"")+'">마감 '+fmtDate(a.due_at, true)
+               + (a.over_due ? ' · 마감됨' : '') + '</span>' : '<span>마감 없음</span>')
+      + (a.can_manage ? '<span class="grow"></span><span>제출 '+a.done+' / '+a.total+'명</span>' : '')
+      + '</div>'
+      + (a.can_manage
+          ? '<p class="assign-note">제출 현황은 관리자 화면의 <b>과제</b> 메뉴에서 볼 수 있어요.'
+            + (due ? '' : ' 마감일을 정하려면 아래 버튼을 눌러주세요.') + '</p>'
+            + '<div class="w-btns" style="margin-top:10px"><button class="btn-ghost" id="asDue">'
+            + (due ? '마감일 변경' : '마감일 정하기') + '</button></div>'
+          : '<textarea id="asBody" placeholder="제출 내용을 적어주세요">'+esc(a.my_body || "")+'</textarea>'
+            + '<div class="assign-foot">'
+            + (a.my_at ? '<span>'+fmtDate(a.my_at, true)+' 제출됨'
+                       + (a.my_late ? ' · 지각' : '') + '</span>' : '<span>아직 제출하지 않았어요</span>')
+            + '<button class="btn-write" id="asSend">'+(a.my_at ? '다시 제출' : '제출하기')+'</button></div>');
+
+    const body = $("boardDetail").querySelector(".post-body");
+    body.parentNode.insertBefore(box, body.nextSibling);
+
+    if (a.can_manage){
+      $("asDue").onclick = async ()=>{
+        const v = prompt("마감일시 (예: 2026-09-01 23:59)", due ? fmtDate(a.due_at, true) : "");
+        if (v === null) return;
+        const d = v.trim() ? new Date(v.replace(" ", "T")) : null;
+        if (v.trim() && isNaN(d)){ toast("날짜 형식을 확인해주세요."); return; }
+        const { error: de } = await sb.rpc("set_post_due",
+          { p_post: p.id, p_due: d ? d.toISOString() : null });
+        if (!handled(de, "마감일")) return;
+        toast("마감일을 정했어요."); openPost(p.id);
+      };
+    } else {
+      $("asSend").onclick = async ()=>{
+        const { error: se } = await sb.rpc("submit_assignment",
+          { p_post: p.id, p_body: $("asBody").value });
+        if (!handled(se, "과제 제출")) return;
+        toast("제출했어요!"); openPost(p.id);
+      };
+    }
+  }
 
   async function sendComment(text, parent, postId, secret){
     const v = (text || "").trim();
@@ -3557,6 +4020,7 @@ _imgs
         html += '<div class="code-block" data-cell>'
              +   '<div class="code-top"><span class="lang">PYTHON</span><span class="grow"></span>'
              +     '<button class="cbtn reset">되돌리기</button>'
+             +     '<button class="cbtn toc" hidden>결과를 댓글로</button>'
              +     '<button class="cbtn stop" hidden>■ 중단</button>'
              +     '<button class="cbtn run">▶ 실행</button></div>'
              +   '<textarea class="code-area" spellcheck="false">' + esc(part.replace(/\s+$/,"")) + '</textarea>'
@@ -3626,6 +4090,7 @@ _imgs
 
         if (r.ok){
           out.textContent = r.text;
+          cell.querySelector(".toc").hidden = false;
           (r.imgs || []).forEach(b64=>{
             const img = new Image();
             img.src = "data:image/png;base64," + b64;
@@ -3642,6 +4107,18 @@ _imgs
       };
 
       stopBtn.onclick = ()=>{ if (runPython.cancel) runPython.cancel(); };
+
+      // 실행 결과를 댓글 입력창에 그대로 붙여넣기
+      const tocBtn = cell.querySelector(".toc");
+      tocBtn.onclick = ()=>{
+        const ci = $("cInput"); if (!ci) return;
+        const code = ta.value.trim(), res = out.textContent.trim();
+        ci.value = (ci.value ? ci.value + "\n\n" : "")
+                 + "```python\n" + code + "\n```\n실행 결과:\n" + res;
+        ci.scrollIntoView({ behavior:"smooth", block:"center" });
+        ci.focus();
+        toast("댓글 입력창에 붙여넣었어요.");
+      };
     });
   }
 
@@ -3824,6 +4301,38 @@ _imgs
     return { text: b.replace(m[0], "").replace(/\n{3,}/g, "\n\n").trim(), code: m[1].replace(/\s+$/,"") };
   }
 
+  /* 작성 중인 글 임시저장 (브라우저에만) */
+  const DKEY = "sungong.draft.v1";
+  let draftTimer = null;
+
+  function saveDraft(){
+    if ($("boardWrite").hidden || editingId) return;
+    try {
+      store.setItem(DKEY, JSON.stringify({
+        cat: $("wCat").value, title: $("wTitle").value, body: $("wBody").value,
+        yt: $("wYt").value, tags: $("wTags").value, code: $("wCodeArea").value,
+        at: Date.now()
+      }));
+    } catch(e){}
+  }
+  function clearDraft(){ try { store.removeItem(DKEY); } catch(e){} }
+
+  async function offerDraft(){
+    let d = null;
+    try { d = JSON.parse(store.getItem(DKEY)); } catch(e){}
+    if (!d || !(d.title || d.body)) return false;
+    const when = new Date(d.at || Date.now());
+    if (!await ask("저장하지 않고 나간 글이 있어요.\n(" + fmtDate(when.toISOString(), true) + ")\n이어서 쓸까요?",
+                   { title:"임시저장 글", yes:"이어서 쓰기", no:"새로 쓰기" })) { clearDraft(); return false; }
+    if (d.cat) $("wCat").value = d.cat;
+    $("wTitle").value = d.title || "";
+    $("wBody").value  = d.body || "";
+    $("wYt").value    = d.yt || "";
+    $("wTags").value  = d.tags || "";
+    if (d.code){ $("wCodeArea").value = d.code; $("wCode").checked = true; $("wCodeWrap").hidden = false; }
+    return true;
+  }
+
   function writeHasContent(){
     if ($("boardWrite").hidden) return false;
     return !!($("wTitle").value.trim() || $("wBody").value.trim() || $("wCodeArea").value.trim()
@@ -3836,6 +4345,7 @@ _imgs
                      { title:"작성 취소", yes:"나가기", danger:true });
   }
   function closeWrite(){
+    clearInterval(draftTimer); draftTimer = null;
     pendingFiles = []; editingId = null;
     inlineImgs.forEach(im=> URL.revokeObjectURL(im.url));
     inlineImgs = []; renderImgStrip();
@@ -3887,6 +4397,12 @@ _imgs
     window.scrollTo({ top: 0, behavior: "smooth" });
     $("wTitle").focus();
     try { history.pushState({ app: "write" }, ""); } catch(e){}
+
+    clearInterval(draftTimer);
+    if (!post){
+      offerDraft();
+      draftTimer = setInterval(saveDraft, 5000);
+    }
   }
 
   $("wCancel").onclick = async ()=>{
@@ -3973,6 +4489,7 @@ _imgs
       $("wSave").textContent = "파일 올리는 중…";
       await uploadPending(id);
     }
+    clearInterval(draftTimer); draftTimer = null; clearDraft();
     toast(editingId ? "글을 수정했어요." : "글을 등록했어요.");
     editingId = null;
     openPost(id);
@@ -4436,6 +4953,18 @@ _imgs
 
   (function init(){
     $("freeBtn").classList.add("active");
+
+    // 화면 밝기 (저장값 → 없으면 기기 설정 따름)
+    let savedTheme = null;
+    try { savedTheme = store.getItem("sungong.theme.v1"); } catch(e){}
+    applyTheme(savedTheme
+      || (window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+    try { subject = store.getItem(SKEY_SUBJ) || null; } catch(e){}
+    try { dailyGoal = Number(store.getItem("sungong.goal.v1") || 0); } catch(e){}
+    renderSubjRow();
+    renderGoal();
+
     restoreTimer();
     renderBreakRow();
     syncButtons();

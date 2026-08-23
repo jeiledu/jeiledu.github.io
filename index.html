@@ -7,6 +7,13 @@
 <meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-title" content="학습관리">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<!-- 홈 화면에 앱처럼 추가하기 (PWA) -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>정보·데이터과학 학습관리 · 김포제일고등학교</title>
 
 <!-- 카카오톡·메신저 링크 미리보기 (Open Graph) -->
@@ -112,6 +119,7 @@
   :root[data-theme="dark"] .brand:hover,
   :root[data-theme="dark"] .main-tabs button:hover{background:#232e3c}
   :root[data-theme="dark"] .banner{border-color:#33455e}
+  :root[data-theme="dark"] .banner.off{background:#33291a; border-color:#5c4a24; color:#e0b96a}
   :root[data-theme="dark"] .cat-bar button.old{background:var(--card)}
   :root[data-theme="dark"] .tag-chip{background:#26313e; color:var(--ink-soft)}
   :root[data-theme="dark"] .tag-chip:hover{background:var(--blue-soft); color:var(--blue-dark)}
@@ -227,6 +235,10 @@
   }
   .banner[hidden]{display:none}
   .banner b{flex:none}
+  .banner.off{background:#fdf3e8; border-color:#f0dfc4; color:#8a6a22}
+  .banner .x{margin-left:auto; align-self:center; background:none; border:0; color:inherit;
+             cursor:pointer; font:inherit; font-size:12px; white-space:nowrap;
+             text-decoration:underline; text-underline-offset:2px; flex:none}
 
   /* ---------- 게시판 ---------- */
   #boardView[hidden], #timerView[hidden]{display:none}
@@ -1384,6 +1396,7 @@
     <button data-view="board">커뮤니티</button>
   </nav>
 
+  <div id="pwaBar"></div>
   <div id="banners"></div>
 
   <div class="layout" id="timerView">
@@ -3098,6 +3111,11 @@
 
     save();
     dirty.add(tk);
+    // 어제 것도 한 번 올려봅니다. 오프라인으로 밤늦게 공부하고
+    // 다음 날 앱을 열면 어제치가 기기에만 남아 있을 수 있어서입니다.
+    // (서버가 today-1 까지만 받아주므로 그 이전은 대상이 아닙니다)
+    const yk = keyOf(new Date(now().getTime() - 86400000));
+    if (records[yk] > (server[yk] || 0)) dirty.add(yk);
     await flush();
   }
 
@@ -5350,6 +5368,104 @@ _imgs
     initServer();
     // 자정 넘어가면 화면 갱신
     setInterval(()=>{ renderGrid(); renderMini(); renderSessions(); }, 60000);
+  })();
+
+  /* =====================================================================
+     홈 화면에 추가 (PWA)
+     · 서비스 워커(sw.js) 가 화면 파일을 기기에 저장해 둡니다.
+       → 인터넷이 끊겨도 앱이 열리고 타이머가 돕니다.
+     · 오프라인일 때는 서버 연결이 없으니 '혼자 쓰는 모드'로 돌아갑니다.
+       기록은 기기에 쌓였다가 다시 연결되면 자동으로 올라갑니다.
+     ===================================================================== */
+  (function pwa(){
+    const bar = $("pwaBar");
+    if (!bar) return;
+
+    const standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches)
+                    || window.navigator.standalone === true;
+    const ua        = navigator.userAgent;
+    const isIOS     = /iPad|iPhone|iPod/.test(ua)
+                   || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isSamsung = /SamsungBrowser/.test(ua);
+    const isAndroid = /Android/.test(ua);
+    const isMobile  = isIOS || isAndroid;
+
+    /* ---------- 서비스 워커 등록 (https 주소에서만 · 시험용 localhost 포함) ---------- */
+    const secure = location.protocol === "https:"
+                || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    if ("serviceWorker" in navigator && secure){
+      window.addEventListener("load", ()=>{
+        // updateViaCache:"none" — sw.js 자체는 저장해 두지 않고 늘 새로 확인합니다
+        navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg=>{
+          reg.addEventListener("updatefound", ()=>{
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener("statechange", ()=>{
+              // 이미 쓰고 있던 사람에게만 알립니다 (첫 설치 때는 조용히)
+              if (nw.state === "installed" && navigator.serviceWorker.controller)
+                toast("새 버전이 준비됐어요. 새로고침하면 적용돼요.");
+            });
+          });
+        }).catch(()=>{});
+      });
+    }
+
+    /* ---------- 안내 줄 ---------- */
+    let installEvt = null;          // 안드로이드 크롬이 주는 '설치' 이벤트
+    const hidden = ()=>{ try { return store.getItem("sungong.pwa.hide.v1") === "1"; }
+                         catch(e){ return false; } };
+
+    function render(){
+      const rows = [];
+
+      if (!navigator.onLine){
+        rows.push('<div class="banner off"><b>📴</b><span>'
+          + '인터넷이 끊겨서 <b>혼자 쓰는 모드</b>로 돌아가고 있어요. '
+          + '타이머는 그대로 쓸 수 있고, 기록은 연결되면 자동으로 올라가요. '
+          + '커뮤니티·과제는 연결된 뒤에 열려요.</span></div>');
+      }
+
+      if (!standalone && !hidden() && (isMobile || installEvt)){
+        // 브라우저마다 '홈 화면에 추가' 가 있는 자리가 달라서 각각 안내합니다.
+        // (삼성 인터넷·크롬은 '추가하기' 버튼이 뜨면 그걸 누르는 게 제일 쉽습니다)
+        const how = installEvt
+          ? '홈 화면에 추가하면 앱처럼 바로 열리고, 인터넷이 끊겨도 타이머를 쓸 수 있어요. '
+            + '아래 <b>추가하기</b>를 눌러주세요.'
+          : isIOS
+            ? '홈 화면에 추가하면 앱처럼 바로 열려요. <b>사파리</b>에서 화면 아래 '
+              + '<b>공유 버튼</b>을 누르고 <b>홈 화면에 추가</b>를 고르세요.'
+            : isSamsung
+              ? '홈 화면에 추가하면 앱처럼 바로 열려요. 화면 아래 <b>메뉴(≡)</b>를 누르고 '
+                + '<b>현재 페이지 추가 → 홈 화면</b>을 고르세요.'
+              : '홈 화면에 추가하면 앱처럼 바로 열려요. 오른쪽 위 <b>점 세 개(⋮)</b>를 누르고 '
+                + '<b>홈 화면에 추가</b>를 고르세요.';
+
+        rows.push('<div class="banner"><b>📱</b><span>' + how + '</span>'
+          + (installEvt ? '<button class="x" id="pwaGo">추가하기</button>' : '')
+          + '<button class="x" id="pwaNo">닫기</button></div>');
+      }
+
+      bar.innerHTML = rows.join("");
+
+      if ($("pwaNo")) $("pwaNo").onclick = ()=>{
+        try { store.setItem("sungong.pwa.hide.v1", "1"); } catch(e){}
+        render();
+      };
+      if ($("pwaGo")) $("pwaGo").onclick = async ()=>{
+        if (!installEvt) return;
+        installEvt.prompt();
+        try { await installEvt.userChoice; } catch(e){}
+        installEvt = null; render();
+      };
+    }
+
+    window.addEventListener("beforeinstallprompt", (e)=>{
+      e.preventDefault(); installEvt = e; render();
+    });
+    window.addEventListener("appinstalled", ()=>{ installEvt = null; render(); });
+    window.addEventListener("online",  render);
+    window.addEventListener("offline", render);
+    render();
   })();
 })();
 </script>

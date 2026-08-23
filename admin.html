@@ -134,6 +134,14 @@
   .f input, .f select, .f textarea{width:100%}
   .f textarea{min-height:90px; resize:vertical; line-height:1.6}
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .sub-body{border:1px solid var(--line); border-radius:9px; padding:11px 13px;
+            background:var(--bg); font-size:13px; line-height:1.7; color:var(--ink);
+            max-height:220px; overflow:auto; white-space:pre-wrap; word-break:break-word}
+  .sub-file{display:flex; align-items:center; gap:9px; padding:8px 11px; margin-bottom:6px;
+            border:1px solid var(--line); border-radius:9px; background:var(--bg); font-size:12.5px}
+  .sub-file .fn{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis;
+                white-space:nowrap; font-weight:600; color:var(--ink)}
+  .lockmk{font-size:12px}
   .dlg-btns{display:flex; gap:8px; justify-content:flex-end; margin-top:18px}
   .err{color:var(--red); font-size:12.5px; min-height:17px; margin:6px 0 0}
 
@@ -764,11 +772,20 @@
     $("pBody").querySelectorAll("[data-pd]").forEach(b=> b.onclick = async ()=>{
       if (!await ask("글과 댓글, 첨부파일을 모두 삭제할까요?", { title:"글 삭제", yes:"삭제", danger:true })) return;
       const id = Number(b.dataset.pd);
-      // 첨부파일은 저장소에서도 지웁니다 (폴더 이름 = 글 번호)
+      // 첨부파일은 저장소에서도 지웁니다 (글을 지우면 볼 권한이 사라지므로 먼저)
+      //  · 글 첨부·본문 이미지 :  <글번호>/...
+      //  · 과제 제출 파일      :  sub/<글번호>/<학생uuid>/...
       try{
+        const paths = [];
         const { data: files } = await sb.storage.from("attachments").list(String(id));
-        if (files && files.length)
-          await sb.storage.from("attachments").remove(files.map(f=> id + "/" + f.name));
+        (files || []).forEach(f=> paths.push(id + "/" + f.name));
+
+        const { data: subs } = await sb.storage.from("attachments").list("sub/" + id);
+        for (const d of (subs || [])){
+          const { data: sf } = await sb.storage.from("attachments").list("sub/" + id + "/" + d.name);
+          (sf || []).forEach(f=> paths.push("sub/" + id + "/" + d.name + "/" + f.name));
+        }
+        if (paths.length) await sb.storage.from("attachments").remove(paths);
       }catch(e){}
       await rpc("delete_post", { p_id: id });
       toast("삭제했어요."); loadPosts();
@@ -1041,21 +1058,51 @@
   }
 
   /* ===================== 과제 제출 현황 ===================== */
-  let assignPost = null;
+  let assignPost = null, assignInfo = null;
+
+  const fileSize = (b)=>{
+    b = Number(b||0);
+    if (b >= 1048576) return (b/1048576).toFixed(1) + "MB";
+    if (b >= 1024)    return Math.round(b/1024) + "KB";
+    return b + "B";
+  };
+  const scoreTxt = (n)=> (n === null || n === undefined || n === "") ? "" : String(Number(n));
+
   async function pageAssign(){
     if (!assignPost){
-      const rows = await rpc("admin_posts", { p_q: "", p_limit: 100 });
+      let list = [];
+      try { list = await rpc("admin_assign_posts"); }
+      catch(e){
+        $("page").innerHTML = '<div class="card"><div class="empty">'+esc(cleanErr(e))+'</div>'
+          + '<p class="muted" style="text-align:center;font-size:12.5px">'
+          + 'schema18 을 아직 실행하지 않았다면 먼저 적용해주세요.</p></div>';
+        return;
+      }
+
       $("page").innerHTML =
-        '<div class="card"><h3>과제 글 고르기</h3>'
+        '<div class="card"><h3>과제 고르기</h3>'
         + '<p class="muted" style="margin:-6px 0 12px;font-size:12.5px">'
-        + '게시판 설정에서 종류를 <b>과제</b>로 지정한 게시판의 글이 과제가 됩니다.</p>'
-        + '<div class="tbl-wrap"><table><tbody>'
-        + (rows.length ? rows.map(p=>
-            '<tr><td><b>'+esc(p.title)+'</b> <span class="muted">'+esc(p.category_name)+'</span></td>'
-            + '<td class="num muted">'+ymd(p.created_at)+'</td>'
-            + '<td class="act"><button class="b sm" data-ap="'+p.id+'" data-t="'+esc(p.title)+'">제출 현황</button></td></tr>').join("")
-          : '<tr><td class="empty">글이 없어요.</td></tr>')
-        + '</tbody></table></div></div>';
+        + '게시판 설정에서 종류를 <b>과제 제출형</b>으로 지정한 게시판의 글만 나옵니다.</p>'
+        + (list.length
+            ? '<div class="tbl-wrap"><table><thead><tr>'
+              + '<th>과제</th><th>마감</th><th class="num">제출</th><th class="num">만점</th>'
+              + '<th>점수</th><th></th></tr></thead><tbody>'
+              + list.map(p=>
+                  '<tr><td><b>'+esc(p.title)+'</b> <span class="muted">'+esc(p.category_name)+'</span></td>'
+                  + '<td class="muted">'+(p.due_at ? dt(p.due_at) : '마감 없음')
+                  +   (p.due_at && !p.allow_late ? ' <span class="tag hid">마감 후 잠금</span>' : '')+'</td>'
+                  + '<td class="num"><b>'+p.submitted+'</b> <span class="muted">/ '+p.students+'</span></td>'
+                  + '<td class="num muted">'+(p.max_score != null ? scoreTxt(p.max_score)+'점' : '-')+'</td>'
+                  + '<td>'+(p.max_score == null ? '<span class="muted">안 씀</span>'
+                          : p.scores_open ? '<span class="tag teacher">공개됨</span>'
+                                          : '<span class="tag student">비공개</span>')+'</td>'
+                  + '<td class="act"><button class="b sm" data-ap="'+p.id+'" data-t="'+esc(p.title)+'">'
+                  + '제출 현황</button></td></tr>').join("")
+              + '</tbody></table></div>'
+            : '<div class="empty">아직 과제 글이 없어요.<br>'
+              + '<b>게시판 설정</b>에서 게시판 종류를 <b>과제 제출형</b>으로 바꾼 뒤, '
+              + '학생 화면에서 그 게시판에 글을 써주세요.</div>')
+        + '</div>';
       $("page").querySelectorAll("[data-ap]").forEach(b=> b.onclick = ()=>{
         assignPost = { id: Number(b.dataset.ap), title: b.dataset.t }; pageAssign();
       });
@@ -1063,53 +1110,162 @@
     }
 
     let rows = [];
-    try { rows = await rpc("assignment_list", { p_post: assignPost.id }); }
-    catch(e){
+    try {
+      [rows, assignInfo] = await Promise.all([
+        rpc("assignment_list", { p_post: assignPost.id }),
+        rpc("assignment_info", { p_post: assignPost.id })
+      ]);
+    } catch(e){
       $("page").innerHTML = '<div class="card"><div class="empty">'+esc(cleanErr(e))+'</div>'
         + '<div class="dlg-btns"><button class="b" id="aBack">← 다른 과제</button></div></div>';
       $("aBack").onclick = ()=>{ assignPost = null; pageAssign(); };
       return;
     }
-    const done = rows.filter(r=> r.submitted).length;
+
+    const info   = assignInfo || {};
+    const useSc  = (info.max_score != null);
+    const open   = !!info.scores_open;
+    const done   = rows.filter(r=> r.submitted).length;
+    const graded = rows.filter(r=> r.score != null).length;
     $("headNote").textContent = assignPost.title;
 
     $("page").innerHTML =
       '<div class="card"><div class="tools">'
       + '<button class="b" id="aBack">← 다른 과제</button><span class="grow"></span>'
-      + '<span class="muted">제출 '+done+' / '+rows.length+'명</span>'
+      + '<span class="muted">제출 '+done+' / '+rows.length+'명'
+      +   (useSc ? ' · 점수 '+graded+'명' : '') + '</span>'
+      + (useSc ? '<button class="b '+(open?"":"pri")+'" id="aOpen">'
+                 + (open ? '점수 감추기' : '점수 공개하기') + '</button>' : '')
       + '<button class="b" id="aCsv">CSV</button></div>'
+      + (useSc
+          ? '<p class="muted" style="margin:0 0 12px;font-size:12.5px">만점 '
+            + scoreTxt(info.max_score) + '점 · 점수는 지금 <b>'
+            + (open ? '학생에게 보입니다' : '학생에게 보이지 않습니다') + '</b>.</p>'
+          : '<p class="muted" style="margin:0 0 12px;font-size:12.5px">'
+            + '이 과제는 만점이 정해져 있지 않아 점수 없이 확인·피드백만 할 수 있어요. '
+            + '점수를 쓰려면 학생 화면의 글에서 <b>과제 설정</b>으로 만점을 정해주세요.</p>')
       + '<div class="tbl-wrap"><table><thead><tr>'
-      + '<th>학생</th><th>상태</th><th>제출 내용</th><th>제출 시각</th><th></th>'
+      + '<th>학생</th><th>상태</th>'+(useSc ? '<th class="num">점수</th>' : '')
+      + '<th>제출 내용</th><th>첨부</th><th>제출 시각</th><th></th>'
       + '</tr></thead><tbody>'
-      + rows.map(r=>
-          '<tr><td><b>'+esc(r.nickname)+'</b></td>'
+      + rows.map((r,i)=>{
+          const nf = (r.files || []).length;
+          return '<tr><td><b>'+esc(r.nickname)+'</b></td>'
           + '<td>'+(r.submitted
               ? (r.checked ? '<span class="tag teacher">확인함</span>'
                            : '<span class="tag student">제출</span>')
                 + (r.late ? ' <span class="tag ban">지각</span>' : '')
+                + (r.locked ? ' <span class="lockmk" title="다시 제출할 수 없음">🔒</span>' : '')
               : '<span class="tag hid">미제출</span>')+'</td>'
-          + '<td style="max-width:320px">'+esc((r.body||"").slice(0,90))+(r.body&&r.body.length>90?'…':'')+'</td>'
+          + (useSc ? '<td class="num"><b>'+(r.score != null ? scoreTxt(r.score) : '-')+'</b></td>' : '')
+          + '<td style="max-width:300px">'+esc((r.body||"").slice(0,90))+(r.body&&r.body.length>90?'…':'')+'</td>'
+          + '<td class="num muted">'+(nf ? nf+'개' : '-')+'</td>'
           + '<td class="num muted">'+(r.at ? dt(r.at) : '-')+'</td>'
           + '<td class="act">'+(r.submitted
-              ? '<button class="b sm" data-gr="'+r.user_id+'" data-n="'+esc(r.nickname)+'">확인·피드백</button>' : '')+'</td></tr>').join("")
+              ? '<button class="b sm" data-gr="'+i+'">보기 · 확인</button>' : '')+'</td></tr>';
+        }).join("")
       + '</tbody></table></div></div>';
 
     $("aBack").onclick = ()=>{ assignPost = null; $("headNote").textContent=""; pageAssign(); };
+
+    if ($("aOpen")) $("aOpen").onclick = async ()=>{
+      const on = !open;
+      if (on && !await ask("점수가 매겨진 " + graded + "명에게 점수가 바로 보이고 알림이 갑니다.\n공개할까요?",
+                           { title:"점수 공개", yes:"공개하기" })) return;
+      try{
+        await rpc("set_scores_open", { p_post: assignPost.id, p_open: on });
+        toast(on ? "점수를 공개했어요." : "점수를 다시 감췄어요."); pageAssign();
+      }catch(e){ toast(cleanErr(e)); }
+    };
+
     $("aCsv").onclick = ()=>{
-      const head = "학생,상태,지각,제출시각,내용";
-      const body = rows.map(r=> [r.nickname, r.submitted?"제출":"미제출", r.late?"지각":"",
-        r.at?dt(r.at):"", '"'+String(r.body||"").replace(/"/g,'""').replace(/\n/g," ")+'"'].join(",")).join("\n");
+      const head = "학생,상태,지각,잠금,점수,만점,제출시각,첨부수,내용,피드백";
+      const q = (v)=> '"' + String(v==null?"":v).replace(/"/g,'""').replace(/\n/g," ") + '"';
+      const body = rows.map(r=> [
+        q(r.nickname), r.submitted?"제출":"미제출", r.late?"지각":"", r.locked?"잠김":"",
+        r.score!=null?scoreTxt(r.score):"", useSc?scoreTxt(info.max_score):"",
+        r.at?dt(r.at):"", (r.files||[]).length, q(r.body), q(r.feedback)
+      ].join(",")).join("\n");
       downloadText(assignPost.title+"_제출현황.csv", "\uFEFF"+head+"\n"+body);
     };
-    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
-      const r = rows.find(x=> x.user_id === b.dataset.gr);
-      const fb = await ask(r.nickname + " 학생에게 남길 한마디 (비워도 돼요)",
-                           { title:"과제 확인", yes:"확인 처리", input: r.feedback || "" });
-      if (fb === null) return;
-      await rpc("grade_submission", { p_post: assignPost.id, p_user: r.user_id,
-                                      p_feedback: fb, p_checked: true });
-      toast("확인 처리했어요."); pageAssign();
-    });
+
+    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = ()=>
+      openGrade(rows[Number(b.dataset.gr)], useSc, info));
+  }
+
+  /* 제출물 하나 열어보기 · 점수 · 피드백 · 잠금 */
+  function openGrade(r, useSc, info){
+    const files = r.files || [];
+    openDlg(
+      '<h3>'+esc(r.nickname)+' 학생의 제출물</h3>'
+      + '<p class="sub">'+(r.at ? dt(r.at) : '-')+' 제출'
+      +   (r.late ? ' · 지각' : '') + (r.locked ? ' · 잠김' : '') + '</p>'
+      + '<div class="f"><label>제출 내용</label>'
+      + '<div class="sub-body">'+(r.body ? esc(r.body) : '<i class="muted">내용 없이 파일만 냈어요.</i>')+'</div></div>'
+      + (files.length
+          ? '<div class="f"><label>첨부파일 '+files.length+'개</label>'
+            + files.map((f,i)=>
+                '<div class="sub-file"><span class="fn">'+esc(f.name)+'</span>'
+                + '<span class="muted">'+fileSize(f.size)+'</span>'
+                + '<button class="b sm" data-sd="'+i+'">받기</button></div>').join("")
+            + '</div>'
+          : '')
+      + (useSc
+          ? '<div class="f"><label>점수 (만점 '+scoreTxt(info.max_score)+'점)</label>'
+            + '<input type="number" id="gScore" min="0" max="'+scoreTxt(info.max_score)+'" step="0.5"'
+            + ' value="'+(r.score != null ? scoreTxt(r.score) : "")+'" placeholder="비워두면 점수 없음"></div>'
+          : '')
+      + '<div class="f"><label>피드백 (학생에게 보여요 · 비워도 돼요)</label>'
+      + '<textarea id="gFb" maxlength="1000">'+esc(r.feedback||"")+'</textarea></div>'
+      + '<div class="f"><label><input type="checkbox" id="gLock" style="width:auto;margin-right:7px"'
+      + (r.locked || !r.checked ? ' checked' : '') + '>'
+      + '다시 제출하지 못하게 잠그기</label>'
+      + '<p class="muted" style="font-size:12px;margin:4px 0 0">'
+      + '체크를 풀고 저장하면 학생이 다시 제출할 수 있어요.</p></div>'
+      + (useSc && !info.scores_open
+          ? '<p class="muted" style="font-size:12px;margin:0 0 10px">'
+            + '지금 넣는 점수는 <b>점수 공개하기</b>를 누르기 전까지 학생에게 보이지 않아요.</p>'
+          : '')
+      + '<p class="err" id="gErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="gCancel">취소</button>'
+      + '<button class="b pri" id="gSave">저장</button></div>');
+
+    $("gCancel").onclick = closeDlg;
+    $("dlg").querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>
+      downloadStored(files[Number(b.dataset.sd)]));
+
+    $("gSave").onclick = async ()=>{
+      let sc = null;
+      if (useSc){
+        const v = $("gScore").value.trim();
+        if (v !== ""){
+          sc = Number(v);
+          if (!(sc >= 0 && sc <= Number(info.max_score))){
+            $("gErr").textContent = "점수는 0점에서 " + scoreTxt(info.max_score) + "점 사이로 넣어주세요.";
+            return;
+          }
+        }
+      }
+      try{
+        await rpc("grade_submission", {
+          p_post: assignPost.id, p_user: r.user_id,
+          p_feedback: $("gFb").value.trim() || null,
+          p_checked: true, p_score: sc, p_lock: $("gLock").checked });
+        closeDlg(); toast("저장했어요."); pageAssign();
+      }catch(e){ $("gErr").textContent = cleanErr(e); }
+    };
+  }
+
+  // 원본 파일명 그대로 내려받기 (한글 이름이 깨지지 않도록)
+  async function downloadStored(f){
+    toast("파일을 준비하고 있어요…");
+    const { data, error } = await sb.storage.from("attachments").download(f.path);
+    if (error || !data){ toast("파일을 받을 수 없어요."); return; }
+    const url = URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url; a.download = String(f.name || "file").normalize("NFC");
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 4000);
   }
 
   function downloadText(name, text){

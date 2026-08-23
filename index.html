@@ -124,6 +124,12 @@
   :root[data-theme="dark"] .cmt.secret .c-body{background:#2a2740}
   :root[data-theme="dark"] .assign-box{border-color:#33455e}
   :root[data-theme="dark"] .assign-box textarea{background:#161d27; color:var(--ink)}
+  :root[data-theme="dark"] .assign-head .as-chip{background:#1b2531; border-color:#33455e}
+  :root[data-theme="dark"] .assign-box .as-files{background:#161d27}
+  :root[data-theme="dark"] .as-read{background:#161d27}
+  :root[data-theme="dark"] .as-result{background:#1a2620; border-color:#2f5449}
+  :root[data-theme="dark"] .as-result .as-ok{color:#7fd0bd}
+  :root[data-theme="dark"] .as-lock{color:#e0b96a !important}
   :root[data-theme="dark"] .check-bar{background:#26313e}
   :root[data-theme="dark"] .badge.on{border-color:#3a5578}
   :root[data-theme="dark"] .pv-body{background:#161d27}
@@ -453,6 +459,27 @@
   .assign-box textarea:focus{outline:0; border-color:var(--blue)}
   .assign-foot{display:flex; align-items:center; justify-content:space-between; gap:10px;
                margin-top:10px; font-size:12px; color:var(--ink-faint)}
+  .assign-head .as-chip{background:#fff; border:1px solid #d9e4f5; border-radius:99px;
+                        padding:2px 9px; font-size:11.5px; font-weight:600; color:var(--blue-dark)}
+  .assign-box .as-files{margin:10px 0 0; background:#fff}
+  .assign-box .as-files[hidden]{display:none}
+  .assign-box .as-pick{justify-content:flex-start; margin-top:10px; flex-wrap:wrap}
+  .assign-box .as-pick .tip{margin:0; align-self:center;
+                            font-size:11.5px; color:var(--ink-faint)}
+  .as-lock{margin:2px 0 10px !important; font-weight:600; color:#8a6a22 !important}
+  .as-read{background:#fff; border:1px solid var(--line); border-radius:11px; padding:12px 14px;
+           font-size:13.5px; line-height:1.75; color:var(--ink);
+           white-space:pre-wrap; word-break:break-word}
+  .as-result{background:#fff; border:1px solid #cfe7e0; border-radius:12px;
+             padding:12px 14px; margin-bottom:12px;
+             display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .as-result .as-ok{font-size:12.5px; font-weight:700; color:#2c7268}
+  .as-result .as-score{margin-left:auto; font-size:20px; font-weight:800; color:var(--blue-dark);
+                       letter-spacing:-.5px}
+  .as-result .as-score i{font-size:12.5px; font-weight:600; color:var(--ink-faint); font-style:normal}
+  .as-result .as-fb{flex-basis:100%; margin:2px 0 0; padding-top:10px;
+                    border-top:1px dashed var(--line); font-size:13px; line-height:1.7;
+                    color:var(--ink); white-space:pre-wrap; word-break:break-word}
 
   .cmts{margin-top:26px}
   .cmts h4{margin:0 0 12px; font-size:13px; color:var(--ink-soft); letter-spacing:-.2px}
@@ -610,6 +637,7 @@
   .subj-row button.on{background:var(--blue); border-color:var(--blue); color:#fff}
   .goal-wrap{margin-top:16px}
   .goal-bar{height:8px; border-radius:99px; background:var(--blue-tint); overflow:hidden}
+  .goal-bar[hidden]{display:none}
   .goal-bar i{display:block; height:100%; background:var(--blue); border-radius:99px; transition:width .4s}
   .goal-bar i.done{background:var(--rest)}
   .goal-txt{display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-faint);
@@ -1394,7 +1422,7 @@
         </div>
 
         <div class="goal-wrap" id="goalWrap" hidden>
-          <div class="goal-bar"><i id="goalBar" style="width:0%"></i></div>
+          <div class="goal-bar" id="goalBarWrap"><i id="goalBar" style="width:0%"></i></div>
           <div class="goal-txt"><span id="goalTxt"></span><button id="goalEdit">목표 변경</button></div>
         </div>
 
@@ -1518,6 +1546,18 @@
           <label>제출 마감일시</label>
           <input type="datetime-local" id="wDue">
           <div class="tip">비워두면 마감 없이 계속 제출할 수 있어요. 마감 후 제출은 '지각'으로 표시돼요.</div>
+          <label class="chk-row" style="margin-top:10px">
+            <input type="checkbox" id="wNoLate">
+            <span>⏰ 마감이 지나면 제출을 막기
+              <em>체크하지 않으면 마감 뒤에도 낼 수 있고 '지각'으로만 표시돼요.</em>
+            </span>
+          </label>
+        </div>
+        <div class="w-field" id="wMaxWrap" hidden>
+          <label>만점 (선택)</label>
+          <input type="number" id="wMax" min="1" max="10000" step="0.5" placeholder="예) 100">
+          <div class="tip">비워두면 점수 없이 확인·피드백만 하는 과제가 돼요.
+            점수는 넣어두더라도 <b>점수 공개</b>를 누르기 전에는 학생에게 보이지 않아요.</div>
         </div>
         <div class="w-field">
           <label>태그 (선택)</label>
@@ -1782,6 +1822,36 @@
     <div class="modal-btns">
       <button class="btn btn-finish" id="askNo">취소</button>
       <button class="btn btn-start" id="askYes">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 과제 설정 (선생님) -->
+<div class="modal-back" id="asOptModal">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>과제 설정</h3>
+    <div class="w-field">
+      <label>제출 마감일시</label>
+      <input type="datetime-local" id="asOptDue">
+      <div class="tip">비워두면 마감 없이 계속 제출할 수 있어요.</div>
+    </div>
+    <div class="w-field">
+      <label class="chk-row">
+        <input type="checkbox" id="asOptNoLate">
+        <span>⏰ 마감이 지나면 제출을 막기
+          <em>체크하지 않으면 마감 뒤에도 낼 수 있고 '지각'으로만 표시돼요.</em>
+        </span>
+      </label>
+    </div>
+    <div class="w-field">
+      <label>만점 (선택)</label>
+      <input type="number" id="asOptMax" min="1" max="10000" step="0.5" placeholder="예) 100">
+      <div class="tip">비워두면 점수 없이 확인·피드백만 하는 과제가 돼요.</div>
+    </div>
+    <p class="err" id="asOptErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:0"></p>
+    <div class="modal-btns">
+      <button class="btn btn-finish" id="asOptClose">닫기</button>
+      <button class="btn btn-start" id="asOptSave">저장</button>
     </div>
   </div>
 </div>
@@ -2276,8 +2346,17 @@
 
   function renderGoal(){
     const wrap = $("goalWrap");
-    if (!dailyGoal){ wrap.hidden = true; return; }
     wrap.hidden = false;
+    // 목표를 아직 안 정했으면 막대 없이 '목표 정하기' 안내만 보여줍니다.
+    // (예전에는 여기서 통째로 숨겨서 목표를 정할 방법이 아예 없었습니다)
+    if (!dailyGoal){
+      $("goalBarWrap").hidden = true;
+      $("goalTxt").textContent = "오늘 목표를 정하면 진행률이 보여요";
+      $("goalEdit").textContent = "목표 정하기";
+      return;
+    }
+    $("goalBarWrap").hidden = false;
+    $("goalEdit").textContent = "목표 변경";
     const done = Math.floor((records[keyOf(now())] || 0) / 60);
     const pct = Math.min(100, Math.round(done / dailyGoal * 100));
     $("goalBar").style.width = pct + "%";
@@ -3556,7 +3635,13 @@
       $("dDel").onclick  = async ()=>{
         if (!await ask("이 글을 삭제할까요?\n첨부파일과 댓글도 함께 사라져요.",
                        { title:"글 삭제", yes:"삭제", danger:true })) return;
-        const paths = (p.files || []).map(f=> f.path);
+        // 글을 지우면 저장소를 볼 권한도 같이 사라지므로 목록을 먼저 받아둡니다.
+        // (p.files 에는 본문에 끼워 넣은 이미지가 빠져 있어서 폴더째로 훑습니다)
+        let paths = (p.files || []).map(f=> f.path);
+        try{
+          const { data: fs } = await sb.storage.from("attachments").list(String(p.id));
+          if (fs && fs.length) paths = fs.map(f=> p.id + "/" + f.name);
+        }catch(e){}
         const { error } = await sb.rpc("delete_post", { p_id: p.id });
         if (!handled(error, "글 삭제")) return;
         if (paths.length) sb.storage.from("attachments").remove(paths).then(()=>{}, ()=>{});
@@ -3713,7 +3798,17 @@
   });
   window.addEventListener("scroll", ()=>{ $("whoMenu").hidden = true; }, true);
 
-  /* 과제 제출 (과제 게시판 글일 때만 표시) */
+  /* =====================================================================
+     과제 제출 (과제 게시판 글일 때만 본문 아래에 나옵니다)
+     · 학생 : 내용 + 파일(5개) 제출, 선생님이 확인하면 잠깁니다
+     · 선생님 : 과제 설정 / 점수 공개 스위치
+     ===================================================================== */
+  let subPending = [];          // 아직 올리지 않은 제출 파일
+  let subFiles   = [];          // 이미 올라간 내 제출 파일 (미리보기용)
+
+  // 85.00 -> 85 , 85.50 -> 85.5
+  const scoreTxt = (n)=> (n === null || n === undefined || n === "") ? "" : String(Number(n));
+
   async function renderAssign(p){
     if (!sb || !me || !me.nickname) return;
     const { data, error } = await sb.rpc("assignment_info", { p_post: p.id });
@@ -3721,49 +3816,237 @@
     lastAssignInfo = a.is_assign ? a : null;
     if (error || !a.is_assign) return;
 
-    const due = a.due_at ? new Date(a.due_at) : null;
+    subPending = [];
+    subFiles   = Array.isArray(a.my_files) ? a.my_files : [];
+
+    const due    = a.due_at ? new Date(a.due_at) : null;
+    const closed = !!(a.over_due && !a.allow_late);      // 마감으로 닫힘
+    const locked = !!a.my_locked;                        // 선생님이 확인해서 잠김
+
+    const head =
+      '<div class="assign-head"><b>📝 과제 제출</b>'
+      + (due ? '<span class="'+(a.over_due ? "over" : "")+'">마감 '+fmtDate(a.due_at, true)
+               + (a.over_due ? (a.allow_late ? ' · 지각 처리' : ' · 마감됨') : '') + '</span>'
+             : '<span>마감 없음</span>')
+      + (a.max_score != null
+          ? '<span class="as-chip">만점 '+scoreTxt(a.max_score)+'점</span>' : '')
+      + (a.can_manage
+          ? '<span class="grow"></span><span>제출 '+a.done+' / '+a.total+'명'
+            + (a.max_score != null ? ' · 점수 '+a.graded+'명' : '') + '</span>'
+          : '')
+      + '</div>';
+
     const box = document.createElement("div");
     box.className = "assign-box";
-    box.innerHTML =
-      '<div class="assign-head"><b>📝 과제 제출</b>'
-      + (due ? '<span class="'+(a.over_due?"over":"")+'">마감 '+fmtDate(a.due_at, true)
-               + (a.over_due ? ' · 마감됨' : '') + '</span>' : '<span>마감 없음</span>')
-      + (a.can_manage ? '<span class="grow"></span><span>제출 '+a.done+' / '+a.total+'명</span>' : '')
-      + '</div>'
-      + (a.can_manage
-          ? '<p class="assign-note">제출 현황은 관리자 화면의 <b>과제</b> 메뉴에서 볼 수 있어요.'
-            + (due ? '' : ' 마감일을 정하려면 아래 버튼을 눌러주세요.') + '</p>'
-            + '<div class="w-btns" style="margin-top:10px"><button class="btn-ghost" id="asDue">'
-            + (due ? '마감일 변경' : '마감일 정하기') + '</button></div>'
-          : '<textarea id="asBody" placeholder="제출 내용을 적어주세요">'+esc(a.my_body || "")+'</textarea>'
-            + '<div class="assign-foot">'
-            + (a.my_at ? '<span>'+fmtDate(a.my_at, true)+' 제출됨'
-                       + (a.my_late ? ' · 지각' : '') + '</span>' : '<span>아직 제출하지 않았어요</span>')
-            + '<button class="btn-write" id="asSend">'+(a.my_at ? '다시 제출' : '제출하기')+'</button></div>');
+
+    // 과제를 올린 선생님이 아닌 다른 선생님·관리자에게는 제출 상자를 보이지 않습니다.
+    const isStaff = !!(me && (me.role === "teacher" || me.role === "admin"));
+
+    if (!a.can_manage && isStaff){
+      /* ---------- 다른 선생님 ---------- */
+      box.innerHTML = head
+        + '<p class="assign-note">이 과제를 올린 선생님과 관리자만 제출 현황을 볼 수 있어요. '
+        + '선생님 계정으로는 제출하지 않습니다.</p>';
+    } else if (a.can_manage){
+      /* ---------- 선생님·관리자 ---------- */
+      box.innerHTML = head
+        + '<p class="assign-note">제출 내용과 점수는 관리자 화면의 <b>과제</b> 메뉴에서 하나씩 볼 수 있어요.'
+        + (a.max_score != null
+            ? (a.scores_open
+                ? ' 지금은 점수가 <b>공개된 상태</b>예요.'
+                : ' 점수는 아직 학생에게 <b>보이지 않아요.</b>')
+            : '')
+        + '</p>'
+        + '<div class="w-btns" style="margin-top:12px">'
+        + '<button class="btn-ghost" id="asOpt">과제 설정</button>'
+        + (a.max_score != null
+            ? '<button class="'+(a.scores_open ? "btn-ghost" : "btn-write")+'" id="asOpen">'
+              + (a.scores_open ? '점수 감추기' : '점수 공개하기') + '</button>'
+            : '')
+        + '</div>';
+    } else {
+      /* ---------- 학생 ---------- */
+      const graded = (a.scores_open && a.my_score != null);
+      const card = (a.my_checked || graded)
+        ? '<div class="as-result">'
+          + '<span class="as-ok">✅ 선생님이 확인했어요</span>'
+          + (graded
+              ? '<span class="as-score">'+scoreTxt(a.my_score)
+                + (a.max_score != null ? ' <i>/ '+scoreTxt(a.max_score)+'점</i>' : '점') + '</span>'
+              : '')
+          + (a.my_feedback ? '<p class="as-fb">'+esc(a.my_feedback)+'</p>' : '')
+          + '</div>'
+        : '';
+
+      const editable = !locked && !closed;
+
+      box.innerHTML = head + card
+        + (locked
+            ? '<p class="assign-note as-lock">🔒 확인이 끝나서 더 고칠 수 없어요.</p>'
+            : closed
+              ? '<p class="assign-note as-lock">⏰ 마감이 지나 제출을 받지 않아요.</p>'
+              : '')
+        + (editable
+            ? '<textarea id="asBody" placeholder="제출 내용을 적어주세요. 파일만 낼 수도 있어요.">'
+              + esc(a.my_body || "") + '</textarea>'
+            : (a.my_body
+                ? '<div class="as-read">'+esc(a.my_body)+'</div>'
+                : (a.my_at ? '' : '<p class="assign-note">제출한 내용이 없어요.</p>')))
+        + '<div class="files as-files" id="asFiles" hidden></div>'
+        + (editable
+            ? '<div class="w-btns as-pick">'
+              + '<button class="btn-ghost" id="asPick">📎 파일 첨부</button>'
+              + '<span class="tip">하나당 20MB · 최대 5개</span>'
+              + '</div><input type="file" id="asFileInput" multiple hidden>'
+            : '')
+        + '<div class="assign-foot">'
+        + (a.my_at ? '<span>'+fmtDate(a.my_at, true)+' 제출됨'
+                   + (a.my_late ? ' · 지각' : '') + '</span>'
+                   : '<span>아직 제출하지 않았어요</span>')
+        + (editable
+            ? '<button class="btn-write" id="asSend">'+(a.my_at ? '다시 제출' : '제출하기')+'</button>'
+            : '')
+        + '</div>';
+    }
 
     const body = $("boardDetail").querySelector(".post-body");
     body.parentNode.insertBefore(box, body.nextSibling);
 
+    if (!a.can_manage && isStaff) return;
+
     if (a.can_manage){
-      $("asDue").onclick = async ()=>{
-        const v = prompt("마감일시 (예: 2026-09-01 23:59)", due ? fmtDate(a.due_at, true) : "");
-        if (v === null) return;
-        const d = v.trim() ? new Date(v.replace(" ", "T")) : null;
-        if (v.trim() && isNaN(d)){ toast("날짜 형식을 확인해주세요."); return; }
-        const { error: de } = await sb.rpc("set_post_due",
-          { p_post: p.id, p_due: d ? d.toISOString() : null });
-        if (!handled(de, "마감일")) return;
-        toast("마감일을 정했어요."); openPost(p.id);
+      $("asOpt").onclick = ()=> openAssignOpt(p.id, a);
+      if ($("asOpen")) $("asOpen").onclick = async ()=>{
+        const on = !a.scores_open;
+        if (on && !await ask(
+              "지금 점수가 매겨진 학생 " + a.graded + "명에게 점수가 바로 보이고 알림이 갑니다.\n공개할까요?",
+              { title:"점수 공개", yes:"공개하기" })) return;
+        const { error: oe } = await sb.rpc("set_scores_open", { p_post: p.id, p_open: on });
+        if (!handled(oe, "점수 공개")) return;
+        toast(on ? "점수를 공개했어요." : "점수를 다시 감췄어요.");
+        openPost(p.id);
       };
-    } else {
+      return;
+    }
+
+    /* ---------- 학생 쪽 동작 ---------- */
+    const canEdit = !locked && !closed;
+    renderSubFiles(canEdit);
+
+    if (canEdit){
+      $("asPick").onclick = ()=> $("asFileInput").click();
+      $("asFileInput").onchange = (e)=>{ addSubPending(e.target.files); e.target.value = ""; };
+
       $("asSend").onclick = async ()=>{
-        const { error: se } = await sb.rpc("submit_assignment",
-          { p_post: p.id, p_body: $("asBody").value });
-        if (!handled(se, "과제 제출")) return;
+        const btn   = $("asSend");
+        const label = btn.textContent;          // '제출하기' 또는 '다시 제출'
+        const text  = $("asBody").value.trim();
+        if (!text && !subPending.length && !subFiles.length){
+          toast("내용을 적거나 파일을 첨부해주세요."); return;
+        }
+        btn.disabled = true; btn.textContent = "제출 중…";
+        const { data: sid, error: se } = await sb.rpc("submit_assignment",
+          { p_post: p.id, p_body: text });
+        if (!handled(se, "과제 제출")){ btn.disabled = false; btn.textContent = label; return; }
+        if (subPending.length){
+          btn.textContent = "파일 올리는 중…";
+          await uploadSubFiles(Number(sid), p.id);
+        }
         toast("제출했어요!"); openPost(p.id);
       };
     }
   }
+
+  /* 제출 파일 목록 (이미 올린 것 + 올릴 예정) */
+  function renderSubFiles(canEdit){
+    const box = $("asFiles");
+    if (!box) return;
+    const rows = subFiles.map((f,i)=>
+        '<div class="file-row"><span class="fi">'+FILE_ICON(f.mime, f.name)+'</span>'
+        + '<span class="fn">'+esc(safeName(f.name))+'</span>'
+        + '<span class="fs">'+fileSize(f.size)+'</span>'
+        + '<button class="fp" data-spv="'+i+'">미리보기</button>'
+        + (canEdit ? '<button class="fx" data-srm="'+f.id+'">삭제</button>' : ''))
+      .map(x=> x + '</div>')
+      .concat(subPending.map((f,i)=>
+        '<div class="file-row"><span class="fi">'+FILE_ICON(f.type, f.name)+'</span>'
+        + '<span class="fn">'+esc(f.name)+'</span><span class="fs">'+fileSize(f.size)+'</span>'
+        + '<span class="fs">올릴 예정</span>'
+        + '<button class="fx" data-spi="'+i+'">빼기</button></div>'));
+
+    box.hidden = !rows.length;
+    box.innerHTML = rows.join("");
+
+    box.querySelectorAll("[data-spv]").forEach(b=> b.onclick = ()=>
+      openPreview(subFiles[Number(b.dataset.spv)]));
+    box.querySelectorAll("[data-srm]").forEach(b=> b.onclick = async ()=>{
+      if (!await ask("첨부한 파일을 삭제할까요?", { title:"파일 삭제", yes:"삭제", danger:true })) return;
+      const { data: path, error } = await sb.rpc("delete_submission_file",
+        { p_id: Number(b.dataset.srm) });
+      if (!handled(error, "파일 삭제")) return;
+      if (path) await sb.storage.from("attachments").remove([path]);
+      subFiles = subFiles.filter(f=> String(f.id) !== b.dataset.srm);
+      renderSubFiles(true);
+    });
+    box.querySelectorAll("[data-spi]").forEach(b=> b.onclick = ()=>{
+      subPending.splice(Number(b.dataset.spi), 1); renderSubFiles(true);
+    });
+  }
+
+  function addSubPending(list){
+    for (const f of list){
+      if (f.size > 20 * 1024 * 1024){ toast('"'+f.name+'" 은 20MB가 넘어요.'); continue; }
+      if (subFiles.length + subPending.length >= 5){ toast("제출 파일은 5개까지예요."); break; }
+      subPending.push(f);
+    }
+    renderSubFiles(true);
+  }
+
+  async function uploadSubFiles(subId, postId){
+    for (const f of subPending){
+      // 저장소 경로 규칙: sub/<글번호>/<내 uuid>/<영문·숫자 이름>
+      const path = "sub/" + postId + "/" + me.id + "/" + Date.now() + "_" + rand7() + fileExt(f.name);
+      const { error } = await sb.storage.from("attachments").upload(path, f, { upsert: false });
+      if (error){ showError(error, "파일 올리기 · " + f.name); continue; }
+      const { error: ae } = await sb.rpc("add_submission_file",
+        { p_sub: subId, p_path: path, p_name: safeName(f.name),
+          p_size: f.size, p_mime: f.type || null });
+      if (ae) showError(ae, "파일 올리기 · " + f.name);
+    }
+    subPending = [];
+  }
+
+  /* 과제 설정 모달 (선생님) */
+  function openAssignOpt(postId, a){
+    const local = (ts)=> ts
+      ? new Date(new Date(ts).getTime() - new Date().getTimezoneOffset()*60000)
+          .toISOString().slice(0,16)
+      : "";
+    $("asOptDue").value     = local(a.due_at);
+    $("asOptNoLate").checked = (a.allow_late === false);
+    $("asOptMax").value     = (a.max_score != null) ? String(a.max_score) : "";
+    $("asOptErr").textContent = "";
+    $("asOptModal").classList.add("on");
+
+    $("asOptSave").onclick = async ()=>{
+      const mx = $("asOptMax").value.trim();
+      if (mx && !(Number(mx) > 0 && Number(mx) <= 10000)){
+        $("asOptErr").textContent = "만점은 1점에서 10000점 사이로 넣어주세요."; return;
+      }
+      const dv = $("asOptDue").value;
+      const { error } = await sb.rpc("set_assign_options", {
+        p_post: postId,
+        p_due: dv ? new Date(dv).toISOString() : null,
+        p_allow_late: !$("asOptNoLate").checked,
+        p_max: mx ? Number(mx) : null });
+      if (!handled(error, "과제 설정")) return;
+      closeAssignOpt();
+      toast("과제 설정을 저장했어요."); openPost(postId);
+    };
+  }
+  function closeAssignOpt(){ $("asOptModal").classList.remove("on"); }
+  $("asOptClose").onclick = closeAssignOpt;
+  $("asOptModal").onclick = (e)=>{ if (e.target.id === "asOptModal") closeAssignOpt(); };
 
   async function sendComment(text, parent, postId, secret){
     const v = (text || "").trim();
@@ -4448,6 +4731,9 @@ _imgs
       ? new Date(new Date(lastAssignInfo.due_at).getTime()
                  - new Date().getTimezoneOffset()*60000).toISOString().slice(0,16)
       : "";
+    $("wNoLate").checked = !!(post && lastAssignInfo && lastAssignInfo.allow_late === false);
+    $("wMax").value = (post && lastAssignInfo && lastAssignInfo.max_score != null)
+      ? String(lastAssignInfo.max_score) : "";
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
     $("wPinWrap").hidden = !canPin;
     // 전교생 알림 — 선생님·관리자, 새 글에만
@@ -4533,12 +4819,16 @@ _imgs
       }
     }
 
-    // 과제 마감일 반영
+    // 과제 설정 반영 (마감일 · 마감 후 제출 · 만점)
     if (!$("wDueWrap").hidden){
       const dv = $("wDue").value;
-      const { error: de } = await sb.rpc("set_post_due",
-        { p_post: id, p_due: dv ? new Date(dv).toISOString() : null });
-      if (de) toast("마감일 저장 실패: " + cleanErr(de));
+      const mx = $("wMax").value.trim();
+      const { error: de } = await sb.rpc("set_assign_options", {
+        p_post: id,
+        p_due: dv ? new Date(dv).toISOString() : null,
+        p_allow_late: !$("wNoLate").checked,
+        p_max: mx ? Number(mx) : null });
+      if (de) toast("과제 설정 저장 실패: " + cleanErr(de));
     }
 
     // 고정 체크 반영 (관리자: 모든 글 / 선생님: 자기 글)
@@ -4573,6 +4863,7 @@ _imgs
     const c = cats.find(x=> String(x.id) === $("wCat").value);
     const isAssign = !!(c && c.kind === "assign");
     $("wDueWrap").hidden = !isAssign;
+    $("wMaxWrap").hidden = !isAssign;
     $("wTitle").placeholder = isAssign ? "과제명을 입력하세요" : "제목을 입력하세요";
     $("wBody").placeholder  = isAssign
       ? "과제 내용과 제출 방법을 적어주세요."
@@ -4651,7 +4942,8 @@ _imgs
   /* =====================================================================
      알림
      ===================================================================== */
-  const NOTI_ICON = { message:"✉️", comment:"💬", reply:"↩️", notice:"📢" };
+  const NOTI_ICON = { message:"✉️", comment:"💬", reply:"↩️", notice:"📢",
+                      grade:"📝", score:"💯" };
 
   async function loadNotifications(openPop){
     if (!sb || !me || !me.nickname) return;

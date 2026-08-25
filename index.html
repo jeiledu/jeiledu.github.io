@@ -1995,6 +1995,7 @@
         target: state.target, pomoTarget: state.pomoTarget,
         elapsed: Math.floor(state.elapsed),
         startedAt: state.startedAt ? state.startedAt.toISOString() : null,
+        checkRun: Math.floor(checkRun),   // 새로고침으로 자리 비움 확인을 피하지 못하게
         at: Date.now()
       }));
     } catch(e){}
@@ -2101,16 +2102,31 @@
 
   function step(){
     const t = Date.now();
-    const d = (t - state.last) / 1000;
-    state.last = state.lastActive = t;
+    let d = (t - state.last) / 1000;
+    state.last = t;                       // 확인 중이라도 기준점은 항상 옮겨둡니다
+    if (!(d > 0)) d = 0;                  // 시계가 뒤로 갔거나 첫 호출
+
+    // ① 확인 코드가 떠 있는 동안에는 시간을 세지 않습니다.
+    //    (코드를 보고도 안 누르면 그때부터는 공부로 인정하지 않는다는 뜻)
+    //    화면이 꺼져 있어서 checkTimer 가 멈췄던 경우를 대비해 여기서도 유예를 확인합니다.
+    if (checkCode){ tickCheck(); return; }
+
+    // ② 자유 모드: 마지막 확인 이후 CHECK_EVERY 를 넘는 시간은 인정하지 않습니다.
+    //    화면이 꺼지면 브라우저가 이 함수를 멈췄다가 나중에 한 번에 부르는데,
+    //    그때 자리 비움 확인도 없이 몇 시간이 통째로 인정되던 문제를 막습니다.
+    let hitLimit = false;
+    if (state.mode === "free" && state.phase === "study"){
+      const room = Math.max(0, CHECK_EVERY - checkRun);
+      if (d >= room){ d = room; hitLimit = true; }
+      checkRun += d;
+    }
+
+    state.lastActive = t;
     state.elapsed += d;
     if (state.phase === "study"){ addStudy(d); addSubjectTime(d); }   // 휴식은 순공에 포함 안 함
 
-    // 자유 모드는 오래 켜두면 중간에 한 번 확인합니다
-    if (state.mode === "free" && state.phase === "study"){
-      checkRun += d;
-      if (checkRun >= CHECK_EVERY) openCheck();
-    }
+    // 한도에 닿았으면 여기서 확인을 띄우고 멈춥니다 (아래 목표 검사보다 먼저)
+    if (hitLimit){ render(); openCheck(); return; }
 
     if (state.target > 0 && state.elapsed >= state.target){
       state.elapsed = state.target;
@@ -2187,6 +2203,7 @@
     }
     state.elapsed = 0;
     state.startedAt = null;
+    checkRun = 0;          // 세션을 끝냈으니 자리 비움 확인 주기도 새로 시작
     save();
     syncButtons();
     renderAll();
@@ -5316,7 +5333,13 @@ _imgs
   });
   document.addEventListener("visibilitychange", ()=>{
     if (document.hidden){ save(); flush(); }
-    else { refreshRank(); }
+    else {
+      // 화면이 꺼져 있는 동안 브라우저가 타이머 계산을 멈춰둡니다.
+      // 돌아오자마자 한 번 돌려서 자리 비움 확인·한도 계산을 바로 맞춥니다.
+      if (state.running) step();
+      else if (checkCode) tickCheck();
+      refreshRank();
+    }
   });
 
   /* ================= init ================= */
@@ -5333,6 +5356,7 @@ _imgs
     state.elapsed    = t.elapsed;
     state.startedAt  = t.startedAt ? new Date(t.startedAt) : null;
     state.lastActive = t.at || Date.now();
+    checkRun         = Number(t.checkRun) || 0;
 
     if (state.phase === "break") document.body.classList.add("breaking");
     if (state.mode === "pomo"){

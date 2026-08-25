@@ -2075,10 +2075,25 @@
   ringBar.setAttribute("stroke-dasharray", CIRC);
 
   /* ================= timer ================= */
+  // 한 번에 더해진 시간이 자정을 넘겼으면 어제/오늘로 나눠 담습니다.
+  // (화면이 꺼져 있다가 한꺼번에 계산될 때 어젯밤 공부가 통째로 오늘로 가던 문제.
+  //  한 번에 더해지는 시간은 최대 75분이라 하루를 넘겨 걸치지는 않습니다)
+  function splitByDay(sec){
+    const end   = now();
+    const start = new Date(end.getTime() - sec * 1000);
+    const kEnd  = keyOf(end);
+    if (keyOf(start) === kEnd) return [[kEnd, sec]];
+    const midnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    const after = Math.max(0, (end - midnight) / 1000);
+    return [[keyOf(start), Math.max(0, sec - after)], [kEnd, Math.min(sec, after)]];
+  }
+
   function addStudy(sec){
-    const k = keyOf(now());
-    records[k] = (records[k] || 0) + sec;
-    dirty.add(k);
+    for (const [k, v] of splitByDay(sec)){
+      if (v <= 0) continue;
+      records[k] = (records[k] || 0) + v;
+      dirty.add(k);
+    }
     saveSoon();
   }
 
@@ -2287,6 +2302,7 @@
     $("checkModal").classList.add("on");
     setTimeout(()=> $("checkInput").focus(), 120);
     chime("rest");
+    save();                       // 앱이 강제로 닫혀도 확인 시점이 남도록
     tickCheck();
     checkTimer = setInterval(tickCheck, 500);
   }
@@ -2355,9 +2371,11 @@
 
   function addSubjectTime(sec){
     if (!subject) return;
-    const k = keyOf(now());
-    subjRun[k] = subjRun[k] || {};
-    subjRun[k][subject] = (subjRun[k][subject] || 0) + sec;
+    for (const [k, v] of splitByDay(sec)){
+      if (v <= 0) continue;
+      subjRun[k] = subjRun[k] || {};
+      subjRun[k][subject] = (subjRun[k][subject] || 0) + v;
+    }
   }
 
   async function flushSubjects(){
@@ -5309,7 +5327,11 @@ _imgs
     const openModals = document.querySelectorAll(".modal-back.on");
     if (e.key === "Escape"){
       if (openModals.length) openModals.forEach(m=>{
-        if (m.id !== "nickModal" || !nickFirst) m.classList.remove("on");
+        // 자리 비움 확인은 Esc 로 못 닫습니다.
+        // (닫혀도 코드는 살아 있어서 타이머가 멈춘 채 입력할 방법이 사라졌었음)
+        if (m.id === "checkModal") return;
+        if (m.id === "nickModal" && nickFirst) return;
+        m.classList.remove("on");
       });
       else if (pickerOpen) togglePicker(false);
       return;
@@ -5331,16 +5353,19 @@ _imgs
     save();
     if (writeHasContent()){ e.preventDefault(); e.returnValue = ""; }
   });
+  // 화면이 꺼져 있는 동안 브라우저가 타이머 계산을 멈춰둡니다.
+  // 돌아오자마자 한 번 돌려서 자리 비움 확인·인정 한도를 바로 맞춥니다.
+  function onResume(){
+    if (state.running) step();
+    else if (checkCode) tickCheck();
+  }
   document.addEventListener("visibilitychange", ()=>{
     if (document.hidden){ save(); flush(); }
-    else {
-      // 화면이 꺼져 있는 동안 브라우저가 타이머 계산을 멈춰둡니다.
-      // 돌아오자마자 한 번 돌려서 자리 비움 확인·한도 계산을 바로 맞춥니다.
-      if (state.running) step();
-      else if (checkCode) tickCheck();
-      refreshRank();
-    }
+    else { onResume(); refreshRank(); }
   });
+  // 홈 화면 앱(PWA)으로 쓰면 visibilitychange 대신 pageshow 만 오는 경우가 있습니다
+  window.addEventListener("pageshow", onResume);
+  window.addEventListener("focus", onResume);
 
   /* ================= init ================= */
   // 새로고침·로그인 이동으로 페이지가 다시 열려도 진행 중이던 세션을 되살린다

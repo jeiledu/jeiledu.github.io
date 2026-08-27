@@ -533,6 +533,7 @@
   .body-tools{display:flex; align-items:center; gap:10px; margin-bottom:8px; flex-wrap:wrap}
   .body-tools .btn-ghost{padding:7px 13px; font-size:12.5px}
   .img-strip{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+  .img-strip[hidden]{display:none}
   .img-strip figure{
     margin:0; position:relative; width:86px; height:86px; border-radius:10px; overflow:hidden;
     border:1px solid var(--line); background:var(--blue-tint);
@@ -1959,6 +1960,7 @@
   const KEY  = "sungong.records.v1";   // { "YYYY-MM-DD": seconds }
   const SKEY = "sungong.sessions.v1";  // { "YYYY-MM-DD": [{start, sec, target}] }
   const TKEY = "sungong.timer.v1";     // 진행 중이던 세션
+  const JKEY = "sungong.subjrun.v1";   // 과목별 누적 (오늘·어제만 보관)
 
   // localStorage 를 못 쓰는 환경(파일 미리보기 등)에서도 앱이 죽지 않도록
   const store = (function(){
@@ -1998,6 +2000,14 @@
         checkRun: Math.floor(checkRun),   // 새로고침으로 자리 비움 확인을 피하지 못하게
         at: Date.now()
       }));
+      // 과목별 누적도 남겨둡니다. 예전에는 메모리에만 있어서 새로고침하면 0이 되고,
+      // 서버가 '큰 값 유지'라 그 뒤로 올린 과목 시간이 반영되지 않았습니다.
+      // 서버가 어제까지만 받아주므로 이틀치만 보관합니다.
+      const keep = {};
+      const okDays = [keyOf(now()), keyOf(new Date(now().getTime() - 86400000))];
+      okDays.forEach(k=>{ if (subjRun[k]) keep[k] = subjRun[k]; });
+      subjRun = keep;
+      store.setItem(JKEY, JSON.stringify(keep));
     } catch(e){}
   }
 
@@ -2380,9 +2390,12 @@
 
   async function flushSubjects(){
     if (!sb || !me || !me.nickname) return;
-    for (const day of Object.keys(subjRun)){
-      for (const su of Object.keys(subjRun[day])){
-        const v = Math.floor(subjRun[day][su]);
+    // 보내는 도중에 save() 가 오래된 날짜를 정리할 수 있어서 사본으로 돕니다
+    let snap = {};
+    try { snap = JSON.parse(JSON.stringify(subjRun)); } catch(e){ return; }
+    for (const day of Object.keys(snap)){
+      for (const su of Object.keys(snap[day] || {})){
+        const v = Math.floor(snap[day][su]);
         if (v > 0) await sb.rpc("upsert_subject_day", { p_day: day, p_subject: su, p_seconds: v });
       }
     }
@@ -5405,6 +5418,10 @@ _imgs
 
     try { subject = store.getItem(SKEY_SUBJ) || null; } catch(e){}
     try { dailyGoal = Number(store.getItem("sungong.goal.v1") || 0); } catch(e){}
+    try {
+      const j = JSON.parse(store.getItem(JKEY) || "{}");
+      if (j && typeof j === "object") subjRun = j;
+    } catch(e){}
     renderSubjRow();
     renderGoal();
 
@@ -5461,10 +5478,11 @@ _imgs
 
     /* ---------- 안내 줄 ---------- */
     let installEvt = null;          // 안드로이드 크롬이 주는 '설치' 이벤트
-    const hidden = ()=>{ try { return store.getItem("sungong.pwa.hide.v1") === "1"; }
-                         catch(e){ return false; } };
+    // 이름을 바깥 render()·document.hidden 과 겹치지 않게 둡니다 (함정 6번)
+    const barHidden = ()=>{ try { return store.getItem("sungong.pwa.hide.v1") === "1"; }
+                            catch(e){ return false; } };
 
-    function render(){
+    function drawPwaBar(){
       const rows = [];
 
       if (!navigator.onLine){
@@ -5474,7 +5492,7 @@ _imgs
           + '커뮤니티·과제는 연결된 뒤에 열려요.</span></div>');
       }
 
-      if (!standalone && !hidden() && (isMobile || installEvt)){
+      if (!standalone && !barHidden() && (isMobile || installEvt)){
         // 브라우저마다 '홈 화면에 추가' 가 있는 자리가 달라서 각각 안내합니다.
         // (삼성 인터넷·크롬은 '추가하기' 버튼이 뜨면 그걸 누르는 게 제일 쉽습니다)
         const how = installEvt
@@ -5498,23 +5516,23 @@ _imgs
 
       if ($("pwaNo")) $("pwaNo").onclick = ()=>{
         try { store.setItem("sungong.pwa.hide.v1", "1"); } catch(e){}
-        render();
+        drawPwaBar();
       };
       if ($("pwaGo")) $("pwaGo").onclick = async ()=>{
         if (!installEvt) return;
         installEvt.prompt();
         try { await installEvt.userChoice; } catch(e){}
-        installEvt = null; render();
+        installEvt = null; drawPwaBar();
       };
     }
 
     window.addEventListener("beforeinstallprompt", (e)=>{
-      e.preventDefault(); installEvt = e; render();
+      e.preventDefault(); installEvt = e; drawPwaBar();
     });
-    window.addEventListener("appinstalled", ()=>{ installEvt = null; render(); });
-    window.addEventListener("online",  render);
-    window.addEventListener("offline", render);
-    render();
+    window.addEventListener("appinstalled", ()=>{ installEvt = null; drawPwaBar(); });
+    window.addEventListener("online",  drawPwaBar);
+    window.addEventListener("offline", drawPwaBar);
+    drawPwaBar();
   })();
 })();
 </script>

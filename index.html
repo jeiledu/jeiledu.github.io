@@ -1950,7 +1950,9 @@
 <div id="tip"></div>
 <div id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- crossorigin="anonymous" 가 없으면 이 스크립트 안에서 난 오류가
+     브라우저에서 "Script error." 로만 보이고 원인을 알 수 없습니다 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script>
 (function(){
@@ -2842,11 +2844,29 @@
          + "-" + Math.random().toString(36).slice(2,5).toUpperCase();
   }
 
-  function showError(e, where){
+  // 조용히 기록만 (학생에게 팝업을 띄우지 않음)
+  function logErrorQuiet(place, message){
+    if (!sb) return;
+    sb.rpc("log_error", { p_code: makeCode(), p_place: place,
+                          p_message: String(message).slice(0, 480),
+                          p_ua: navigator.userAgent }).then(()=>{}, ()=>{});
+  }
+
+  // 오류가 난 파일·줄번호·스택 앞부분을 모읍니다 (원인 추적용)
+  function errTech(ev){
+    const out = [];
+    if (ev && ev.filename)
+      out.push(String(ev.filename).split("/").pop() + ":" + (ev.lineno || 0) + ":" + (ev.colno || 0));
+    const st = ev && ev.error && ev.error.stack;
+    if (st) out.push(String(st).replace(/\s+/g, " ").slice(0, 300));
+    return out.join(" · ");
+  }
+
+  function showError(e, where, tech){
     const msg  = String((e && e.message) || e || "알 수 없는 오류");
     const code = makeCode();
     lastError = {
-      code, where: where || "-", msg,
+      code, where: where || "-", msg, tech: tech || "",
       when: now().toLocaleString("ko-KR"),
       ua: navigator.userAgent,
       url: location.href.split("#")[0],
@@ -2858,8 +2878,10 @@
       ? "인터넷 연결이 끊긴 것 같아요. 연결을 확인하고 다시 시도해주세요."
       : "잠시 후 다시 시도해보세요. 계속 같은 문제가 생기면 아래 코드를 건의사항에 올려주세요.";
     $("errDetail").textContent = errorText();
-    if (sb) sb.rpc("log_error", { p_code: code, p_place: lastError.where,
-                                  p_message: msg, p_ua: navigator.userAgent }).then(()=>{}, ()=>{});
+    if (sb) sb.rpc("log_error", {
+      p_code: code, p_place: lastError.where,
+      p_message: (msg + (tech ? " · " + tech : "")).slice(0, 480),
+      p_ua: navigator.userAgent }).then(()=>{}, ()=>{});
     $("errSend").hidden = !(sb && me && me.nickname);
     $("errModal").classList.add("on");
   }
@@ -2870,6 +2892,7 @@
       + "\n발생시각 : " + e.when
       + "\n위치     : " + e.where
       + "\n내용     : " + e.msg
+      + (e.tech ? "\n상세     : " + e.tech : "")
       + "\n화면     : " + e.url
       + "\n버전     : " + APP_VER
       + "\n기기     : " + e.ua;
@@ -2917,12 +2940,23 @@
 
   // 어디서도 잡지 못한 오류
   window.addEventListener("error", (ev)=>{
-    if (ev && ev.message && !$("errModal").classList.contains("on"))
-      showError(ev.error || ev.message, "화면");
+    if (!ev || !ev.message) return;
+
+    // 다른 도메인 스크립트에서 난 오류는 브라우저가 내용을 가리고
+    // "Script error." 만 알려줍니다. 학생이 할 수 있는 게 없고
+    // 광고 차단·확장 프로그램 때문인 경우도 많아서 팝업 없이 기록만 합니다.
+    if (!ev.error && !ev.filename && /^Script error\.?$/i.test(String(ev.message))){
+      logErrorQuiet("화면(내용 감춰짐)", "Script error. — 다른 도메인 스크립트");
+      return;
+    }
+    if (!$("errModal").classList.contains("on"))
+      showError(ev.error || ev.message, "화면", errTech(ev));
   });
   window.addEventListener("unhandledrejection", (ev)=>{
-    if (!$("errModal").classList.contains("on"))
-      showError(ev.reason || "처리되지 않은 오류", "통신");
+    if ($("errModal").classList.contains("on")) return;
+    const r = ev && ev.reason;
+    showError(r || "처리되지 않은 오류", "통신",
+              (r && r.stack) ? String(r.stack).replace(/\s+/g, " ").slice(0, 300) : "");
   });
 
   /* ================= 확인 팝업 ================= */

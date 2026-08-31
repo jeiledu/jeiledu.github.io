@@ -2222,9 +2222,11 @@
         subject: subject || null
       };
       (sessions[k] = sessions[k] || []).push(row);
-      dirty.add(k);
-      pushSession(row);                 // 서버에도 기록
-      flush().then(refreshRank);
+      if (syncableDay(k)){              // 오래된 세션은 기기에만 남기고 서버로 보내지 않습니다
+        dirty.add(k);
+        pushSession(row);               // 서버에도 기록
+        flush().then(refreshRank);
+      }
     }
     state.elapsed = 0;
     state.startedAt = null;
@@ -3167,19 +3169,28 @@
     await flush();
   }
 
+  // 서버(upsert_day)는 오늘·어제 기록만 받습니다.
+  // 그보다 오래된 날짜를 저장 대기열에 넣으면 매번 실패하면서 큐 전체가 막힙니다.
+  function syncableDay(k){
+    const t = now();
+    return k === keyOf(t) || k === keyOf(new Date(t.getTime() - 86400000));
+  }
+
   async function flush(){
     if (!me || !dirty.size) return;
     const keys = [...dirty]; dirty.clear();
     setSync("");
+    let failed = false;
     for (const k of keys){
+      if (!syncableDay(k)) continue;      // 서버가 안 받는 옛 날짜는 조용히 버립니다
       const { data, error } = await sb.rpc("upsert_day",
         { p_day: k, p_seconds: Math.floor(records[k] || 0) });
       if (error){
-        setSync("err");
+        failed = true;
         flushFails++;
         if (flushFails === 3) showError(error, "공부시간 저장");   // 세 번 연속 실패하면 알림
         dirty.add(k);
-        return;
+        continue;                          // 한 날짜가 실패해도 나머지는 계속 보냅니다
       }
       flushFails = 0;
       if (typeof data === "number" && data > (records[k] || 0)){
@@ -3187,7 +3198,7 @@
       }
     }
     await flushSubjects();
-    setSync("ok");
+    setSync(failed ? "err" : "ok");
   }
 
   async function pushSession(s){
@@ -3742,7 +3753,7 @@
       b.onclick = ()=>{ tagFilter = b.dataset.tag; page = 0; showList(); loadPosts(); };
     });
     $("boardDetail").querySelectorAll("[data-dl]").forEach(b=>{
-      b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name);
+      b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name, b.dataset.size);
     });
     $("boardDetail").querySelectorAll("[data-pv]").forEach(b=>{
       b.onclick = ()=> openPreview((p.files || [])[Number(b.dataset.pv)]);
@@ -4549,6 +4560,19 @@ _imgs
     return b + "B";
   };
 
+  // 갤럭시탭·안드로이드는 PDF 를 화면 안에서 못 열고, blob 방식 내려받기도 자주 막힙니다.
+  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+              || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const IS_ANDROID = /Android/.test(navigator.userAgent);
+
+  // 새 탭 열기는 팝업 차단에 걸리기 쉬워서 링크를 만들어 누릅니다
+  // (await 뒤에 window.open 을 부르면 '사용자가 누른 것'으로 안 쳐줍니다)
+  function openViaLink(url){
+    const a = document.createElement("a");
+    a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
   const rand7   = ()=> Math.random().toString(36).slice(2,9);
   // 맥은 한글을 자모로 쪼개 저장해서, 표준형(NFC)으로 맞춰야 윈도우에서도 이름이 깔끔합니다.
   // 윈도우에서 쓸 수 없는 문자( \ / : * ? " < > | )도 미리 바꿔둡니다.
@@ -4569,13 +4593,30 @@ _imgs
       + '<span class="fn">'+esc(safeName(f.name))+'</span>'
       + '<span class="fs">'+fileSize(f.size)+'</span>'
       + '<button class="fp" data-pv="'+i+'">미리보기</button>'
-      + '<button class="fd" data-dl="'+esc(f.path)+'" data-name="'+esc(f.name)+'">받기</button>'
+      + '<button class="fd" data-dl="'+esc(f.path)+'" data-name="'+esc(f.name)+'"'
+      + ' data-size="'+(Number(f.size)||0)+'">받기</button>'
       + '</div>').join("") + '</div>';
   }
 
   // 원본 파일명 그대로 내려받기 (한글 이름이 깨지지 않도록 직접 저장)
-  async function downloadFile(path, name){
+  async function downloadFile(path, name, size){
     toast("파일을 준비하고 있어요…");
+
+    // 안드로이드(갤럭시탭 등)는 blob 으로 만든 파일을 내려받지 못하는 경우가 많습니다.
+    // 특히 홈 화면 앱(PWA)으로 열면 조용히 아무 일도 일어나지 않습니다.
+    // 그래서 서명된 주소를 만들어 브라우저의 다운로드 기능에 그대로 맡깁니다.
+    if (IS_ANDROID){
+      const { data: su, error: se } = await sb.storage.from("attachments")
+        .createSignedUrl(path, 300);
+      if (se || !su || !su.signedUrl){
+        showError(se || "파일을 받을 수 없어요.", "파일 받기"); return;
+      }
+      sb.rpc("log_download", { p_size: Number(size) || 0 }).then(()=>{}, ()=>{});
+      openViaLink(su.signedUrl + (su.signedUrl.includes("?") ? "&" : "?")
+                  + "download=" + encodeURIComponent(safeName(name || "file")));
+      return;
+    }
+
     const { data, error } = await sb.storage.from("attachments").download(path);
     if (error || !data){ showError(error || "파일을 받을 수 없어요.", "파일 받기"); return; }
     sb.rpc("log_download", { p_size: data.size || 0 }).then(()=>{}, ()=>{});
@@ -4583,7 +4624,7 @@ _imgs
     const a = document.createElement("a");
     a.href = url; a.download = safeName(name || "file");
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+    setTimeout(()=> URL.revokeObjectURL(url), 10000);
   }
 
   /* ---------- 미리보기 ---------- */
@@ -4596,7 +4637,7 @@ _imgs
   }
   $("pvClose").onclick = closePreview;
   $("pvModal").onclick = (e)=>{ if (e.target.id === "pvModal") closePreview(); };
-  $("pvDown").onclick  = ()=>{ if (pvFile) downloadFile(pvFile.path, pvFile.name); };
+  $("pvDown").onclick  = ()=>{ if (pvFile) downloadFile(pvFile.path, pvFile.name, pvFile.size); };
 
   async function openPreview(f){
     pvFile = f;
@@ -4610,15 +4651,22 @@ _imgs
       if (pvUrl) URL.revokeObjectURL(pvUrl);
       const isPdf = /\.pdf$/i.test(f.name) || f.mime === "application/pdf";
       pvUrl = URL.createObjectURL(isPdf ? new Blob([data], { type: "application/pdf" }) : data);
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-                 || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-      if (isPdf && isIOS){
-        // iOS 사파리는 화면 안에서 PDF를 못 여는 경우가 많아 새 탭으로
+
+      // 휴대폰·태블릿은 PDF 를 화면 안에서 못 엽니다.
+      //  · 아이폰 : 새 탭에서 열면 사파리가 보여줍니다
+      //  · 안드로이드(갤럭시탭) : 브라우저에 PDF 뷰어가 없어 iframe 이 빈 화면이 됩니다.
+      //    받아서 PDF 앱으로 여는 게 유일한 방법입니다.
+      if (isPdf && (IS_IOS || IS_ANDROID)){
         $("pvBody").innerHTML =
           '<div class="pv-none"><span class="big">📕</span><b>'+esc(f.name)+'</b><br>'
-          + 'PDF는 새 탭에서 열려요.<div style="margin-top:16px">'
-          + '<button class="btn-write" id="pvTab">새 탭에서 열기</button></div></div>';
-        $("pvTab").onclick = ()=> window.open(pvUrl, "_blank");
+          + (IS_IOS ? 'PDF는 새 탭에서 열려요.'
+                    : 'PDF는 화면 안에서 볼 수 없어요. 받아서 열어주세요.')
+          + '<div style="margin-top:16px">'
+          + '<button class="btn-write" id="pvTab">'
+          + (IS_IOS ? '새 탭에서 열기' : '받아서 열기') + '</button></div></div>';
+        $("pvTab").onclick = IS_IOS
+          ? ()=> openViaLink(pvUrl)
+          : ()=> downloadFile(f.path, f.name, f.size);
         return;
       }
       $("pvBody").innerHTML = isPdf
@@ -4646,8 +4694,8 @@ _imgs
         const { data, error } = await sb.storage.from("attachments")
           .createSignedUrl(f.path, 600);
         if (error || !data){ toast("링크를 만들 수 없어요."); return; }
-        window.open("https://view.officeapps.live.com/op/embed.aspx?src="
-                    + encodeURIComponent(data.signedUrl), "_blank");
+        openViaLink("https://view.officeapps.live.com/op/embed.aspx?src="
+                    + encodeURIComponent(data.signedUrl));
       };
     }
   }
@@ -5153,7 +5201,7 @@ _imgs
                   (m.title.startsWith("RE:") ? m.title : "RE: " + m.title));
 
     $("dmReadView").querySelectorAll("[data-dl]").forEach(b=>
-      b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name));
+      b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name, b.dataset.size));
     $("dmReadView").querySelectorAll("[data-pv]").forEach(b=>
       b.onclick = ()=> openPreview(files[Number(b.dataset.pv)]));
     updateUnread();
@@ -5386,6 +5434,16 @@ _imgs
     let t = null;
     try { t = JSON.parse(store.getItem(TKEY)); } catch(e){}
     if (!t || !(t.elapsed >= 5)) return;
+
+    // 오래 지난 세션은 되살리지 않습니다.
+    // 예전에는 며칠 전 세션까지 그대로 불러왔고, 거기서 Finish 를 누르면
+    // 서버가 안 받는 옛 날짜가 저장 대기열에 들어가 그 뒤 기록이 전부 막혔습니다.
+    const age = Date.now() - Number(t.at || 0);
+    const day = keyOf(new Date(t.startedAt || t.at || Date.now()));
+    if (!(age >= 0 && age < 12 * 3600 * 1000) || !syncableDay(day)){
+      try { store.removeItem(TKEY); } catch(e){}
+      return;
+    }
 
     state.mode       = t.mode  || "free";
     state.phase      = t.phase || "study";

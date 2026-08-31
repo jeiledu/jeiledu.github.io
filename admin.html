@@ -1257,15 +1257,32 @@
   }
 
   // 원본 파일명 그대로 내려받기 (한글 이름이 깨지지 않도록)
+  // ※ 안드로이드(갤럭시탭 등)는 blob 방식이 막히는 경우가 많아 서명된 주소를 씁니다.
+  const IS_ANDROID = /Android/.test(navigator.userAgent);
+
   async function downloadStored(f){
     toast("파일을 준비하고 있어요…");
+    const nm = String(f.name || "file").normalize("NFC");
+
+    if (IS_ANDROID){
+      const { data: su, error: se } = await sb.storage.from("attachments")
+        .createSignedUrl(f.path, 300);
+      if (se || !su || !su.signedUrl){ toast("파일을 받을 수 없어요."); return; }
+      const a = document.createElement("a");
+      a.href = su.signedUrl + (su.signedUrl.includes("?") ? "&" : "?")
+             + "download=" + encodeURIComponent(nm);
+      a.target = "_blank"; a.rel = "noopener noreferrer";
+      document.body.appendChild(a); a.click(); a.remove();
+      return;
+    }
+
     const { data, error } = await sb.storage.from("attachments").download(f.path);
     if (error || !data){ toast("파일을 받을 수 없어요."); return; }
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
-    a.href = url; a.download = String(f.name || "file").normalize("NFC");
+    a.href = url; a.download = nm;
     document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=> URL.revokeObjectURL(url), 4000);
+    setTimeout(()=> URL.revokeObjectURL(url), 10000);
   }
 
   function downloadText(name, text){

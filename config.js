@@ -22,5 +22,5 @@ window.APP_CONFIG = {
   // 앱(푸시) 알림 공개 키. 백오피스 > 푸시 알림 > "푸시 키 만들기" 에서 나온
   // "공개 키(config.js 용)" 값을 붙여넣으세요. 비어 있으면 푸시 기능이 꺼집니다.
   // (공개 키라 여기 있어도 안전합니다. 비밀 키는 Supabase 안에만 둡니다)
-  PUSH_PUBLIC_KEY: ""
+  PUSH_PUBLIC_KEY: "BDcH_a5Z5wOS0FLOWBDYkXYyDZZlaEhOGl8PCqIl-GiFdfJ0UtgvcbcMDdQ3R9-71fao6Q3TEdpExlzTjBbbhTI"
 };

@@ -10,7 +10,7 @@
       그마저도 파일이 바뀌면 브라우저가 알아서 새 워커를 깔기 때문에,
       옛날 저장본을 확실히 버리고 싶을 때만 쓰는 안전장치입니다.
    ===================================================================== */
-const VERSION = "v1";
+const VERSION = "v2";   // v2: 푸시 알림 추가
 const CACHE   = "jeil-" + VERSION;
 
 // 미리 저장해 둘 파일들
@@ -100,4 +100,42 @@ async function fileFirst(req){
 
 self.addEventListener("message", (e)=>{
   if (e.data === "skipWaiting") self.skipWaiting();
+});
+
+/* =====================================================================
+   앱(푸시) 알림
+   · 서버(send-push)가 보낸 내용을 폰 알림으로 띄웁니다
+   · 알림을 누르면 앱을 열고 해당 글로 갑니다
+   ===================================================================== */
+self.addEventListener("push", (e)=>{
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; }
+  catch(_){ d = { body: e.data ? e.data.text() : "" }; }
+
+  const title = d.title || "정보·데이터과학 학습관리";
+  const opts = {
+    body:  d.body || "",
+    icon:  "./icon-192.png",
+    badge: "./icon-192.png",
+    tag:   d.tag || undefined,          // 같은 tag 는 겹치지 않고 갱신됩니다
+    data:  { url: d.url || "./" }
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+self.addEventListener("notificationclick", (e)=>{
+  e.notification.close();
+  const url = new URL((e.notification.data && e.notification.data.url) || "./", self.location.href).href;
+  e.waitUntil((async ()=>{
+    const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    // 이미 열린 창이 있으면 거기로, 없으면 새로 엽니다
+    for (const c of list){
+      if ("focus" in c){
+        await c.focus();
+        try { await c.navigate(url); } catch(_){}
+        return;
+      }
+    }
+    await self.clients.openWindow(url);
+  })());
 });

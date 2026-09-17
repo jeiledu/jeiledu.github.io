@@ -17,5 +17,10 @@ window.APP_CONFIG = {
   // 학교 구글 계정 도메인. 로그인 창에서 이 도메인 계정을 먼저 보여줍니다.
   // 예: "wooridae.hs.kr"  /  제한 없으면 ""
   // ※ 실제 차단은 schema.sql 의 allowed_domain() 값이 담당합니다.
-  SCHOOL_DOMAIN: "gimpojeil.hs.kr"
+  SCHOOL_DOMAIN: "gimpojeil.hs.kr",
+
+  // 앱(푸시) 알림 공개 키. 백오피스 > 푸시 알림 > "푸시 키 만들기" 에서 나온
+  // "공개 키(config.js 용)" 값을 붙여넣으세요. 비어 있으면 푸시 기능이 꺼집니다.
+  // (공개 키라 여기 있어도 안전합니다. 비밀 키는 Supabase 안에만 둡니다)
+  PUSH_PUBLIC_KEY: ""
 };

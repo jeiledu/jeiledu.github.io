@@ -120,6 +120,7 @@
   :root[data-theme="dark"] .main-tabs button:hover{background:#232e3c}
   :root[data-theme="dark"] .banner{border-color:#33455e}
   :root[data-theme="dark"] .banner.off{background:#33291a; border-color:#5c4a24; color:#e0b96a}
+  :root[data-theme="dark"] .ptr{background:#1b2531; border-color:#33455e; color:#c3d3e6}
   :root[data-theme="dark"] .lab-kinds button{background:#1b2531; border-color:#33455e}
   :root[data-theme="dark"] .help-tabs button{background:#1b2531; border-color:#33455e}
   :root[data-theme="dark"] .help-tabs button.on{background:var(--blue); border-color:var(--blue)}
@@ -245,6 +246,17 @@
   .banner[hidden]{display:none}
   .banner b{flex:none}
   .banner.off{background:#fdf3e8; border-color:#f0dfc4; color:#8a6a22}
+
+  /* 당겨서 새로고침 표시 (홈 화면 앱) */
+  .ptr{position:fixed; top:calc(env(safe-area-inset-top, 0px) - 46px); left:50%;
+       transform:translateX(-50%); z-index:60; background:#fff; color:var(--ink-soft);
+       border:1px solid var(--line); border-radius:99px; padding:8px 14px; font-size:12.5px;
+       display:flex; gap:7px; align-items:center; box-shadow:var(--shadow);
+       opacity:0; pointer-events:none; transition:opacity .15s; white-space:nowrap}
+  .ptr.on{opacity:1}
+  .ptr.go{color:var(--blue-dark); border-color:var(--blue)}
+  .ptr-ic{display:inline-block; transition:transform .15s; font-weight:700}
+  .ptr.go .ptr-ic{transform:rotate(180deg)}
   .banner .x{margin-left:auto; align-self:center; background:none; border:0; color:inherit;
              cursor:pointer; font:inherit; font-size:12px; white-space:nowrap;
              text-decoration:underline; text-underline-offset:2px; flex:none}
@@ -6775,6 +6787,61 @@ _imgs
     const isAndroid = /Android/.test(ua);
     const isMobile  = isIOS || isAndroid;
 
+    /* ---------- 당겨서 새로고침 (홈 화면 앱에서만) ----------
+       브라우저로 열면 브라우저가 알아서 해주지만, 홈 화면 앱은 그 기능이 없습니다.
+       맨 위에서 아래로 당기면 알림 하나가 따라 내려오고, 충분히 당긴 뒤 놓으면 새로고침합니다.
+       타이머가 도는 중이거나 글을 쓰는 중에는 새로고침하지 않고 안내만 합니다. */
+    if (standalone){
+      const el = document.createElement("div");
+      el.className = "ptr";
+      el.innerHTML = '<span class="ptr-ic">↓</span><span class="ptr-tx">당겨서 새로고침</span>';
+      document.body.appendChild(el);
+      const tx = el.querySelector(".ptr-tx");
+      const NEED = 90;                       // 손가락이 이만큼 내려오면 새로고침
+      let y0 = null, d = 0;
+
+      // 팝업·표·입력창 안에서 시작한 터치는 건드리지 않습니다
+      const skip = (t)=> !!(t && t.closest &&
+        t.closest(".modal-back.on, .lab-tablewrap, .tbl-wrap, textarea, input, .code-area, .pv-body"));
+
+      const reset = ()=>{ y0 = null; d = 0; el.classList.remove("on","go"); el.style.transform = ""; };
+
+      document.addEventListener("touchstart", (e)=>{
+        if (e.touches.length !== 1 || window.scrollY > 0 || skip(e.target)){ y0 = null; return; }
+        y0 = e.touches[0].clientY; d = 0;
+      }, { passive: true });
+
+      document.addEventListener("touchmove", (e)=>{
+        if (y0 === null) return;
+        d = e.touches[0].clientY - y0;
+        if (d <= 8 || window.scrollY > 0){ el.classList.remove("on","go"); el.style.transform = ""; return; }
+        const shown = Math.min(d * 0.55, 110);          // 손가락보다 천천히 따라오게
+        el.classList.add("on");
+        el.classList.toggle("go", d >= NEED);
+        el.style.transform = "translate(-50%," + shown + "px)";
+        tx.textContent = d >= NEED ? "놓으면 새로고침" : "당겨서 새로고침";
+      }, { passive: true });
+
+      const end = ()=>{
+        if (y0 === null) return;
+        const go = d >= NEED;
+        if (!go){ reset(); return; }
+        y0 = null;
+        if (state.running){
+          reset(); toast("타이머가 도는 중에는 새로고침하지 않아요. 멈춘 뒤에 해주세요."); return;
+        }
+        if (!$("boardWrite").hidden && writeHasContent()){
+          reset(); toast("쓰던 글이 있어요. 저장하거나 취소한 뒤에 새로고침해주세요."); return;
+        }
+        tx.textContent = "새로고침 중…";
+        el.classList.add("on","go");
+        el.style.transform = "translate(-50%,60px)";
+        setTimeout(()=> location.reload(), 200);
+      };
+      document.addEventListener("touchend", end, { passive: true });
+      document.addEventListener("touchcancel", reset, { passive: true });
+    }
+
     /* ---------- 서비스 워커 등록 (https 주소에서만 · 시험용 localhost 포함) ---------- */
     const secure = location.protocol === "https:"
                 || location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -6782,13 +6849,22 @@ _imgs
       window.addEventListener("load", ()=>{
         // updateViaCache:"none" — sw.js 자체는 저장해 두지 않고 늘 새로 확인합니다
         navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(reg=>{
+          // 홈 화면 앱은 '탐색'이 없어서 브라우저가 새 워커를 확인하지 않을 때가 있습니다.
+          // 앱을 열거나 화면이 다시 켜질 때마다 직접 확인합니다.
+          const check = ()=>{ try { reg.update(); } catch(e){} };
+          window.addEventListener("pageshow", check);
+          document.addEventListener("visibilitychange", ()=>{ if (!document.hidden) check(); });
+
           reg.addEventListener("updatefound", ()=>{
             const nw = reg.installing;
             if (!nw) return;
             nw.addEventListener("statechange", ()=>{
-              // 이미 쓰고 있던 사람에게만 알립니다 (첫 설치 때는 조용히)
-              if (nw.state === "installed" && navigator.serviceWorker.controller)
-                toast("새 버전이 준비됐어요. 새로고침하면 적용돼요.");
+              // 이미 쓰고 있던 사람에게만 (첫 설치 때는 조용히)
+              if (nw.state !== "installed" || !navigator.serviceWorker.controller) return;
+              // 타이머가 돌거나 글을 쓰는 중이 아니면 조용히 새로고침해서 바로 적용합니다
+              const busy = state.running || (!$("boardWrite").hidden && writeHasContent());
+              if (!busy){ toast("새 버전을 적용하고 있어요…"); setTimeout(()=> location.reload(), 900); }
+              else toast("새 버전이 준비됐어요. 타이머를 멈추거나 글을 저장한 뒤 새로고침하면 적용돼요.");
             });
           });
         }).catch(()=>{});

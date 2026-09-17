@@ -220,6 +220,7 @@
       <button data-p="blocks">차단 현황</button>
       <button data-p="words">금지어</button>
       <button data-p="settings">사이트 설정</button>
+      <button data-p="push">푸시 알림</button>
     </nav>
     <div class="foot">
       <a href="index.html">← 타이머 화면</a>
@@ -379,7 +380,8 @@
     errors:   ["오류 기록",    pageErrors],
     blocks:   ["차단 현황",    pageBlocks],
     words:    ["금지어 관리",  pageWords],
-    settings: ["사이트 설정",  pageSettings]
+    settings: ["사이트 설정",  pageSettings],
+    push:     ["푸시 알림",    pagePush]
   };
   function go(p){
     const [title, fn] = PAGES[p] || PAGES.dash;
@@ -1034,25 +1036,57 @@
   }
 
   /* ===================== 오류 기록 ===================== */
+  // 브라우저 정보(ua)에서 기기 종류만 뽑아냅니다
+  function deviceOf(ua){
+    ua = String(ua || "");
+    if (/iPhone|iPad|iPod/.test(ua)) return "아이폰";
+    if (/Android/.test(ua)) return /SamsungBrowser/.test(ua) ? "갤럭시(삼성)" : "안드로이드";
+    if (/Macintosh/.test(ua)) return "맥";
+    if (/Windows/.test(ua)) return "윈도우";
+    return ua ? "기타" : "-";
+  }
+
   async function pageErrors(){
     const rows = await rpc("admin_errors", { p_limit: 150 });
     $("page").innerHTML =
       '<div class="card"><div class="tools"><span class="muted">최근 '+rows.length+'건</span>'
-      + '<span class="grow"></span><button class="b danger" id="eClear">전체 지우기</button></div>'
+      + '<span class="grow"></span>'
+      + '<button class="b" id="eCsv">CSV 내려받기</button>'
+      + '<button class="b danger" id="eClear">전체 지우기</button></div>'
       + '<div class="tbl-wrap"><table><thead><tr>'
-      + '<th>시각</th><th>코드</th><th>위치</th><th>내용</th><th>사용자</th></tr></thead><tbody>'
+      + '<th>시각</th><th>코드</th><th>위치</th><th>내용</th><th>사용자</th><th>기기</th></tr></thead><tbody>'
       + (rows.length ? rows.map(e=>
           '<tr><td class="num muted">'+dt(e.created_at)+'</td>'
           + '<td class="num">'+esc(e.code||"")+'</td>'
           + '<td>'+esc(e.place||"")+'</td>'
           + '<td style="max-width:340px">'+esc((e.message||"").slice(0,120))+'</td>'
-          + '<td class="muted">'+esc(e.nickname||"-")+'</td></tr>').join("")
-        : '<tr><td colspan="5" class="empty">기록된 오류가 없어요. 좋은 신호예요 🙂</td></tr>')
+          + '<td class="muted">'+esc(e.nickname||"-")+'</td>'
+          + '<td class="muted">'+esc(deviceOf(e.ua))+'</td></tr>').join("")
+        : '<tr><td colspan="6" class="empty">기록된 오류가 없어요. 좋은 신호예요 🙂</td></tr>')
       + '</tbody></table></div>'
       + '<p class="muted" style="margin:14px 0 0;font-size:12px">'
-      + '학생 화면에서 예상 못 한 오류가 났을 때 자동으로 쌓입니다. 같은 코드가 여러 번 보이면 알려주세요.</p></div>';
+      + '학생 화면에서 예상 못 한 오류가 났을 때 자동으로 쌓입니다. '
+      + '<b>CSV 내려받기</b>는 최근 2,000건까지 내용 전문과 브라우저 정보를 담아요. 분석을 맡길 때 이 파일을 쓰세요.</p></div>';
+
+    $("eCsv").onclick = async ()=>{
+      $("eCsv").disabled = true; $("eCsv").textContent = "준비 중…";
+      try{
+        const all = await rpc("admin_errors", { p_limit: 2000 });
+        const q = (v)=> '"' + String(v == null ? "" : v).replace(/"/g, '""').replace(/\r?\n/g, " ") + '"';
+        const head = ["시각","코드","위치","내용","사용자","기기","브라우저정보"].join(",");
+        const body = all.map(e=> [
+          q(dt(e.created_at)), q(e.code), q(e.place), q(e.message), q(e.nickname || "-"),
+          q(deviceOf(e.ua)), q(e.ua)
+        ].join(",")).join("\n");
+        const stamp = new Date().toISOString().slice(0,10).replace(/-/g, "");
+        downloadText("오류기록_" + stamp + ".csv", "\uFEFF" + head + "\n" + body);
+        toast(all.length + "건을 내려받았어요.");
+      }catch(e){ toast("내려받기 실패: " + cleanErr(e)); }
+      $("eCsv").disabled = false; $("eCsv").textContent = "CSV 내려받기";
+    };
     $("eClear").onclick = async ()=>{
-      if (!await ask("오류 기록을 모두 지울까요?", { title:"오류 기록", yes:"지우기", danger:true })) return;
+      if (!await ask("오류 기록을 모두 지울까요?\n지우기 전에 CSV 로 받아두는 걸 권해요.",
+                     { title:"오류 기록", yes:"지우기", danger:true })) return;
       await rpc("admin_clear_errors"); toast("지웠어요."); pageErrors();
     };
   }
@@ -1292,6 +1326,83 @@
     a.href = url; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=> URL.revokeObjectURL(url), 3000);
+  }
+
+  /* ===================== 푸시 알림 ===================== */
+  async function pushFn(body){
+    const { data, error } = await sb.functions.invoke("send-push", { body });
+    if (error){
+      let msg = error.message || String(error);
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch(_){}
+      throw new Error(msg);
+    }
+    if (data && data.error) throw new Error(data.error);
+    return data || {};
+  }
+
+  async function pagePush(){
+    let st = {};
+    try { st = await rpc("admin_push_stats"); }
+    catch(e){
+      $("page").innerHTML = '<div class="card"><div class="empty">'+esc(cleanErr(e))+'</div>'
+        + '<p class="muted" style="text-align:center;font-size:12.5px">schema19.sql 을 먼저 실행해주세요.</p></div>';
+      return;
+    }
+    $("page").innerHTML =
+      '<div class="card"><h3>등록 현황</h3>'
+      + '<div class="kpis">'
+      +   kpi(st.people + "명", "알림 켠 사람") + kpi(st.devices + "대", "등록된 기기")
+      +   kpi(st.students + "명", "전체 학생") + kpi((st.android||0) + " / " + (st.ios||0), "안드로이드 / 아이폰")
+      + '</div>'
+      + '<p class="muted" style="margin:12px 0 0;font-size:12.5px">학생이 프로필 메뉴에서 <b>앱 알림 받기</b>를 켜면 여기에 쌓입니다. '
+      + '아이폰은 홈 화면에 추가한 앱에서만 켤 수 있어요.</p></div>'
+
+      + '<div class="card"><h3>시험 발송</h3>'
+      + '<p class="muted" style="margin:-4px 0 12px;font-size:12.5px">지금 이 계정으로 알림을 켠 기기에만 시험 알림을 보냅니다. '
+      + '선생님 폰에서 먼저 알림을 켠 뒤 눌러보세요.</p>'
+      + '<button class="b pri" id="pushTest">내 기기로 시험 알림 보내기</button>'
+      + '<p class="muted" id="pushTestOut" style="margin:10px 0 0;font-size:12.5px"></p></div>'
+
+      + '<div class="card"><h3>열쇠 만들기 (처음 한 번만)</h3>'
+      + '<p class="muted" style="margin:-4px 0 12px;font-size:12.5px;line-height:1.7">'
+      + '푸시를 보내려면 이 사이트만의 열쇠 한 쌍이 필요합니다. 아래 버튼을 누르면 서버 함수가 만들어 줍니다.<br>'
+      + '나온 값 중 <b>VAPID_KEYS</b> 는 Supabase 대시보드 &gt; Edge Functions &gt; send-push &gt; Secrets 에, '
+      + '<b>PUSH_PUBLIC_KEY</b> 는 config.js 에 넣습니다. <b>VAPID_KEYS 는 절대 파일이나 대화에 남기지 마세요.</b></p>'
+      + '<button class="b" id="pushSetup">푸시 키 만들기</button>'
+      + '<div id="pushSetupOut" hidden style="margin-top:12px">'
+      +   '<div class="f"><label>① VAPID_KEYS → Supabase Secrets 에 (이름: VAPID_KEYS)</label>'
+      +   '<textarea id="pushSecret" readonly style="font-family:var(--mono);font-size:11.5px;min-height:110px"></textarea>'
+      +   '<button class="b sm" data-cp="pushSecret" style="margin-top:6px">복사</button></div>'
+      +   '<div class="f"><label>② PUSH_PUBLIC_KEY → config.js 에</label>'
+      +   '<input id="pushPublic" readonly style="font-family:var(--mono);font-size:12px">'
+      +   '<button class="b sm" data-cp="pushPublic" style="margin-top:6px">복사</button></div>'
+      +   '<p class="muted" style="font-size:12px">이 화면을 벗어나면 다시 볼 수 없어요. 두 값을 모두 옮겨 넣은 뒤 닫으세요.</p>'
+      + '</div>'
+      + '<p class="err" id="pushSetupErr"></p></div>';
+
+    $("pushTest").onclick = async ()=>{
+      $("pushTestOut").textContent = "보내는 중…";
+      try{
+        const r = await pushFn({ type: "test" });
+        $("pushTestOut").textContent = r.devices
+          ? "기기 " + r.devices + "대 중 " + r.sent + "대에 보냈어요." + (r.failed ? " 실패 " + r.failed + "대." : "")
+          : "이 계정으로 알림을 켠 기기가 없어요. 폰에서 먼저 '앱 알림 받기'를 켜주세요.";
+      }catch(e){ $("pushTestOut").textContent = "실패: " + cleanErr(e); }
+    };
+    $("pushSetup").onclick = async ()=>{
+      $("pushSetupErr").textContent = "";
+      try{
+        const r = await pushFn({ type: "setup" });
+        $("pushSecret").value = r.VAPID_KEYS || "";
+        $("pushPublic").value = r.PUSH_PUBLIC_KEY || "";
+        $("pushSetupOut").hidden = false;
+      }catch(e){ $("pushSetupErr").textContent = cleanErr(e); }
+    };
+    $("page").querySelectorAll("[data-cp]").forEach(b=> b.onclick = async ()=>{
+      const el = $(b.dataset.cp);
+      try { await navigator.clipboard.writeText(el.value); toast("복사했어요."); }
+      catch(e){ el.select(); toast("직접 선택해서 복사해주세요."); }
+    });
   }
 
   /* ===================== 차단 현황 ===================== */

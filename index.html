@@ -883,6 +883,7 @@
     display:block; font-size:12.5px; font-weight:700; color:var(--blue-dark);
     letter-spacing:-.2px; margin-bottom:3px;
   }
+  .acc-menu .sw-note{margin-left:auto; font-size:11px; color:var(--ink-faint); font-weight:400}
   .acc-menu .sw{
     width:32px;height:19px;border-radius:99px;background:#dbe5f2; position:relative; flex:none;
     transition:.15s;
@@ -1163,6 +1164,7 @@
 
   /* 쪽지 */
   .modal.dm{max-width:620px; text-align:left; max-height:86vh; overflow:auto}
+  .modal.dm input{text-align:left}          /* 닉네임 팝업용 가운데 정렬이 새지 않게 */
   .dm-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px}
   .dm-head h3{margin:0}
   .dm-row{
@@ -1191,6 +1193,14 @@
   .dm-sug .rl{font-size:11px; color:var(--ink-faint); margin-left:6px}
   .dm-meta{font-size:12.5px; color:var(--ink-faint); margin:0 0 14px; display:flex; gap:10px; flex-wrap:wrap}
   .dm-meta b{color:var(--ink-soft)}
+  .dm-pics{margin:14px 0 6px}
+  .dm-pics figure{margin:0 0 14px}
+  .dm-pics img{display:block; max-width:100%; max-height:70vh; border-radius:12px;
+               border:1px solid var(--line); background:#fff}
+  .dm-pics img.loading{min-height:120px; background:var(--blue-tint)}
+  .dm-pics figcaption{margin-top:6px; font-size:12px; color:var(--ink-faint)}
+  .dm-pics figcaption .link-btn{font-size:12px}
+  .dm-pic-tip{margin:0 0 12px; font-size:11.5px; color:var(--ink-faint)}
   .dm-body{font-size:14px; line-height:1.85; color:var(--ink); white-space:pre-wrap;
            word-break:break-word; min-height:70px; margin-bottom:16px}
 
@@ -1349,6 +1359,7 @@
     #accName{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
     #dmLabel{display:none}
     .dm-btn{padding:0 10px 0 6px}
+    .pc-only{display:none}
     .noti-pop{width:min(320px, calc(100vw - 28px)); right:-60px}
     .acc-menu{width:200px}
 
@@ -1481,6 +1492,7 @@
           <button id="mBlock">차단 목록</button>
           <button id="mNick">닉네임 변경</button>
           <button id="mRank">랭킹에 내 기록 표시<span class="sw on" id="rankSw"></span></button>
+          <button id="mPush" hidden>앱 알림 받기<span class="sw" id="pushSw"></span></button>
           <button id="mGroup">그룹 관리</button>
           <button id="mAdmin" hidden>관리자 페이지 →</button>
           <button id="mOut">로그아웃</button>
@@ -1496,6 +1508,7 @@
   </nav>
 
   <div id="pwaBar"></div>
+  <div id="pushBar"></div>
   <div id="banners"></div>
 
   <div class="layout" id="timerView">
@@ -1760,7 +1773,8 @@
           <button class="btn-ghost" data-ds="s1">📊 학생 성적 (예제)</button>
           <button class="btn-ghost" data-ds="s2">☕ 카페 판매 (예제)</button>
           <button class="btn-ghost" id="labUpBtn">📄 내 CSV 올리기</button>
-          <input type="file" id="labUp" accept=".csv,.txt,text/csv" hidden>
+          <input type="file" id="labUp" hidden
+                 accept=".csv,.txt,text/csv,text/plain,text/comma-separated-values,application/csv,application/vnd.ms-excel">
         </div>
         <div class="lab-info" id="labInfo" hidden></div>
         <div class="lab-tablewrap" id="labTableWrap" hidden>
@@ -1888,7 +1902,7 @@
       <div class="w-field">
         <label>첨부파일 (선택)</label>
         <div class="files" id="dmFileList" hidden></div>
-        <div class="drop" id="dmDrop">파일을 끌어다 놓거나 클릭 · 하나당 20MB, 최대 5개</div>
+        <div class="drop" id="dmDrop">📎 사진·파일 첨부 — 눌러서 고르기<span class="pc-only"> · 끌어다 놓기 · 본문에 <b>붙여넣기(Ctrl+V)</b></span> · 하나당 20MB, 최대 5개</div>
         <input type="file" id="dmFiles" multiple hidden>
       </div>
       <p class="err" id="dmErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:0"></p>
@@ -3045,7 +3059,41 @@
     return out.join(" · ");
   }
 
+  // 인터넷이 끊기거나 흔들려서 요청 자체가 실패한 경우 (코드 문제가 아님)
+  // 크롬은 "Failed to fetch", 사파리는 "Load failed", 파이어폭스는 "NetworkError" 라고 말합니다
+  function isNetErr(e){
+    const m = String((e && e.message) || e || "");
+    return navigator.onLine === false
+        || /failed to fetch|load failed|networkerror|network request failed|fetch failed/i.test(m);
+  }
+
+  // 읽기 요청은 네트워크가 흔들리면 잠깐 쉬었다 다시 해봅니다 (0.7초 → 1.5초)
+  // 학생이 같은 버튼을 여덟 번 누르던 것을 앱이 대신 해주는 셈입니다
+  async function rpcRetry(fn, args){
+    const waits = [700, 1500];
+    let last = null;
+    for (let i = 0; i <= waits.length; i++){
+      const r = await sb.rpc(fn, args || {});
+      if (!r.error || !isNetErr(r.error)) return r;
+      last = r;
+      if (i < waits.length) await new Promise(res=> setTimeout(res, waits[i]));
+    }
+    return last;
+  }
+
+  let lastNetLog = 0;
   function showError(e, where, tech){
+    // 네트워크 문제는 무서운 팝업 대신 짧은 안내만. 기록은 1분에 한 번만 남깁니다.
+    if (isNetErr(e)){
+      toast(navigator.onLine === false
+        ? "인터넷이 끊겨 있어요. 연결을 확인해주세요."
+        : "인터넷 연결이 불안정해요. 잠시 후 다시 시도해주세요.");
+      if (Date.now() - lastNetLog > 60000){
+        lastNetLog = Date.now();
+        logErrorQuiet("네트워크 · " + (where || "-"), String((e && e.message) || e));
+      }
+      return;
+    }
     const msg  = String((e && e.message) || e || "알 수 없는 오류");
     const code = makeCode();
     lastError = {
@@ -3328,6 +3376,13 @@
       if (!store.getItem("sungong.tour.v1")){ tourAt = 0; showTour(); }
     } catch(e){}
 
+    pushAfterLogin();                 // 앱 알림 스위치 표시 + 기기 주소 갱신
+
+    // 폰 알림을 눌러서 들어온 경우 그 글로
+    let jump = null;
+    try { jump = sessionStorage.getItem("openPost"); sessionStorage.removeItem("openPost"); } catch(e){}
+    if (jump){ switchView("board"); setTimeout(()=> openPost(Number(jump)), 200); return; }
+
     // 로그인하려고 커뮤니티에서 넘어온 경우 다시 커뮤니티로
     let rv = null;
     try { rv = sessionStorage.getItem("returnView"); sessionStorage.removeItem("returnView"); } catch(e){}
@@ -3543,6 +3598,7 @@
   $("mOut").onclick   = async ()=>{
     await sb.auth.signOut();
     me = null; boardLoaded = false;
+    pushRenderSwitch(); pushRenderBar();
     $("notiWrap").hidden = true; $("notiPop").hidden = true;
     renderAccount(); renderRank();
     if (!$("boardView").hidden) openBoard();
@@ -3717,14 +3773,21 @@
   async function openBoard(){
     showList();
     if (!sb || !me || !me.nickname){ boardLocked(); return; }
-    boardLoaded = true;
-    await loadCats();
-    await loadPosts();
+    // 게시판 목록을 못 받아오면 '불러온 것'으로 치지 않습니다 → 탭을 다시 누르면 재시도됩니다
+    boardLoaded = await loadCats();
+    if (boardLoaded) await loadPosts();
   }
 
   /* ---------- 게시판 목록 ---------- */
   async function loadCats(){
-    const { data } = await sb.rpc("list_categories");
+    const { data, error } = await rpcRetry("list_categories");
+    if (error){
+      $("posts").innerHTML = '<div class="empty">게시판을 불러오지 못했어요.<br>'
+        + '<button class="btn-ghost" id="catsRetry" style="margin-top:10px">다시 시도</button></div>';
+      if ($("catsRetry")) $("catsRetry").onclick = openBoard;
+      showError(error, "게시판 목록");
+      return false;
+    }
     cats = data || [];
 
     // 섹션(학년 등)별로 묶고, 보관된 게시판은 맨 아래 '지난 학기' 줄로 모은다
@@ -3759,6 +3822,7 @@
     $("writeBtn").hidden = !writable.length;
     $("wCat").innerHTML = writable.map(c=>
       '<option value="'+c.id+'">'+esc(c.section ? c.section+" · "+c.name : c.name)+'</option>').join("");
+    return true;
   }
 
   async function loadPosts(){
@@ -3770,13 +3834,13 @@
     };
     if (canFilterAuthor && authorFilter) args.p_author = authorFilter.id;
 
-    let { data, error } = await sb.rpc("list_posts", args);
+    let { data, error } = await rpcRetry("list_posts", args);
 
     // DB 업데이트 전에 파일만 먼저 올라간 경우를 대비 (기능만 잠시 비활성)
     if (error && /Could not find the function/i.test(String(error.message || ""))){
       canFilterAuthor = false;
       delete args.p_author;
-      ({ data, error } = await sb.rpc("list_posts", args));
+      ({ data, error } = await rpcRetry("list_posts", args));
       if (!error && authorFilter){
         authorFilter = null; renderFilterBar();
         toast("작성자별 보기는 아직 준비 중이에요.");
@@ -3849,7 +3913,7 @@
   let lastAssignInfo = null;
 
   async function openPost(id){
-    const { data, error } = await sb.rpc("get_post", { p_id: id });
+    const { data, error } = await rpcRetry("get_post", { p_id: id });
     const p = Array.isArray(data) ? data[0] : data;
     if (error && !isFriendly(cleanErr(error))){ showError(error, "글 열기"); return; }
     if (error || !p){ toast("글을 찾을 수 없어요. 삭제됐거나 볼 수 없는 글이에요."); return; }
@@ -4575,17 +4639,25 @@ _imgs
 
   // 실행은 별도 스레드에서 돌아가므로 오래 걸려도 화면은 멈추지 않습니다.
   // 그래서 강제 종료 대신 '중단' 버튼과 경과 시간을 보여줍니다.
+  let pyBusy = false;          // 워커는 하나뿐이라 동시에 두 개를 돌릴 수 없습니다
+
   function runPython(code, onStatus, files){
     return new Promise((resolve)=>{
+      if (pyBusy){
+        resolve({ ok:false, text:"다른 파이썬 코드가 실행 중이에요. 끝난 뒤에 다시 눌러주세요." });
+        return;
+      }
+      pyBusy = true;
       if (!pyWorker) pyWorker = makeWorker();
       const w = pyWorker;
       let done = false;
+      const finish = (r)=>{ pyBusy = false; resolve(r); };
 
       const stop = (text)=>{
         if (done) return; done = true;
         try { w.terminate(); } catch(e){}
         pyWorker = null;
-        resolve({ ok:false, text });
+        finish({ ok:false, text });
       };
 
       w.onmessage = (e)=>{
@@ -4593,8 +4665,8 @@ _imgs
         if (d.t === "status"){ onStatus && onStatus(d.m); return; }
         if (done) return;
         done = true;
-        if (d.t === "done") resolve({ ok:true, text: d.out || "(출력 없음)", imgs: d.imgs || [], ms: d.ms });
-        else resolve({ ok:false, text: prettyPyError(d.msg) });
+        if (d.t === "done") finish({ ok:true, text: d.out || "(출력 없음)", imgs: d.imgs || [], ms: d.ms });
+        else finish({ ok:false, text: prettyPyError(d.msg) });
       };
       w.onerror = ()=> stop("파이썬을 불러오지 못했어요. 인터넷 연결을 확인해주세요.");
       w.postMessage({ code, files: files || [] });
@@ -4790,9 +4862,11 @@ _imgs
   };
 
   // 갤럭시탭·안드로이드는 PDF 를 화면 안에서 못 열고, blob 방식 내려받기도 자주 막힙니다.
-  const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  // ※ 불러올 때 한 번 정해두지 않고 '쓸 때마다' 확인합니다.
+  //    카톡·인스타 안의 브라우저처럼 기기 정보가 늦게 정해지는 경우가 있어서예요.
+  const IS_IOS = ()=> /iPad|iPhone|iPod/.test(navigator.userAgent)
               || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const IS_ANDROID = /Android/.test(navigator.userAgent);
+  const IS_ANDROID = ()=> /Android/.test(navigator.userAgent);
 
   // 새 탭 열기는 팝업 차단에 걸리기 쉬워서 링크를 만들어 누릅니다
   // (await 뒤에 window.open 을 부르면 '사용자가 누른 것'으로 안 쳐줍니다)
@@ -4828,13 +4902,45 @@ _imgs
   }
 
   // 원본 파일명 그대로 내려받기 (한글 이름이 깨지지 않도록 직접 저장)
+  // 아이폰에서 사진 앱에 넣는 유일한 길은 iOS '공유 시트'의 '이미지 저장'입니다.
+  // <a download> 는 파일 앱으로 가버려서 사진 앱에 넣으려면 한 번 더 해야 했어요.
+  // 공유 시트를 열었으면 true, 못 열었으면 false (그러면 예전 방식으로 내려받습니다).
+  async function shareImage(blob, name){
+    if (!(navigator.share && navigator.canShare) || !blob) return false;
+    const type = blob.type && /^image\//.test(blob.type) ? blob.type : "image/png";
+    let file;
+    try { file = new File([blob], safeName(name || "image.png"), { type }); } catch(e){ return false; }
+    if (!navigator.canShare({ files: [file] })) return false;
+    try { await navigator.share({ files: [file] }); return true; }
+    catch(e){ return !!(e && e.name === "AbortError"); }   // 취소한 것도 '처리됨'으로 봅니다
+  }
+
+  const isImageName = (name)=> /\.(png|jpe?g|gif|webp|heic|bmp)$/i.test(name || "");
+  const isPdfName   = (name)=> /\.pdf$/i.test(name || "");
+  const blobCache = new Map();          // 미리 받아둔 그림 (경로 → Blob)
+
   async function downloadFile(path, name, size){
+    // 아이폰 + 그림이면 공유 시트로
+    if (IS_IOS() && isImageName(name)){
+      let blob = blobCache.get(path);
+      if (!blob){
+        toast("사진을 준비하고 있어요…");
+        const { data } = await sb.storage.from("attachments").download(path);
+        if (data){ blob = data; blobCache.set(path, data); }
+      }
+      if (blob && await shareImage(blob, name)){
+        sb.rpc("log_download", { p_size: blob.size || 0 }).then(()=>{}, ()=>{});
+        return;
+      }
+      // 공유 시트를 못 열면 아래로 내려가 예전 방식으로 받습니다
+    }
+
     toast("파일을 준비하고 있어요…");
 
     // 안드로이드(갤럭시탭 등)는 blob 으로 만든 파일을 내려받지 못하는 경우가 많습니다.
     // 특히 홈 화면 앱(PWA)으로 열면 조용히 아무 일도 일어나지 않습니다.
     // 그래서 서명된 주소를 만들어 브라우저의 다운로드 기능에 그대로 맡깁니다.
-    if (IS_ANDROID){
+    if (IS_ANDROID()){
       const { data: su, error: se } = await sb.storage.from("attachments")
         .createSignedUrl(path, 300);
       if (se || !su || !su.signedUrl){
@@ -4877,6 +4983,7 @@ _imgs
       $("pvBody").innerHTML = '<div class="pv-none">불러오는 중…</div>';
       const { data, error } = await sb.storage.from("attachments").download(f.path);
       if (error || !data){ $("pvBody").innerHTML = '<div class="pv-none">파일을 열 수 없어요.</div>'; return; }
+      if (!isPdfName(f.name)) blobCache.set(f.path, data);   // '받기' 를 누르면 바로 공유 시트를 열 수 있게
       if (pvUrl) URL.revokeObjectURL(pvUrl);
       const isPdf = /\.pdf$/i.test(f.name) || f.mime === "application/pdf";
       pvUrl = URL.createObjectURL(isPdf ? new Blob([data], { type: "application/pdf" }) : data);
@@ -4885,15 +4992,15 @@ _imgs
       //  · 아이폰 : 새 탭에서 열면 사파리가 보여줍니다
       //  · 안드로이드(갤럭시탭) : 브라우저에 PDF 뷰어가 없어 iframe 이 빈 화면이 됩니다.
       //    받아서 PDF 앱으로 여는 게 유일한 방법입니다.
-      if (isPdf && (IS_IOS || IS_ANDROID)){
+      if (isPdf && (IS_IOS() || IS_ANDROID())){
         $("pvBody").innerHTML =
           '<div class="pv-none"><span class="big">📕</span><b>'+esc(f.name)+'</b><br>'
-          + (IS_IOS ? 'PDF는 새 탭에서 열려요.'
+          + (IS_IOS() ? 'PDF는 새 탭에서 열려요.'
                     : 'PDF는 화면 안에서 볼 수 없어요. 받아서 열어주세요.')
           + '<div style="margin-top:16px">'
           + '<button class="btn-write" id="pvTab">'
-          + (IS_IOS ? '새 탭에서 열기' : '받아서 열기') + '</button></div></div>';
-        $("pvTab").onclick = IS_IOS
+          + (IS_IOS() ? '새 탭에서 열기' : '받아서 열기') + '</button></div></div>';
+        $("pvTab").onclick = IS_IOS()
           ? ()=> openViaLink(pvUrl)
           : ()=> downloadFile(f.path, f.name, f.size);
         return;
@@ -5188,7 +5295,10 @@ _imgs
         && !editingId && $("wCast").checked && !$("wSecret").checked){
       const { data: n, error: be } = await sb.rpc("broadcast_post", { p_post: id });
       if (be) toast("전체 알림 실패: " + cleanErr(be));
-      else toast(n + "명에게 알림을 보냈어요.");
+      else {
+        toast(n + "명에게 알림을 보냈어요.");
+        pushBroadcast(id);            // 앱 알림을 켠 학생에게는 폰 알림도
+      }
     }
 
     if (pendingFiles.length){
@@ -5405,14 +5515,34 @@ _imgs
     dmShow("read");
     $("dmTitle").textContent = "쪽지";
     const files = m.files || [];
+    // 이미지 첨부는 클릭 없이 바로 보이게 (기프티콘·캡처 등). 파일 목록은 저장용으로 그대로 둡니다.
+    const isImg = (f)=> /^image\//.test(f.mime || "") || /\.(png|jpe?g|gif|webp)$/i.test(f.name || "");
+    const pics  = files.filter(isImg);
+    const docs  = files.filter(f=> !isImg(f));     // 그림이 아닌 첨부 (목록으로 표시)
+    const picHtml = pics.length
+      ? '<div class="dm-pics">'
+        + pics.map(f=> '<figure><img class="post-img loading" data-p="'+esc(f.path)+'" alt="'+esc(f.name)+'">'
+                       + '<figcaption>'+esc(safeName(f.name))
+                       + ' · <button class="link-btn" data-dl="'+esc(f.path)+'" data-name="'+esc(f.name)+'"'
+                       + ' data-size="'+(Number(f.size)||0)+'">저장</button></figcaption></figure>').join("")
+        + '<p class="dm-pic-tip">'
+        + (IS_IOS()
+            ? '<b>저장</b>을 누르고 <b>이미지 저장</b>을 고르면 사진 앱에 들어가요. 사진을 길게 눌러도 돼요.'
+            : IS_ANDROID()
+              ? '<b>저장</b>을 누르면 다운로드 폴더에 저장되고 갤러리에서 볼 수 있어요. 사진을 길게 눌러도 돼요.'
+              : '<b>저장</b>을 누르면 내려받아요.')
+        + '</p>'
+        + '</div>'
+      : '';
     $("dmReadView").innerHTML =
       '<h3 style="margin:0 0 8px;font-size:17px;letter-spacing:-.4px">'+esc(m.title)+'</h3>'
       + '<div class="dm-meta">'
       +   '<span>' + (m.i_sent ? '받는 사람 <b>'+esc(m.recipient_nick||"탈퇴")+'</b>'
                                : '보낸 사람 <b>'+esc(m.sender_nick||"탈퇴")+'</b>') + '</span>'
       +   '<span>'+fmtDate(m.created_at, true)+'</span></div>'
-      + renderFiles(files)
+      + picHtml
       + '<div class="dm-body">'+linkify(m.body)+'</div>'
+      + renderFiles(docs)
       + '<div class="w-btns" style="justify-content:space-between">'
       +   '<button class="btn-ghost btn-danger" id="dmDel">삭제</button>'
       +   '<span><button class="btn-ghost" id="dmBack">목록</button> '
@@ -5432,7 +5562,14 @@ _imgs
     $("dmReadView").querySelectorAll("[data-dl]").forEach(b=>
       b.onclick = ()=> downloadFile(b.dataset.dl, b.dataset.name, b.dataset.size));
     $("dmReadView").querySelectorAll("[data-pv]").forEach(b=>
-      b.onclick = ()=> openPreview(files[Number(b.dataset.pv)]));
+      b.onclick = ()=> openPreview(docs[Number(b.dataset.pv)]));
+    fillInlineImages($("dmReadView"));       // 이미지 첨부에 서명 주소를 채웁니다
+    // 아이폰은 버튼을 누른 직후에만 공유 시트를 열어주므로, 그림을 미리 받아둡니다
+    if (IS_IOS()) pics.forEach(f=>{
+      if (blobCache.has(f.path)) return;
+      sb.storage.from("attachments").download(f.path)
+        .then(({ data })=>{ if (data) blobCache.set(f.path, data); }, ()=>{});
+    });
     updateUnread();
   }
 
@@ -5487,6 +5624,32 @@ _imgs
       });
     }, 280);
   };
+
+  // 쪽지 본문에 이미지를 붙여넣거나(Ctrl+V) 끌어다 놓으면 첨부로 붙습니다.
+  // (기프티콘처럼 캡처한 그림을 바로 보낼 때 편해요)
+  function dmAddFiles(list){
+    for (const f of list){
+      if (f.size > 20 * 1024 * 1024){ toast('"'+(f.name||"이미지")+'" 은 20MB가 넘어요.'); continue; }
+      if (dmFiles.length >= 5){ toast("파일은 5개까지예요."); break; }
+      // 붙여넣은 캡처는 이름이 'image.png' 라서 시각으로 구분해 줍니다
+      if (!f.name || /^image\.(png|jpe?g|gif|webp)$/i.test(f.name)){
+        const ext = (f.type.split("/")[1] || "png").replace("jpeg","jpg");
+        const nm = "사진_" + new Date().toISOString().slice(0,19).replace(/[-:T]/g,"") + "." + ext;
+        dmFiles.push(new File([f], nm, { type: f.type })); continue;
+      }
+      dmFiles.push(f);
+    }
+    renderDmFiles();
+  }
+  $("dmBody").addEventListener("paste", (e)=>{
+    const files = [...(e.clipboardData?.files || [])].filter(f=> /^image\//.test(f.type));
+    if (files.length){ e.preventDefault(); dmAddFiles(files); toast("이미지를 첨부했어요."); }
+  });
+  $("dmBody").addEventListener("dragover", (e)=> e.preventDefault());
+  $("dmBody").addEventListener("drop", (e)=>{
+    const files = [...(e.dataTransfer?.files || [])];
+    if (files.length){ e.preventDefault(); dmAddFiles(files); }
+  });
 
   $("dmDrop").onclick = ()=> $("dmFiles").click();
   $("dmFiles").onchange = (e)=>{
@@ -5763,13 +5926,30 @@ _imgs
     return rows.filter(r=> r.length > 1 || (r[0] || "").trim() !== "");
   }
 
+  // 우리나라 엑셀은 CSV 를 CP949(euc-kr) 로 저장합니다.
+  // 무조건 UTF-8 로 읽으면 한글 열 이름이 전부 깨져요.
+  // UTF-8 로 먼저 엄격하게 읽어보고, 실패하면 euc-kr 로 다시 읽습니다.
+  function labDecode(buf){
+    const b = new Uint8Array(buf);
+    const bom = b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF;
+    if (!bom){
+      try {
+        return { text: new TextDecoder("utf-8", { fatal: true }).decode(b), enc: "UTF-8" };
+      } catch(e){
+        try { return { text: new TextDecoder("euc-kr").decode(b), enc: "CP949(euc-kr)" }; }
+        catch(_){}
+      }
+    }
+    return { text: new TextDecoder("utf-8").decode(b), enc: "UTF-8" };
+  }
+
   const labNum = (v)=>{
     const t = String(v).trim().replace(/,/g, "");
     return t !== "" && isFinite(Number(t));
   };
 
   /* ---------- 데이터 싣기 ---------- */
-  function labLoad(name, csv){
+  function labLoad(name, csv, enc){
     const rows = parseCSV(csv);
     if (rows.length < 2){ toast("표를 읽지 못했어요. 첫 줄에 열 이름이 있는 CSV 인지 확인해주세요."); return; }
 
@@ -5794,6 +5974,10 @@ _imgs
     $("labInfo").innerHTML =
       '<b>' + esc(name) + '</b> · ' + body.length + '행 × ' + cols.length + '열'
       + ' (숫자 열 ' + nNum + '개, 글자 열 ' + (cols.length - nNum) + '개)'
+      + (enc && enc !== "UTF-8"
+          ? '<br>엑셀에서 저장한 파일 같아 <b>' + esc(enc) + '</b> 로 읽었어요. '
+            + '위 표에서 한글이 깨져 보이면 알려주세요.'
+          : '')
       + '<br>이 파일은 <b>기기 안에서만</b> 쓰이고 서버로 올라가지 않아요.';
     labRenderTable();
     $("labStep2").hidden = false;
@@ -5956,7 +6140,9 @@ _imgs
   }
 
   /* ---------- 고른 내용을 파이썬 코드로 ---------- */
-  const pq = (v)=> '"' + String(v).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+  const pq = (v)=> '"' + String(v)
+    .replace(/\\/g, "\\\\").replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t") + '"';
 
   // 그래프 제목의 조사를 자연스럽게 (받침이 있으면 '과', 없으면 '와')
   function labJong(w){
@@ -6366,6 +6552,10 @@ _imgs
       if (s) labLoad(s.name, s.csv);
     });
 
+    // 갤럭시 등 안드로이드 파일 선택기는 종류를 좁혀두면 CSV 를 아예 안 보여줍니다.
+    // 그래서 안드로이드에서는 걸러내지 않고 전부 보여줍니다.
+    if (IS_ANDROID()) $("labUp").removeAttribute("accept");
+
     $("labUpBtn").onclick = ()=> $("labUp").click();
     $("labUp").onchange = (e)=>{
       const f = e.target.files && e.target.files[0];
@@ -6373,9 +6563,14 @@ _imgs
       if (!f) return;
       if (f.size > 5 * 1024 * 1024){ toast("CSV 는 5MB 까지만 열 수 있어요."); return; }
       const fr = new FileReader();
-      fr.onload = ()=> labLoad(f.name, String(fr.result || ""));
+      fr.onload = ()=>{
+        try {
+          const d = labDecode(fr.result);
+          labLoad(f.name, d.text, d.enc);
+        } catch(err){ toast("파일을 읽지 못했어요. CSV 파일이 맞는지 확인해주세요."); }
+      };
       fr.onerror = ()=> toast("파일을 읽지 못했어요.");
-      fr.readAsText(f, "utf-8");
+      fr.readAsArrayBuffer(f);
     };
 
     document.querySelectorAll("#labKinds button").forEach(b=> b.onclick = ()=>{
@@ -6420,6 +6615,144 @@ _imgs
         setTimeout(openHelp, 400);
       }
     } catch(e){}
+  }
+
+
+  /* =====================================================================
+     앱(푸시) 알림
+     · 학생이 '알림 켜기'를 누르면 폰이 허용을 묻고, 기기 주소를 서버에 저장합니다
+     · 선생님이 전체 알림을 보내면 send-push(Edge Function)가 기기마다 푸시를 보냅니다
+     · 아이폰은 홈 화면에 추가한 앱에서만 됩니다 (사파리 탭에서는 PushManager 가 없음)
+     ===================================================================== */
+  const PUSH_KEY = String(CFG.PUSH_PUBLIC_KEY || "").trim();
+
+  // 폰 알림을 눌러 들어왔으면 글 번호를 기억해 둡니다 (로그인 뒤에 엽니다)
+  (function(){
+    const m = location.hash.match(/^#post=(\d+)$/);
+    if (!m) return;
+    try { sessionStorage.setItem("openPost", m[1]); } catch(e){}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch(e){}
+  })();
+
+  function pushSupported(){
+    return !!(PUSH_KEY && CAN_SERVER && "serviceWorker" in navigator
+              && "PushManager" in window && "Notification" in window);
+  }
+  function b64uToU8(s){
+    const b = (s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/");
+    return Uint8Array.from(atob(b), c=> c.charCodeAt(0));
+  }
+  async function pushCurrentSub(){
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      return await reg.pushManager.getSubscription();
+    } catch(e){ return null; }
+  }
+  async function pushSaveSub(sub){
+    const j = sub.toJSON();
+    const { error } = await sb.rpc("save_push_sub", {
+      p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth,
+      p_ua: navigator.userAgent });
+    return !error;
+  }
+  async function pushIsOn(){
+    if (!pushSupported() || Notification.permission !== "granted") return false;
+    return !!(await pushCurrentSub());
+  }
+
+  // 반드시 사용자가 버튼을 누른 흐름에서만 부릅니다 (브라우저가 그때만 허용을 물어봐 줍니다)
+  async function pushEnable(){
+    if (!pushSupported()){ toast("이 브라우저에서는 앱 알림을 받을 수 없어요."); return false; }
+    let perm = Notification.permission;
+    if (perm === "default") perm = await Notification.requestPermission();
+    if (perm !== "granted"){
+      toast("알림이 꺼져 있어요. 폰의 설정 > 알림에서 이 앱을 켤 수 있어요.");
+      pushRenderSwitch(); pushRenderBar(); return false;
+    }
+    try{
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true, applicationServerKey: b64uToU8(PUSH_KEY) });
+      if (!await pushSaveSub(sub)) throw new Error("기기 등록에 실패했어요.");
+      try { store.setItem("sungong.push.ask.v1", "1"); } catch(e){}
+      toast("앱 알림을 켰어요. 공지가 올라오면 폰으로 알려드려요.");
+      pushRenderSwitch(); pushRenderBar();
+      return true;
+    }catch(e){ showError(e, "앱 알림 켜기"); return false; }
+  }
+  async function pushDisable(){
+    const sub = await pushCurrentSub();
+    if (sub){
+      await sb.rpc("remove_push_sub", { p_endpoint: sub.endpoint }).then(()=>{}, ()=>{});
+      try { await sub.unsubscribe(); } catch(e){}
+    }
+    toast("앱 알림을 껐어요.");
+    pushRenderSwitch();
+  }
+
+  /* 프로필 메뉴의 스위치 */
+  async function pushRenderSwitch(){
+    const btn = $("mPush");
+    if (!btn) return;
+    if (!me || !me.nickname || !PUSH_KEY){ btn.hidden = true; return; }
+    if (!pushSupported()){
+      // 아이폰 사파리 탭에서는 못 켭니다 → 홈 화면에 추가하라고 안내
+      btn.hidden = !(IS_IOS() || IS_ANDROID());
+      btn.innerHTML = '앱 알림 받기<span class="sw-note">홈 화면 앱에서만</span>';
+      btn.onclick = ()=> toast("홈 화면에 추가한 앱으로 열면 알림을 켤 수 있어요.");
+      return;
+    }
+    btn.hidden = false;
+    const on = await pushIsOn();
+    btn.innerHTML = '앱 알림 받기<span class="sw' + (on ? " on" : "") + '" id="pushSw"></span>';
+    btn.onclick = ()=> on ? pushDisable() : pushEnable();
+  }
+
+  /* 한 번 권해보는 줄 (닫으면 다시 안 뜸) */
+  const pushBarHidden = ()=>{ try { return store.getItem("sungong.push.ask.v1") === "1"; } catch(e){ return false; } };
+  function pushRenderBar(){
+    const bar = $("pushBar");
+    if (!bar) return;
+    const show = me && me.nickname && pushSupported()
+              && Notification.permission === "default" && !pushBarHidden();
+    bar.innerHTML = show
+      ? '<div class="banner"><b>🔔</b><span>공지가 올라오면 <b>폰 알림</b>으로 알려드릴까요? '
+        + '켜두면 앱을 안 열어도 바로 알 수 있어요.</span>'
+        + '<button class="x" id="pushGo">켜기</button><button class="x" id="pushNo">나중에</button></div>'
+      : "";
+    if ($("pushGo")) $("pushGo").onclick = pushEnable;
+    if ($("pushNo")) $("pushNo").onclick = ()=>{
+      try { store.setItem("sungong.push.ask.v1", "1"); } catch(e){}
+      pushRenderBar();
+    };
+  }
+
+  /* 로그인 뒤: 스위치 표시 + 이미 켜져 있으면 주소를 서버에 다시 저장(주소가 바뀌기도 함) */
+  async function pushAfterLogin(){
+    pushRenderSwitch(); pushRenderBar();
+    if (!pushSupported() || Notification.permission !== "granted") return;
+    const sub = await pushCurrentSub();
+    if (sub) pushSaveSub(sub).then(()=>{}, ()=>{});
+  }
+
+  /* Edge Function 부르기 (결과 문구까지 정리) */
+  async function pushCall(body){
+    const { data, error } = await sb.functions.invoke("send-push", { body });
+    if (error){
+      let msg = error.message || String(error);
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch(_){}
+      return { error: msg };
+    }
+    return data || {};
+  }
+
+  /* 선생님: 전체 알림 보낸 뒤 폰 알림도 */
+  async function pushBroadcast(postId){
+    if (!PUSH_KEY || !sb) return;
+    const r = await pushCall({ type: "post", post_id: postId });
+    if (r.error){ toast("폰 알림은 못 보냈어요: " + r.error); return; }
+    if (r.devices) toast("폰 알림을 " + r.sent + "대에 보냈어요." + (r.failed ? " (" + r.failed + "대 실패)" : ""));
   }
 
   /* =====================================================================

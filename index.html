@@ -433,8 +433,214 @@
   .ld-box td.s{text-align:left}
   .ld-box .ld-more{color:var(--ink-faint); font-size:11.5px; text-align:center; padding:6px 0 0}
 
+  /* ---------- 자료구조 · 알고리즘 ---------- */
+  .ds-layout{display:grid; grid-template-columns:190px minmax(0,1fr); gap:18px}
+  .ds-menu{display:flex; flex-direction:column; gap:12px; align-self:start; position:sticky; top:12px}
+  .ds-group .ds-gname{font-size:11px; font-weight:800; color:var(--ink-faint); letter-spacing:.3px; margin:0 0 4px 6px}
+  .ds-group button{display:flex; align-items:center; gap:8px; width:100%; text-align:left; padding:8px 10px; border:1px solid transparent;
+                   background:none; border-radius:10px; font:inherit; font-size:13px; color:var(--ink-soft); cursor:pointer}
+  .ds-group button i{font-style:normal; width:20px; text-align:center}
+  .ds-group button:hover{background:var(--blue-tint)}
+  .ds-group button.on{background:var(--blue); color:#fff; font-weight:600}
+  .ds-main{min-width:0}
+  .ds-head h4{margin:0 0 6px; font-size:17px; color:var(--ink); display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .ds-big{font-size:11.5px; font-weight:700; color:var(--blue-dark); background:var(--blue-tint); border-radius:999px; padding:3px 10px}
+  .ds-desc{margin:0 0 12px; font-size:13px; line-height:1.75; color:var(--ink-soft)}
+  .ds-desc b{color:var(--ink)}
+  .ds-inputrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:10px}
+  .ds-inputrow label{display:flex; align-items:center; gap:8px; font-size:12.5px; font-weight:700; color:var(--ink-faint); flex:1; min-width:220px}
+  .ds-inputrow label span{white-space:nowrap}
+  .ds-inputrow input{flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:9px; font:inherit; font-size:13px; font-family:var(--mono); background:#fff; color:var(--ink)}
+  .ds-ops{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+  .ds-op{display:flex; align-items:end; gap:6px; padding:8px 10px; border:1px solid var(--line); border-radius:12px; background:var(--blue-tint)}
+  .ds-op label{display:flex; flex-direction:column; gap:3px; font-size:11px; font-weight:700; color:var(--ink-faint)}
+  .ds-op input, .ds-op select{width:86px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font:inherit; font-size:13px; background:#fff; color:var(--ink)}
+  .ds-op select{width:auto; max-width:180px}
+  .ds-op .btn-write{padding:8px 12px; font-size:13px}
+  .ds-stage{min-height:150px; padding:16px 14px 10px; border:1px solid var(--line); border-radius:14px; background:#fff; overflow-x:auto}
+  .ds-msg{margin:10px 0 6px; font-size:13.5px; line-height:1.7; color:var(--ink); min-height:24px}
+  .ds-msg b{color:var(--blue-dark)}
+  .ds-vars{display:flex; gap:6px; flex-wrap:wrap; min-height:22px; margin-bottom:8px}
+  .ds-var{font-family:var(--mono); font-size:12px; background:var(--blue-tint); border:1px solid var(--line); border-radius:7px; padding:2px 8px; color:var(--ink-soft)}
+  .ds-var b{color:var(--ink)}
+  .ds-ctrl{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:14px}
+  .ds-ctrl > button{padding:7px 11px; border:1px solid var(--line); background:#fff; border-radius:9px; font:inherit; font-size:13px; cursor:pointer; color:var(--ink)}
+  .ds-ctrl > button:disabled{opacity:.4; cursor:default}
+  .ds-ctrl .ds-playbtn{background:var(--blue); color:#fff; border-color:var(--blue); font-weight:700; min-width:88px}
+  .ds-ctrl .ds-playbtn:disabled{background:var(--blue); opacity:.35}
+  .ds-stepno{font-family:var(--mono); font-size:12px; color:var(--ink-faint); min-width:56px}
+  .ds-speed, .ds-auto{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-faint)}
+  .ds-speed input{width:90px}
+  .ds-code .ds-codetabs{display:flex; gap:4px; margin-bottom:6px}
+  .ds-codetabs button{padding:6px 12px; border:1px solid var(--line); background:#fff; border-radius:8px 8px 0 0; font:inherit; font-size:12.5px; cursor:pointer; color:var(--ink-soft)}
+  .ds-codetabs button.on{background:#161d27; color:#fff; border-color:#161d27}
+  .ds-codewrap{display:grid; grid-template-columns:1fr; gap:10px}
+  .ds-codewrap[data-show="both"]{grid-template-columns:1fr 1fr}
+  .ds-codewrap[data-show="py"] .ds-pane[data-lang="c"], .ds-codewrap[data-show="c"] .ds-pane[data-lang="py"]{display:none}
+  .ds-pane{min-width:0}
+  .ds-panehead{font-size:11px; font-weight:800; color:#93a6c0; margin:0 0 -8px 2px; display:none}
+  .ds-codewrap[data-show="both"] .ds-panehead{display:block; margin-bottom:4px}
+  .ds-pane pre{margin:0; padding:10px 0; background:#161d27; color:#dce6f2; border-radius:11px; overflow:auto; max-height:420px;
+               font-family:var(--mono); font-size:12px; line-height:1.7; white-space:pre}
+  .ds-ln{padding:0 12px 0 0; display:flex; min-height:1.7em}
+  .ds-ln .ds-no{display:inline-block; width:34px; text-align:right; padding-right:10px; color:#4e5f78; user-select:none; flex:none}
+  .ds-ln .ds-src{white-space:pre; flex:1}
+  .ds-ln.on{background:rgba(255,216,74,.22); box-shadow:inset 3px 0 0 #ffd84a}
+  .ds-ln.on .ds-no{color:#ffd84a}
+  /* 배열 */
+  .ds-arr{display:flex; gap:6px; align-items:flex-end; padding:4px 2px}
+  .ds-cell{display:flex; flex-direction:column; align-items:center; width:44px; flex:none}
+  .ds-barwrap{height:66px; display:flex; align-items:flex-end; width:100%}
+  .ds-bar{width:100%; background:#bcd3f2; border-radius:5px 5px 0 0; transition:height .25s, background .2s}
+  .ds-box{width:40px; height:34px; display:flex; align-items:center; justify-content:center; border:1.5px solid #9db6dc; border-radius:8px;
+          background:#fff; font-family:var(--mono); font-size:13.5px; font-weight:700; color:var(--ink); transition:.2s}
+  .ds-queue .ds-box{width:44px; height:40px}
+  .ds-cell.ds-empty .ds-box, .ds-box.ds-empty{border-style:dashed; background:transparent; opacity:.6}
+  .ds-idx{font-size:10.5px; color:var(--ink-faint); margin-top:3px; font-family:var(--mono)}
+  .ds-ptr{height:16px; font-size:10.5px; font-weight:800; color:var(--blue-dark); font-family:var(--mono); display:flex; gap:3px}
+  .ds-ptr span::before{content:"▲"; font-size:8px; margin-right:1px}
+  .ds-cmp{background:#fff3b0 !important; border-color:#e6b800 !important}
+  .ds-swap{background:#ffd0cc !important; border-color:#e0574b !important}
+  .ds-move{background:#ffe1c2 !important; border-color:#e58a2a !important}
+  .ds-sorted{background:#cdeedd !important; border-color:#3fa66a !important}
+  .ds-found{background:#3fa66a !important; border-color:#2f8a55 !important; color:#fff !important}
+  .ds-new{background:#cfe0f7 !important; border-color:var(--blue) !important; box-shadow:0 0 0 3px rgba(47,111,208,.25)}
+  .ds-del{background:#f3d1d1 !important; border-color:#c0504a !important; text-decoration:line-through; opacity:.75}
+  .ds-pivot{background:#e3d3f7 !important; border-color:#8a5cd6 !important}
+  .ds-min{background:#e3d3f7 !important; border-color:#8a5cd6 !important}
+  .ds-cur{background:#fff3b0 !important; border-color:#e6b800 !important}
+  .ds-prev{background:#e8eef7 !important; border-color:#7f97b8 !important}
+  .ds-dim{opacity:.28}
+  .ds-aux{margin-top:10px; font-size:12.5px; color:var(--ink-soft); line-height:1.7}
+  .ds-aux s{opacity:.45}
+  .ds-note{font-size:11.5px; color:var(--ink-faint); margin-top:6px; line-height:1.6}
+  .ds-chip{display:inline-block; font-family:var(--mono); font-size:12px; font-weight:700; border:1.5px solid #9db6dc; border-radius:7px; padding:1px 8px; background:#fff; color:var(--ink)}
+  /* 스택 · 호출 스택 */
+  .ds-stackwrap{display:flex; gap:22px; align-items:flex-end}
+  .ds-stack{display:flex; flex-direction:column-reverse; gap:4px; width:110px; padding:6px; border:2px solid #9db6dc; border-top:0; border-radius:0 0 12px 12px; background:var(--blue-tint)}
+  .ds-slot{height:36px; display:flex; align-items:center; justify-content:center; border:1.5px solid #9db6dc; border-radius:8px; background:#fff;
+           font-family:var(--mono); font-weight:700; font-size:14px; color:var(--ink); position:relative; transition:.2s}
+  .ds-slot.ds-empty{border-style:dashed; background:transparent; opacity:.5}
+  .ds-tag{position:absolute; right:-44px; font-size:10.5px; font-weight:800; color:var(--blue-dark)}
+  .ds-tag::before{content:"◀ "; font-size:8px}
+  .ds-side{font-size:13px; color:var(--ink); padding-left:36px}
+  .ds-frames{display:flex; flex-direction:column-reverse; gap:4px; min-width:260px; padding:6px; border:2px solid #9db6dc; border-top:0; border-radius:0 0 12px 12px; background:var(--blue-tint)}
+  .ds-frame{display:flex; justify-content:space-between; gap:12px; padding:8px 12px; border:1.5px solid #9db6dc; border-radius:8px; background:#fff; font-size:12.5px; color:var(--ink)}
+  .ds-frame b{font-family:var(--mono)}
+  .ds-frame span{color:var(--ink-faint)}
+  .ds-f-active{background:#fff3b0; border-color:#e6b800}
+  .ds-f-wait{background:#fff}
+  .ds-f-ret{background:#cdeedd; border-color:#3fa66a}
+  /* SVG 공통 */
+  .ds-svgwrap{overflow-x:auto}
+  .ds-svg{width:100%; height:auto; display:block; color:#7f97b8}
+  .ds-line{stroke:#9db6dc; stroke-width:2; fill:none; color:#9db6dc}
+  .ds-usedline{stroke:#3fa66a; stroke-width:3}
+  .ds-edgeline{stroke:#e6b800; stroke-width:4}
+  .ds-pathline{stroke:#e6b800; stroke-width:3}
+  .ds-skipline{stroke:#e0574b; color:#e0574b; stroke-dasharray:4 3}
+  .ds-newline{stroke:var(--blue); color:var(--blue)}
+  .ds-lbl{font-size:12px; font-weight:700; fill:var(--ink-faint); font-family:var(--mono)}
+  .ds-lblc{fill:var(--blue-dark); text-anchor:middle}
+  .ds-node rect{fill:#fff; stroke:#9db6dc; stroke-width:1.5}
+  .ds-node .ds-nextbox{fill:#eef3fa}
+  .ds-node .ds-dot{fill:#7f97b8}
+  .ds-node .ds-val, .ds-tnode .ds-val{font-family:var(--mono); font-weight:700; font-size:14px; fill:var(--ink); text-anchor:middle}
+  .ds-node.ds-new rect{fill:#cfe0f7; stroke:var(--blue); stroke-width:2.5}
+  .ds-node.ds-cur rect, .ds-node.ds-found rect{fill:#fff3b0; stroke:#e6b800; stroke-width:2.5}
+  .ds-node.ds-found rect{fill:#cdeedd; stroke:#3fa66a}
+  .ds-node.ds-prev rect{fill:#e8eef7; stroke:#7f97b8; stroke-width:2.5}
+  .ds-node.ds-del rect{fill:#f3d1d1; stroke:#c0504a; stroke-width:2.5}
+  .ds-tnode circle{fill:#fff; stroke:#9db6dc; stroke-width:2}
+  .ds-tnode.ds-cur circle{fill:#fff3b0; stroke:#e6b800; stroke-width:3}
+  .ds-tnode.ds-found circle{fill:#3fa66a; stroke:#2f8a55}
+  .ds-tnode.ds-found .ds-val{fill:#fff}
+  .ds-tnode.ds-new circle{fill:#cfe0f7; stroke:var(--blue); stroke-width:3}
+  .ds-frontier{margin-top:8px; font-size:13px; color:var(--ink)}
+  .ds-frontier .ds-chip.ds-cur{background:#fff3b0; border-color:#e6b800}
+  .ds-graphwrap{display:grid; grid-template-columns:minmax(0,1fr); gap:6px}
+  /* 해시 */
+  .ds-hash{display:flex; flex-direction:column; gap:5px}
+  .ds-bucket{display:flex; align-items:center; gap:10px; padding:4px 8px; border-radius:9px; border:1px solid transparent}
+  .ds-bucket.ds-bcur{background:#fff8dc; border-color:#e6b800}
+  .ds-bidx{width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:1.5px solid #9db6dc; border-radius:7px; background:var(--blue-tint); font-family:var(--mono); font-weight:800; font-size:12px; color:var(--ink-soft); flex:none}
+  .ds-chain{display:flex; align-items:center; gap:4px; flex-wrap:wrap}
+  .ds-hcell{display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:28px; padding:0 8px; border:1.5px solid #9db6dc; border-radius:7px; background:#fff; font-family:var(--mono); font-weight:700; font-size:13px; color:var(--ink)}
+  .ds-harrow{color:#9db6dc; font-size:12px}
+  /* 하노이 */
+  .ds-peg{fill:#9db6dc}
+  .ds-disk{stroke:#fff; stroke-width:1.5; transition:.25s}
+  .ds-d1{fill:#e0574b} .ds-d2{fill:#e58a2a} .ds-d3{fill:#e6b800} .ds-d4{fill:#3fa66a} .ds-d5{fill:#2f6fd0}
+  .ds-moving{filter:drop-shadow(0 0 5px rgba(0,0,0,.35)); stroke:#222}
+  /* 원형 큐 · 레드블랙 · 다익스트라 */
+  .ds-tnode rect{fill:#fff; stroke:#9db6dc; stroke-width:2}
+  .ds-tnode.ds-ring-empty rect{stroke-dasharray:4 3; fill:transparent}
+  .ds-tnode.ds-cmp rect, .ds-tnode.ds-cur rect{fill:#fff3b0; stroke:#e6b800; stroke-width:3}
+  .ds-tnode.ds-new rect{fill:#cfe0f7; stroke:var(--blue); stroke-width:3}
+  .ds-tnode.ds-red circle{fill:#e0574b; stroke:#b23a30}
+  .ds-tnode.ds-black circle{fill:#2b3442; stroke:#111}
+  .ds-tnode.ds-red .ds-val, .ds-tnode.ds-black .ds-val{fill:#fff}
+  .ds-tnode.ds-red.ds-cur circle, .ds-tnode.ds-black.ds-cur circle, .ds-tnode.ds-red.ds-swap circle, .ds-tnode.ds-black.ds-swap circle,
+  .ds-tnode.ds-red.ds-pivot circle, .ds-tnode.ds-black.ds-pivot circle{stroke:#ffd84a; stroke-width:4}
+  .ds-tnode.ds-red.ds-found circle, .ds-tnode.ds-black.ds-found circle{stroke:#3fa66a; stroke-width:4}
+  .ds-tnode.ds-red.ds-new circle{stroke:var(--blue); stroke-width:4}
+  .ds-tnode.ds-swap circle{fill:#ffd0cc; stroke:#e0574b; stroke-width:3}
+  .ds-tnode.ds-pivot circle{fill:#e3d3f7; stroke:#8a5cd6; stroke-width:3}
+  .ds-tnode.ds-cmp circle{fill:#fff3b0; stroke:#e6b800}
+  .ds-tnode.ds-del circle{fill:#f3d1d1; stroke:#c0504a; stroke-width:3}
+  .ds-bfbad{fill:#e0574b !important}
+  .ds-wbox{fill:#fff; stroke:#dde6f2}
+  .ds-wlbl{fill:var(--ink-soft); font-size:11px}
+  .ds-dtable{border-collapse:collapse; font-family:var(--mono); font-size:12px; margin-top:6px}
+  .ds-dtable th, .ds-dtable td{border:1px solid var(--line); padding:3px 9px; text-align:center; color:var(--ink)}
+  .ds-dtable td:first-child, .ds-dtable th:first-child{text-align:left; color:var(--ink-faint); font-weight:700}
+  :root[data-theme="dark"] .ds-wbox{fill:#1b2531; stroke:#33455e}
+  :root[data-theme="dark"] .ds-tnode rect{fill:#1b2531; stroke:#4b5f7c}
+  :root[data-theme="dark"] .ds-tnode.ds-black circle{fill:#0d1117; stroke:#6b7a90}
+  :root[data-theme="dark"] .ds-tnode.ds-red circle{fill:#e0574b; stroke:#b23a30}
+  :root[data-theme="dark"] .ds-tnode.ds-cur circle, :root[data-theme="dark"] .ds-tnode.ds-cmp circle{fill:#fff3b0; stroke:#e6b800}
+  :root[data-theme="dark"] .ds-tnode.ds-cur .ds-val, :root[data-theme="dark"] .ds-tnode.ds-cmp .ds-val, :root[data-theme="dark"] .ds-tnode.ds-swap .ds-val,
+  :root[data-theme="dark"] .ds-tnode.ds-pivot .ds-val, :root[data-theme="dark"] .ds-tnode.ds-new .ds-val, :root[data-theme="dark"] .ds-tnode.ds-del .ds-val{fill:#1c2a3d}
+  :root[data-theme="dark"] .ds-tnode.ds-red .ds-val, :root[data-theme="dark"] .ds-tnode.ds-black .ds-val{fill:#fff}
+  :root[data-theme="dark"] .ds-tnode.ds-swap circle{fill:#ffd0cc; stroke:#e0574b}
+  :root[data-theme="dark"] .ds-tnode.ds-pivot circle{fill:#e3d3f7; stroke:#8a5cd6}
+  :root[data-theme="dark"] .ds-tnode.ds-new circle{fill:#cfe0f7; stroke:var(--blue)}
+  :root[data-theme="dark"] .ds-tnode.ds-del circle{fill:#f3d1d1; stroke:#c0504a}
+  :root[data-theme="dark"] .ds-tnode.ds-found circle{fill:#3fa66a; stroke:#2f8a55}
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-cur circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-cur circle,
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-swap circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-swap circle,
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-pivot circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-pivot circle{stroke:#ffd84a; stroke-width:4}
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-cur circle, :root[data-theme="dark"] .ds-tnode.ds-red.ds-swap circle, :root[data-theme="dark"] .ds-tnode.ds-red.ds-pivot circle,
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-found circle, :root[data-theme="dark"] .ds-tnode.ds-red.ds-new circle{fill:#e0574b}
+  :root[data-theme="dark"] .ds-tnode.ds-black.ds-cur circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-swap circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-pivot circle,
+  :root[data-theme="dark"] .ds-tnode.ds-black.ds-found circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-new circle{fill:#0d1117}
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-found circle, :root[data-theme="dark"] .ds-tnode.ds-black.ds-found circle{stroke:#3fa66a; stroke-width:4}
+  :root[data-theme="dark"] .ds-tnode.ds-red.ds-new circle{stroke:var(--blue); stroke-width:4}
+  @media (max-width:900px){
+    .ds-layout{grid-template-columns:1fr}
+    .ds-menu{position:static; flex-direction:row; flex-wrap:wrap; gap:8px}
+    .ds-group{display:contents}
+    .ds-group .ds-gname{display:none}
+    .ds-group button{width:auto; border:1px solid var(--line); background:#fff}
+    .ds-codewrap[data-show="both"]{grid-template-columns:1fr}
+  }
+  :root[data-theme="dark"] .ds-stage, :root[data-theme="dark"] .ds-box, :root[data-theme="dark"] .ds-slot, :root[data-theme="dark"] .ds-frame,
+  :root[data-theme="dark"] .ds-hcell, :root[data-theme="dark"] .ds-chip, :root[data-theme="dark"] .ds-ctrl > button, :root[data-theme="dark"] .ds-codetabs button,
+  :root[data-theme="dark"] .ds-op input, :root[data-theme="dark"] .ds-op select, :root[data-theme="dark"] .ds-inputrow input,
+  :root[data-theme="dark"] .ds-group button{background:#1b2531; border-color:#33455e; color:var(--ink)}
+  :root[data-theme="dark"] .ds-group button.on{background:var(--blue); color:#fff}
+  :root[data-theme="dark"] .ds-op, :root[data-theme="dark"] .ds-stack, :root[data-theme="dark"] .ds-frames, :root[data-theme="dark"] .ds-bidx{background:#161d27; border-color:#33455e}
+  :root[data-theme="dark"] .ds-node rect, :root[data-theme="dark"] .ds-tnode circle{fill:#1b2531; stroke:#4b5f7c}
+  :root[data-theme="dark"] .ds-node .ds-nextbox{fill:#233043}
+  :root[data-theme="dark"] .ds-cmp, :root[data-theme="dark"] .ds-cur{color:#1c2a3d !important}
+  :root[data-theme="dark"] .ds-swap, :root[data-theme="dark"] .ds-move, :root[data-theme="dark"] .ds-sorted, :root[data-theme="dark"] .ds-new,
+  :root[data-theme="dark"] .ds-pivot, :root[data-theme="dark"] .ds-min, :root[data-theme="dark"] .ds-prev, :root[data-theme="dark"] .ds-del{color:#1c2a3d !important}
+  :root[data-theme="dark"] .ds-f-active, :root[data-theme="dark"] .ds-f-ret{color:#1c2a3d}
+  :root[data-theme="dark"] .ds-f-active span, :root[data-theme="dark"] .ds-f-ret span{color:#3b4a60}
+  :root[data-theme="dark"] .ds-bucket.ds-bcur{background:#3a2f0c}
+
   /* ---------- 게시판 ---------- */
-  #boardView[hidden], #timerView[hidden], #labView[hidden], #learnView[hidden]{display:none}
+  #boardView[hidden], #timerView[hidden], #labView[hidden], #learnView[hidden], #dsView[hidden]{display:none}
   .board-card{padding:22px 24px 24px}
 
   .board-head{
@@ -815,6 +1021,8 @@
     color:var(--ink);
   }
   .time-sub{margin-top:10px; font-size:13px; color:var(--ink-faint); letter-spacing:-.2px; min-height:18px}
+  .wake-note{margin-top:6px; font-size:11.5px; color:var(--ink-faint)}
+  .wake-note button{background:none; border:0; padding:0 2px; font:inherit; color:var(--blue-dark); text-decoration:underline; cursor:pointer}
 
   /* 휴식 모드 */
   body.breaking .ring .bar{stroke:var(--rest)}
@@ -1602,6 +1810,7 @@
     <button data-view="board">커뮤니티</button>
     <button data-view="lab">시뮬레이터</button>
     <button data-view="learn">시각화</button>
+    <button data-view="ds">자료구조</button>
   </nav>
 
   <div id="pwaBar"></div>
@@ -1623,6 +1832,7 @@
           <div class="ring-inner">
             <div class="time" id="timeText">00:00:00</div>
             <div class="time-sub" id="timeSub">버튼을 눌러 공부를 시작하세요</div>
+            <div class="wake-note" id="wakeNote" hidden></div>
           </div>
         </div>
 
@@ -1938,6 +2148,56 @@
       <p class="lab-first" id="learnFirst">
         처음 실행할 때는 파이썬을 내려받느라 <b>30초~1분</b> 걸릴 수 있어요. 두 번째부터는 빨라요.
       </p>
+    </div>
+  </section>
+
+  <!-- ================= 자료구조 · 알고리즘 ================= -->
+  <section id="dsView" hidden>
+    <div class="card lab-card">
+      <h3 class="lab-title">자료구조 · 알고리즘</h3>
+      <p class="lab-lead">
+        자료구조가 <b>어떻게 생겼는지</b>, 알고리즘이 <b>한 단계씩 어떻게 움직이는지</b> 그림으로 봐요.
+        오른쪽 코드에서 <b>지금 실행되는 줄</b>이 Python 과 C 로 동시에 표시돼요. 값을 바꾸고 동작 버튼을 눌러보세요.
+      </p>
+      <div class="ds-layout">
+        <nav class="ds-menu" id="dsMenu"></nav>
+        <div class="ds-main">
+          <div class="ds-head">
+            <h4 id="dsTitle"></h4>
+            <p class="ds-desc" id="dsDesc"></p>
+          </div>
+          <div class="ds-inputrow" id="dsInputWrap" hidden>
+            <label><span id="dsInputLabel">배열</span><input type="text" id="dsInput" placeholder="예: 5, 3, 8, 1"></label>
+            <button class="btn-ghost" id="dsRandom">🎲 랜덤</button>
+          </div>
+          <div class="ds-ops" id="dsOps"></div>
+          <div class="ds-stage" id="dsStage"></div>
+          <div class="ds-msg" id="dsMsg"></div>
+          <div class="ds-vars" id="dsVars"></div>
+          <div class="ds-ctrl">
+            <button id="dsFirst" title="처음으로">⏮</button>
+            <button id="dsPrev" title="한 단계 뒤로 (←)">◀</button>
+            <button id="dsPlay" class="ds-playbtn">▶ 재생</button>
+            <button id="dsNext" title="한 단계 앞으로 (→)">▶</button>
+            <button id="dsLast" title="끝으로">⏭</button>
+            <span class="ds-stepno" id="dsStep"></span>
+            <label class="ds-speed">속도 <input type="range" id="dsSpeed" min="0.5" max="4" step="0.5" value="1"></label>
+            <label class="ds-auto"><input type="checkbox" id="dsAuto" checked> 누르면 자동 재생</label>
+            <button id="dsReset" class="btn-ghost" title="처음 상태로">↺ 초기화</button>
+          </div>
+          <div class="ds-code">
+            <div class="ds-codetabs" id="dsCodeTabs">
+              <button data-lang="py" class="on">🐍 Python</button>
+              <button data-lang="c">🔧 C</button>
+              <button data-lang="both">둘 다</button>
+            </div>
+            <div class="ds-codewrap" id="dsCodeWrap" data-show="py">
+              <div class="ds-pane" data-lang="py"><div class="ds-panehead">Python</div><pre id="dsPy"></pre></div>
+              <div class="ds-pane" data-lang="c"><div class="ds-panehead">C</div><pre id="dsC"></pre></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -2423,6 +2683,39 @@
     saveSoon();
   }
 
+  /* ---------- 화면 켜두기 (Screen Wake Lock) ----------
+     타이머가 도는 동안 폰·노트북 화면이 저절로 꺼지지 않게 합니다.
+     · 페이지가 보일 때만 잡을 수 있고, 다른 앱으로 가면 브라우저가 자동으로 풀어줍니다 → 돌아올 때 다시 잡습니다.
+     · 학생이 끌 수 있게 스위치를 두고 기기에 기억합니다 (기본: 켬). */
+  const WAKE_KEY = "sungong.wake.v1";
+  let wakeLock = null;
+  const wakeSupported = ()=> "wakeLock" in navigator;
+  const wakeWanted = ()=>{ try { return store.getItem(WAKE_KEY) !== "0"; } catch(e){ return true; } };
+  async function wakeSync(){
+    const want = state.running && !document.hidden && wakeWanted() && wakeSupported();
+    if (want && !wakeLock){
+      try {
+        wakeLock = await navigator.wakeLock.request("screen");
+        wakeLock.addEventListener("release", ()=>{ wakeLock = null; wakeNote(); });
+      } catch(e){ wakeLock = null; }          // 배터리 절약 모드 등에서는 거절될 수 있어요
+    } else if (!want && wakeLock){
+      try { await wakeLock.release(); } catch(e){}
+      wakeLock = null;
+    }
+    wakeNote();
+  }
+  function wakeNote(){
+    const el = $("wakeNote"); if (!el) return;
+    if (!state.running || !wakeSupported()){ el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = wakeWanted()
+      ? (wakeLock ? "🔆 타이머 중엔 화면이 꺼지지 않아요 · " : "화면 켜두기를 켰지만 기기가 허용하지 않았어요 · ") + '<button type="button" id="wakeOff">끄기</button>'
+      : "화면 켜두기 꺼짐 (화면이 저절로 꺼질 수 있어요) · " + '<button type="button" id="wakeOn">켜기</button>';
+    const off = $("wakeOff"), on = $("wakeOn");
+    if (off) off.onclick = ()=>{ try { store.setItem(WAKE_KEY, "0"); } catch(e){} wakeSync(); };
+    if (on)  on.onclick  = ()=>{ try { store.setItem(WAKE_KEY, "1"); } catch(e){} wakeSync(); };
+  }
+
   function start(){
     if (state.running) return;
 
@@ -2439,6 +2732,7 @@
     state.tick = setInterval(step, 200);
     syncButtons();
     render();
+    wakeSync();
   }
 
   function step(){
@@ -2521,6 +2815,7 @@
     flush();
     syncButtons();
     render();
+    wakeSync();
   }
 
   function commit(){
@@ -3855,10 +4150,12 @@
     $("boardView").hidden = v !== "board";
     $("labView").hidden   = v !== "lab";
     $("learnView").hidden = v !== "learn";
+    $("dsView").hidden    = v !== "ds";
     renderMiniTimer();
     if (v === "board" && !boardLoaded) openBoard();
     if (v === "lab") labInit();
     if (v === "learn") learnInit();
+    if (v === "ds") dsInit();
   }
 
   $("brandBtn").onclick = ()=>{ switchView("timer"); window.scrollTo({ top:0, behavior:"smooth" }); };
@@ -5956,6 +6253,7 @@ _imgs
   function onResume(){
     if (state.running) step();
     else if (checkCode) tickCheck();
+    wakeSync();                       // 다른 앱 갔다 오면 브라우저가 풀어둔 화면 켜두기를 다시 잡습니다
   }
   document.addEventListener("visibilitychange", ()=>{
     if (document.hidden){ save(); flush(); }
@@ -8189,6 +8487,2128 @@ plt.legend(); plt.tight_layout()` },
     document.querySelectorAll("#learnLibs button").forEach(b=> b.onclick = ()=>{ learnLib = b.dataset.lib; learnRender(); });
     learnRender();
   }
+
+  /* =====================================================================
+     자료구조 · 알고리즘 시각화
+     · 알고리즘을 자바스크립트로 한 번 실행해 "단계 목록"을 만들고,
+       단계마다 (구조 그림, 파이썬 줄, C 줄, 설명, 변수) 를 한꺼번에 보여줍니다.
+     · 코드 줄 끝의  #@이름 / //@이름  표시가 단계와 줄을 잇는 꼬리표입니다 (화면에는 안 보임).
+     ===================================================================== */
+  const DS_ROMAN = null; // (자리 표시)
+
+  // 코드 문자열 → { lines, labels }  (꼬리표 떼어내기)
+  function dsParseCode(src){
+    const raw = String(src || "").replace(/^\n/, "").replace(/\n\s*$/, "").split("\n");
+    const labels = {};
+    const lines = raw.map((ln, i)=>{
+      const m = ln.match(/\s*(?:#|\/\/)@([\w,]+)\s*$/);
+      if (!m) return ln;
+      m[1].split(",").forEach(l=> (labels[l] = labels[l] || []).push(i));
+      return ln.slice(0, m.index).replace(/\s+$/, "");
+    });
+    return { lines, labels };
+  }
+
+  // C 색칠 (파이썬용과 같은 방식)
+  const C_KW = /\b(int|char|float|double|void|long|short|unsigned|signed|struct|typedef|return|if|else|for|while|do|break|continue|switch|case|default|sizeof|const|static|NULL|define|include|true|false|bool)\b/g;
+  const C_BI = /\b(printf|scanf|malloc|free|main|puts|strlen|memcpy)\b/g;
+  const C_ALL = new RegExp("(\\b\\d+\\.?\\d*\\b)|" + C_KW.source + "|" + C_BI.source, "g");
+  function hlC(code){
+    const marks = [];
+    const keep = (html)=> String.fromCharCode(0xE000 + marks.push(html) - 1);
+    let t = esc(code);
+    t = t.replace(/(\/\/[^\n]*)/g, m=> keep('<span class="tk-cmt">' + m + '</span>'));
+    t = t.replace(/(#(?:include|define)[^\n]*)/g, m=> keep('<span class="tk-kw">' + m + '</span>'));
+    t = t.replace(/(&quot;(?:(?!&quot;)[^\n])*&quot;|&#39;(?:(?!&#39;)[^\n])*&#39;)/g, m=> keep('<span class="tk-str">' + m + '</span>'));
+    t = t.replace(C_ALL, (m, num, kw, bi)=>{
+      if (num) return '<span class="tk-num">' + num + '</span>';
+      if (kw)  return '<span class="tk-kw">' + kw + '</span>';
+      return '<span class="tk-bi">' + bi + '</span>';
+    });
+    return t.replace(/[-]/g, ch=> marks[ch.charCodeAt(0) - 0xE000] || ch);
+  }
+
+  // 단계 기록기
+  function dsRecorder(){
+    const steps = [];
+    return {
+      steps,
+      add(label, msg, snap, vars){ steps.push({ label, msg, snap: JSON.parse(JSON.stringify(snap)), vars: vars || {} }); }
+    };
+  }
+  const dsClone = (o)=> JSON.parse(JSON.stringify(o));
+
+  /* ---------------- 고정 예제 그래프 (천인국 『자료구조』의 DFS/BFS 예제와 같은 모양) ---------------- */
+  const DS_GRAPH = {
+    names: ["0", "1", "2", "3", "4", "5", "6", "7"],
+    pos:   [[90, 20], [40, 75], [140, 75], [15, 135], [65, 135], [115, 135], [165, 135], [90, 190]],
+    adj:   { 0:["1", "2"], 1:["0", "3", "4"], 2:["0", "5", "6"], 3:["1", "7"], 4:["1", "7"], 5:["2", "7"], 6:["2", "7"], 7:["3", "4", "5", "6"] }
+  };
+  // 가중치 그래프 (책의 최단 경로 예제)
+  const DS_WGRAPH = {
+    n: 7,
+    pos: [[20, 90], [90, 30], [180, 30], [250, 90], [90, 150], [180, 150], [250, 150]],
+    edges: [[0,1,7],[0,4,3],[0,5,10],[1,2,4],[1,3,10],[1,4,2],[2,3,2],[3,4,11],[3,5,9],[3,6,4],[4,5,13],[5,6,5]]
+  };
+  const DS_INF = 1000000;
+
+  /* =====================================================================
+     주제 목록 — C 코드와 용어는 천인국 『C언어로 쉽게 풀어쓴 자료구조』의 관례를 따릅니다
+     (StackType·QueueType·is_empty/is_full·error(), ListNode 의 link, TreeNode 의 key, list[] 배열, SWAP 매크로,
+      partition 은 첫 원소 피벗, 병합은 sorted[] 보조 배열, 그래프는 GraphType + adj_mat …)
+     각 주제: { id, group, name, icon, big, desc, render, state()|input|idle(), ops:[{name, params, py?, c?, run}], py, c }
+     run(state, p, R) 은 R.add(꼬리표, 설명, 그림데이터, 변수) 로 단계를 쌓고 마지막 상태를 돌려줍니다.
+     ===================================================================== */
+  const DS_SCENES = [
+
+  /* ───────── 배열 리스트 ───────── */
+  { id:"array", group:"선형 자료구조", name:"배열 리스트", icon:"▦", big:"접근 O(1) · 삽입/삭제 O(n)",
+    desc:"배열로 만든 리스트(ArrayList)예요. 항목이 <b>인덱스</b>로 이어져 있어 몇 번째든 <b>바로 접근</b>해요. 대신 중간에 삽입·삭제하려면 뒤의 항목을 <b>한 칸씩 이동</b>시켜야 해서 O(n)이에요.",
+    render:"array",
+    state:()=> ({ arr:[12, 7, 25, 3, 18], cap:8 }),
+    ops:[
+      { name:"get_entry(pos)", params:[{k:"k", label:"pos", type:"num", def:2, min:0, max:7}],
+        run(st, p, R){
+          const k = Math.min(p.k, st.arr.length - 1);
+          R.add("access", `array[${k}] 은 시작 주소 + ${k}칸 — 세지 않고 <b>바로</b> 갑니다. 값: ${st.arr[k]}`, { arr:st.arr, cap:st.cap, marks:{ [k]:"found" }, ptrs:{ pos:k } }, { pos:k });
+          return st; } },
+      { name:"insert(pos, item)", params:[{k:"k", label:"pos", type:"num", def:1, min:0, max:7}, {k:"v", label:"item", type:"num", def:99}],
+        run(st, p, R){
+          const a = st.arr.slice(); const size = a.length;
+          if (size >= st.cap){ R.add("full", "리스트가 포화 상태예요. 더 넣을 수 없어요.", { arr:a, cap:st.cap, marks:{}, ptrs:{} }); return st; }
+          const k = Math.min(p.k, size);
+          R.add("full", `포화 상태인지 확인 — size = ${size}, 자리가 있어요.`, { arr:a, cap:st.cap, marks:{}, ptrs:{ pos:k } }, { pos:k, item:p.v, size });
+          for (let i = size - 1; i >= k; i--){
+            R.add("shift_loop", `i = ${i}: array[${i}] 을 array[${i + 1}] 로 한 칸 뒤로 이동`, { arr:a, cap:st.cap, marks:{ [i]:"cmp", [i + 1]:"move" }, ptrs:{ pos:k, i } }, { pos:k, i });
+            a[i + 1] = a[i]; a[i] = null;
+            R.add("shift", `array[${i + 1}] = ${a[i + 1]}`, { arr:a, cap:st.cap, marks:{ [i + 1]:"move" }, ptrs:{ pos:k, i } }, { pos:k, i });
+          }
+          a[k] = p.v;
+          R.add("place", `빈자리 array[${k}] 에 ${p.v} 를 넣고 size 를 1 늘려요. 뒤의 ${size - k}개를 이동했으니 O(n).`, { arr:a, cap:st.cap, marks:{ [k]:"found" }, ptrs:{ pos:k } }, { pos:k, size:size + 1 });
+          return { arr:a, cap:st.cap }; } },
+      { name:"delete(pos)", params:[{k:"k", label:"pos", type:"num", def:1, min:0, max:7}],
+        run(st, p, R){
+          const a = st.arr.slice(); const k = Math.min(p.k, a.length - 1); const size = a.length;
+          R.add("dshift_loop", `array[${k}] = ${a[k]} 를 지우면 구멍이 생겨요. 뒤의 항목을 앞으로 당겨요.`, { arr:a, cap:st.cap, marks:{ [k]:"del" }, ptrs:{ pos:k } }, { pos:k });
+          for (let i = k; i < size - 1; i++){
+            a[i] = a[i + 1]; a[i + 1] = null;
+            R.add("dshift", `i = ${i}: array[${i}] = array[${i + 1}]`, { arr:a, cap:st.cap, marks:{ [i]:"move" }, ptrs:{ pos:k, i } }, { pos:k, i });
+          }
+          a.pop();
+          R.add("shrink", `size 를 1 줄여요 (size = ${a.length}). 삭제도 O(n).`, { arr:a, cap:st.cap, marks:{}, ptrs:{} }, { size:a.length });
+          return { arr:a, cap:st.cap }; } }
+    ],
+    py:`
+class ArrayList:
+    def __init__(self):
+        self.array = [12, 7, 25, 3, 18]     #@init
+        self.size = 5
+
+    def is_full(self):
+        return self.size == MAX_LIST_SIZE   #@full
+
+    def get_entry(self, pos):
+        return self.array[pos]              #@access
+
+    def insert(self, pos, item):
+        if self.is_full(): error("리스트가 포화상태입니다")   #@full
+        self.array.append(None)
+        for i in range(self.size - 1, pos - 1, -1):   #@shift_loop
+            self.array[i + 1] = self.array[i]          #@shift
+        self.array[pos] = item                          #@place
+        self.size += 1                                  #@place
+
+    def delete(self, pos):
+        for i in range(pos, self.size - 1):            #@dshift_loop
+            self.array[i] = self.array[i + 1]          #@dshift
+        self.array.pop()
+        self.size -= 1                                  #@shrink`,
+    c:`
+#define MAX_LIST_SIZE 8
+typedef int element;
+typedef struct {
+    element array[MAX_LIST_SIZE];          //@init
+    int size;
+} ArrayListType;
+
+void error(char *message) { fprintf(stderr, "%s\\n", message); exit(1); }
+int is_full(ArrayListType *L) { return L->size == MAX_LIST_SIZE; }   //@full
+
+element get_entry(ArrayListType *L, int pos) {
+    return L->array[pos];                  //@access
+}
+
+void insert(ArrayListType *L, int pos, element item) {
+    if (is_full(L)) error("리스트가 포화상태입니다");   //@full
+    for (int i = L->size - 1; i >= pos; i--)   //@shift_loop
+        L->array[i + 1] = L->array[i];         //@shift
+    L->array[pos] = item;                  //@place
+    L->size++;                             //@place
+}
+
+void delete(ArrayListType *L, int pos) {
+    for (int i = pos; i < L->size - 1; i++)    //@dshift_loop
+        L->array[i] = L->array[i + 1];         //@dshift
+    L->size--;                             //@shrink
+}` },
+
+  /* ───────── 스택 ───────── */
+  { id:"stack", group:"선형 자료구조", name:"스택", icon:"🥞", big:"후입선출(LIFO) · push/pop O(1)",
+    desc:"<b>후입선출(LIFO)</b>: 나중에 들어온 항목이 먼저 나가요. 삽입은 push, 삭제는 pop, 맨 위를 <b>top</b>이라 해요. 비어 있으면 <b>공백 상태</b>(top = −1), 꽉 차면 <b>포화 상태</b>(top = MAX_STACK_SIZE − 1). 함수 호출·수식 계산·되돌리기에 쓰여요.",
+    render:"stack",
+    state:()=> ({ items:[4, 9], cap:6 }),
+    ops:[
+      { name:"push(item)", params:[{k:"v", label:"item", type:"num", def:7}],
+        run(st, p, R){
+          const it = st.items.slice();
+          if (it.length >= st.cap){ R.add("full", `is_full: top == MAX_STACK_SIZE − 1 → <b>포화 상태</b>. "스택 포화 에러".`, { items:it, cap:st.cap, hl:{ [it.length - 1]:"cmp" } }, { top:it.length - 1 }); return st; }
+          R.add("full", `is_full 검사 — top = ${it.length - 1}, 아직 포화가 아니에요.`, { items:it, cap:st.cap, hl:{} }, { top:it.length - 1 });
+          it.push(p.v);
+          R.add("push", `top 을 1 증가시킨 뒤 data[top] 에 ${p.v} 저장 (data[++top] = item).`, { items:it, cap:st.cap, hl:{ [it.length - 1]:"new" } }, { top:it.length - 1 });
+          return { items:it, cap:st.cap }; } },
+      { name:"pop()", params:[],
+        run(st, p, R){
+          const it = st.items.slice();
+          if (!it.length){ R.add("empty", `is_empty: top == −1 → <b>공백 상태</b>. "스택 공백 에러".`, { items:it, cap:st.cap, hl:{} }, { top:-1 }); return st; }
+          R.add("empty", `is_empty 검사 — top = ${it.length - 1}, 공백이 아니에요.`, { items:it, cap:st.cap, hl:{ [it.length - 1]:"cmp" } }, { top:it.length - 1 });
+          const v = it.pop();
+          R.add("pop", `data[top] = ${v} 를 돌려주고 top 을 1 감소 (data[top--]).`, { items:it, cap:st.cap, hl:{}, popped:v }, { top:it.length - 1 });
+          return { items:it, cap:st.cap }; } },
+      { name:"peek()", params:[],
+        run(st, p, R){
+          const it = st.items;
+          if (!it.length){ R.add("empty", "공백 상태 — 볼 항목이 없어요.", { items:it, cap:st.cap, hl:{} }); return st; }
+          R.add("peek", `data[top] = ${it[it.length - 1]} 을 <b>꺼내지 않고</b> 돌려줘요. top 은 그대로.`, { items:it, cap:st.cap, hl:{ [it.length - 1]:"found" } }, { top:it.length - 1 });
+          return st; } }
+    ],
+    py:`
+MAX_STACK_SIZE = 6
+class StackType:
+    def __init__(self):
+        self.data = []                     #@init
+        self.top = -1
+
+def is_empty(s): return s.top == -1        #@empty
+def is_full(s):  return s.top == MAX_STACK_SIZE - 1   #@full
+
+def push(s, item):
+    if is_full(s): error("스택 포화 에러")   #@full
+    s.top += 1                             #@push
+    s.data.append(item)                    #@push
+
+def pop(s):
+    if is_empty(s): error("스택 공백 에러")   #@empty
+    s.top -= 1                             #@pop
+    return s.data.pop()                    #@pop
+
+def peek(s):
+    if is_empty(s): error("스택 공백 에러")   #@empty
+    return s.data[s.top]                   #@peek`,
+    c:`
+#define MAX_STACK_SIZE 6
+typedef int element;
+typedef struct {
+    element data[MAX_STACK_SIZE];          //@init
+    int top;
+} StackType;
+
+void init_stack(StackType *s) { s->top = -1; }                     //@init
+int is_empty(StackType *s) { return (s->top == -1); }              //@empty
+int is_full(StackType *s)  { return (s->top == (MAX_STACK_SIZE - 1)); }   //@full
+
+void push(StackType *s, element item) {
+    if (is_full(s)) { fprintf(stderr, "스택 포화 에러\\n"); return; }   //@full
+    else s->data[++(s->top)] = item;       //@push
+}
+
+element pop(StackType *s) {
+    if (is_empty(s)) { fprintf(stderr, "스택 공백 에러\\n"); exit(1); }   //@empty
+    else return s->data[(s->top)--];       //@pop
+}
+
+element peek(StackType *s) {
+    if (is_empty(s)) { fprintf(stderr, "스택 공백 에러\\n"); exit(1); }   //@empty
+    else return s->data[s->top];           //@peek
+}` },
+
+  /* ───────── 선형 큐 ───────── */
+  { id:"queue", group:"선형 자료구조", name:"선형 큐", icon:"🚶", big:"선입선출(FIFO) · O(1)",
+    desc:"<b>선입선출(FIFO)</b>: 먼저 들어온 항목이 먼저 나가요. <b>rear</b>로 삽입(enqueue), <b>front</b>로 삭제(dequeue). 책의 선형 큐는 front = rear = −1 에서 시작하고, front 는 <b>첫 항목의 한 칸 앞</b>을 가리켜요. front == rear 면 공백, rear == MAX−1 이면 포화 — 그래서 앞이 비어 있어도 다시 못 쓰는 문제가 있어요(→ 원형 큐).",
+    render:"queue",
+    state:()=> ({ cells:[null, null, null, null, null, null], front:-1, rear:-1 }),
+    ops:[
+      { name:"enqueue(item)", params:[{k:"v", label:"item", type:"num", def:5}],
+        run(st, p, R){
+          const s = dsClone(st);
+          if (s.rear >= s.cells.length - 1){ R.add("full", `is_full: rear == MAX_QUEUE_SIZE − 1 → <b>포화 상태</b>. ${s.front >= 0 ? "앞칸 " + (s.front + 1) + "개가 비어 있는데도요 — 선형 큐의 한계예요." : ""}`, s, { front:s.front, rear:s.rear }); return st; }
+          R.add("full", `is_full 검사 — rear = ${s.rear}, 아직 자리가 있어요.`, s, { front:s.front, rear:s.rear });
+          s.rear++; s.cells[s.rear] = p.v; s.hl = { [s.rear]:"new" };
+          R.add("enq", `rear 를 1 증가시키고 data[rear] 에 ${p.v} 저장 (data[++rear] = item).`, s, { front:s.front, rear:s.rear });
+          delete s.hl; return s; } },
+      { name:"dequeue()", params:[],
+        run(st, p, R){
+          const s = dsClone(st);
+          if (s.front === s.rear){ R.add("empty", `is_empty: front == rear → <b>공백 상태</b>. "큐가 공백상태입니다".`, s, { front:s.front, rear:s.rear }); return st; }
+          s.hl = { [s.front + 1]:"cmp" };
+          R.add("empty", `is_empty 검사 — front = ${s.front} ≠ rear = ${s.rear}, 항목이 있어요.`, s, { front:s.front, rear:s.rear });
+          s.front++; const v = s.cells[s.front]; s.cells[s.front] = null; s.hl = {}; s.popped = v;
+          R.add("deq", `front 를 1 증가시키고 data[front] = ${v} 를 돌려줘요 (data[++front]). 비워진 앞칸은 다시 못 써요.`, s, { front:s.front, rear:s.rear });
+          delete s.hl; delete s.popped; return s; } }
+    ],
+    py:`
+MAX_QUEUE_SIZE = 6
+class QueueType:
+    def __init__(self):
+        self.data = [None] * MAX_QUEUE_SIZE   #@init
+        self.front = -1
+        self.rear = -1
+
+def is_empty(q): return q.front == q.rear              #@empty
+def is_full(q):  return q.rear == MAX_QUEUE_SIZE - 1   #@full
+
+def enqueue(q, item):
+    if is_full(q): error("큐가 포화상태입니다")   #@full
+    q.rear += 1                                #@enq
+    q.data[q.rear] = item                      #@enq
+
+def dequeue(q):
+    if is_empty(q): error("큐가 공백상태입니다")   #@empty
+    q.front += 1                               #@deq
+    return q.data[q.front]                     #@deq`,
+    c:`
+#define MAX_QUEUE_SIZE 6
+typedef int element;
+typedef struct {
+    int front;                             //@init
+    int rear;
+    element data[MAX_QUEUE_SIZE];
+} QueueType;
+
+void error(char *message) { fprintf(stderr, "%s\\n", message); exit(1); }
+void init_queue(QueueType *q) { q->rear = -1; q->front = -1; }      //@init
+int is_empty(QueueType *q) { return (q->front == q->rear); }        //@empty
+int is_full(QueueType *q)  { return (q->rear == MAX_QUEUE_SIZE - 1); }   //@full
+
+void enqueue(QueueType *q, int item) {
+    if (is_full(q)) error("큐가 포화상태입니다");   //@full
+    q->data[++(q->rear)] = item;           //@enq
+}
+
+int dequeue(QueueType *q) {
+    if (is_empty(q)) error("큐가 공백상태입니다");   //@empty
+    int item = q->data[++(q->front)];      //@deq
+    return item;                           //@deq
+}` },
+
+  /* ───────── 원형 큐 ───────── */
+  { id:"cqueue", group:"선형 자료구조", name:"원형 큐", icon:"🔄", big:"선입선출 · 앞칸 재사용",
+    desc:"배열의 끝과 처음을 이어 붙인 큐예요. front·rear 를 <b>(x + 1) % MAX_QUEUE_SIZE</b> 로 증가시켜 끝에 닿으면 0 으로 돌아와요. 공백(front == rear)과 포화를 구별하려고 <b>한 칸은 항상 비워 두고</b>, (rear + 1) % MAX == front 면 포화로 봐요. front 가 가리키는 칸은 비어 있어요.",
+    render:"ring",
+    state:()=> ({ size:6, cells:[null, null, null, null, null, null], front:0, rear:0 }),
+    ops:[
+      { name:"enqueue(item)", params:[{k:"v", label:"item", type:"num", def:5}],
+        run(st, p, R){
+          const s = dsClone(st); const nx = (s.rear + 1) % s.size;
+          if (nx === s.front){ R.add("full", `is_full: (rear + 1) % ${s.size} = ${nx} == front → <b>포화 상태</b>. 한 칸(front 자리)은 일부러 비워 둔 거예요.`, Object.assign({}, s, { hl:{ [nx]:"cmp" } }), { front:s.front, rear:s.rear }); return st; }
+          R.add("full", `is_full 검사 — (rear + 1) % ${s.size} = ${nx} ≠ front(${s.front}), 자리가 있어요.`, s, { front:s.front, rear:s.rear });
+          s.rear = nx;
+          R.add("enq_move", `rear = (rear + 1) % ${s.size} = ${nx}${nx === 0 ? " — 끝에서 0 으로 돌아왔어요!" : ""}`, Object.assign({}, s, { hl:{ [nx]:"cmp" } }), { front:s.front, rear:s.rear });
+          s.cells[s.rear] = p.v;
+          R.add("enq", `data[rear] = ${p.v}`, Object.assign({}, s, { hl:{ [s.rear]:"new" } }), { front:s.front, rear:s.rear });
+          return s; } },
+      { name:"dequeue()", params:[],
+        run(st, p, R){
+          const s = dsClone(st);
+          if (s.front === s.rear){ R.add("empty", `is_empty: front == rear → <b>공백 상태</b>.`, s, { front:s.front, rear:s.rear }); return st; }
+          R.add("empty", `is_empty 검사 — front(${s.front}) ≠ rear(${s.rear}), 항목이 있어요.`, s, { front:s.front, rear:s.rear });
+          s.front = (s.front + 1) % s.size;
+          R.add("deq_move", `front = (front + 1) % ${s.size} = ${s.front}${s.front === 0 ? " — 끝에서 0 으로 돌아왔어요!" : ""}`, Object.assign({}, s, { hl:{ [s.front]:"cmp" } }), { front:s.front, rear:s.rear });
+          const v = s.cells[s.front]; s.cells[s.front] = null;
+          R.add("deq", `data[front] = ${v} 를 돌려줘요. 이 칸은 다음 enqueue 때 다시 쓸 수 있어요.`, Object.assign({}, s, { popped:v }), { front:s.front, rear:s.rear });
+          return s; } }
+    ],
+    py:`
+MAX_QUEUE_SIZE = 6
+class QueueType:
+    def __init__(self):
+        self.data = [None] * MAX_QUEUE_SIZE   #@init
+        self.front = 0
+        self.rear = 0
+
+def is_empty(q): return q.front == q.rear                          #@empty
+def is_full(q):  return (q.rear + 1) % MAX_QUEUE_SIZE == q.front   #@full
+
+def enqueue(q, item):
+    if is_full(q): error("큐가 포화상태입니다")        #@full
+    q.rear = (q.rear + 1) % MAX_QUEUE_SIZE          #@enq_move
+    q.data[q.rear] = item                           #@enq
+
+def dequeue(q):
+    if is_empty(q): error("큐가 공백상태입니다")       #@empty
+    q.front = (q.front + 1) % MAX_QUEUE_SIZE        #@deq_move
+    return q.data[q.front]                          #@deq`,
+    c:`
+#define MAX_QUEUE_SIZE 6
+typedef int element;
+typedef struct {
+    element data[MAX_QUEUE_SIZE];          //@init
+    int front, rear;
+} QueueType;
+
+void init_queue(QueueType *q) { q->front = q->rear = 0; }           //@init
+int is_empty(QueueType *q) { return (q->front == q->rear); }        //@empty
+int is_full(QueueType *q)  { return ((q->rear + 1) % MAX_QUEUE_SIZE == q->front); }   //@full
+
+void enqueue(QueueType *q, element item) {
+    if (is_full(q)) error("큐가 포화상태입니다");   //@full
+    q->rear = (q->rear + 1) % MAX_QUEUE_SIZE;     //@enq_move
+    q->data[q->rear] = item;                      //@enq
+}
+
+element dequeue(QueueType *q) {
+    if (is_empty(q)) error("큐가 공백상태입니다");   //@empty
+    q->front = (q->front + 1) % MAX_QUEUE_SIZE;   //@deq_move
+    return q->data[q->front];                     //@deq
+}` },
+
+  /* ───────── 단순 연결 리스트 ───────── */
+  { id:"linked", group:"선형 자료구조", name:"단순 연결 리스트", icon:"🔗", big:"삽입/삭제 O(1)* · 탐색 O(n)",
+    desc:"노드 = <b>데이터 필드 + 링크 필드(link)</b>. 링크가 다음 노드를 가리키고, 마지막 노드의 링크는 NULL. 첫 노드를 가리키는 <b>헤드 포인터(head)</b>만 알면 전부 따라갈 수 있어요. 책처럼 <b>선행 노드 pre</b>를 알고 있을 때의 삽입·삭제는 링크 두 개만 바꾸면 끝(O(1)).",
+    render:"linked",
+    state:()=> ({ nodes:[{ id:1, v:10 }, { id:2, v:20 }, { id:3, v:30 }], nextId:4 }),
+    ops:[
+      { name:"insert_first(head, value)", params:[{k:"v", label:"value", type:"num", def:5}],
+        run(st, p, R){
+          const s = dsClone(st); const node = { id:s.nextId++, v:p.v };
+          R.add("pf_new", `새 노드 p 를 동적 할당하고 data 에 ${p.v} 저장.`, Object.assign({}, s, { pending:node, hl:{ [node.id]:"new" } }));
+          R.add("pf_link", `p->link = head : 새 노드가 지금의 첫 노드(${s.nodes[0] ? s.nodes[0].v : "NULL"})를 가리키게.`, Object.assign({}, s, { pending:node, pendingNext:s.nodes[0] ? s.nodes[0].id : null, hl:{ [node.id]:"new" } }));
+          s.nodes.unshift(node);
+          R.add("pf_head", `head = p : 헤드 포인터를 새 노드로. 링크 두 번 — O(1).`, Object.assign({}, s, { hl:{ [node.id]:"found" } }));
+          return s; } },
+      { name:"insert(head, pre, value)", params:[{k:"pre", label:"pre (선행 노드 값)", type:"num", def:20}, {k:"v", label:"value", type:"num", def:25}],
+        run(st, p, R){
+          const s = dsClone(st); const pi = s.nodes.findIndex(n=> n.v === p.pre);
+          if (pi < 0){ R.add("i_new", `값이 ${p.pre} 인 선행 노드가 없어요.`, s); return st; }
+          const pre = s.nodes[pi]; const node = { id:s.nextId++, v:p.v };
+          R.add("i_new", `선행 노드 pre = ${pre.v}. 새 노드 p 를 만들어 data = ${p.v}.`, Object.assign({}, s, { pending:node, pendingAt:pi + 1, hl:{ [pre.id]:"prev", [node.id]:"new" } }));
+          R.add("i_link1", `p->link = pre->link : 새 노드가 pre 의 다음(${s.nodes[pi + 1] ? s.nodes[pi + 1].v : "NULL"})을 가리키게. <b>이 순서가 먼저</b>여야 뒤를 잃지 않아요.`, Object.assign({}, s, { pending:node, pendingAt:pi + 1, pendingNext:s.nodes[pi + 1] ? s.nodes[pi + 1].id : null, hl:{ [pre.id]:"prev", [node.id]:"new" } }));
+          s.nodes.splice(pi + 1, 0, node);
+          R.add("i_link2", `pre->link = p : pre 가 새 노드를 가리키게. 끝!`, Object.assign({}, s, { hl:{ [pre.id]:"prev", [node.id]:"found" } }));
+          return s; } },
+      { name:"delete_first(head)", params:[],
+        run(st, p, R){
+          const s = dsClone(st); if (!s.nodes.length){ R.add("df_null", "head == NULL — 공백 리스트예요.", s); return s; }
+          const rm = s.nodes[0];
+          R.add("df_rm", `removed = head : 첫 노드(${rm.v})를 기억해 둬요.`, Object.assign({}, s, { hl:{ [rm.id]:"del" } }));
+          R.add("df_head", `head = removed->link : 헤드가 둘째 노드(${s.nodes[1] ? s.nodes[1].v : "NULL"})를 가리키게.`, Object.assign({}, s, { hl:{ [rm.id]:"del", [(s.nodes[1] || {}).id]:"cur" } }));
+          s.nodes.shift();
+          R.add("df_free", `free(removed) : 떼어낸 노드의 메모리를 반납해요.`, s);
+          return s; } },
+      { name:"delete(head, pre)", params:[{k:"pre", label:"pre (선행 노드 값)", type:"num", def:10}],
+        run(st, p, R){
+          const s = dsClone(st); const pi = s.nodes.findIndex(n=> n.v === p.pre);
+          if (pi < 0 || pi === s.nodes.length - 1){ R.add("d_rm", pi < 0 ? `값이 ${p.pre} 인 선행 노드가 없어요.` : `pre(${p.pre}) 가 마지막 노드라 지울 다음 노드가 없어요.`, s); return st; }
+          const pre = s.nodes[pi], rm = s.nodes[pi + 1];
+          R.add("d_rm", `removed = pre->link : pre(${pre.v}) 의 다음 노드 ${rm.v} 가 삭제 대상.`, Object.assign({}, s, { hl:{ [pre.id]:"prev", [rm.id]:"del" } }));
+          R.add("d_link", `pre->link = removed->link : pre 가 ${rm.v} 를 건너뛰고 그 다음(${s.nodes[pi + 2] ? s.nodes[pi + 2].v : "NULL"})을 가리키게.`, Object.assign({}, s, { skip:[pre.id, rm.id], hl:{ [pre.id]:"prev", [rm.id]:"del" } }));
+          s.nodes.splice(pi + 1, 1);
+          R.add("d_free", `free(removed). 삭제 완료.`, s);
+          return s; } },
+      { name:"search_list(head, x)", params:[{k:"x", label:"x", type:"num", def:30}],
+        run(st, p, R){
+          const s = dsClone(st);
+          for (let i = 0; i < s.nodes.length; i++){
+            R.add("s_loop", `p = ${s.nodes[i].v}: p->data == ${p.x}? ${s.nodes[i].v === p.x ? "네!" : "아니요 → p = p->link"}`, Object.assign({}, s, { hl:{ [s.nodes[i].id]:s.nodes[i].v === p.x ? "found" : "cur" } }), { p:s.nodes[i].v });
+            if (s.nodes[i].v === p.x){ R.add("s_found", `찾았어요. 앞에서부터 ${i + 1}개를 따라왔어요 — 탐색은 O(n).`, Object.assign({}, s, { hl:{ [s.nodes[i].id]:"found" } })); return st; }
+          }
+          R.add("s_null", `p 가 NULL 에 닿았어요 — ${p.x} 는 없어요.`, s);
+          return st; } }
+    ],
+    py:`
+class ListNode:
+    def __init__(self, data):
+        self.data = data                   #@node
+        self.link = None
+
+def insert_first(head, value):
+    p = ListNode(value)                    #@pf_new
+    p.link = head                          #@pf_link
+    head = p                               #@pf_head
+    return head
+
+def insert(head, pre, value):
+    p = ListNode(value)                    #@i_new
+    p.link = pre.link                      #@i_link1
+    pre.link = p                           #@i_link2
+    return head
+
+def delete_first(head):
+    if head is None: return None           #@df_null
+    removed = head                         #@df_rm
+    head = removed.link                    #@df_head
+    return head                            #@df_free
+
+def delete(head, pre):
+    removed = pre.link                     #@d_rm
+    pre.link = removed.link                #@d_link
+    return head                            #@d_free
+
+def search_list(head, x):
+    p = head
+    while p is not None:                   #@s_loop
+        if p.data == x: return p           #@s_found
+        p = p.link                         #@s_loop
+    return None                            #@s_null`,
+    c:`
+typedef int element;
+typedef struct ListNode {
+    element data;                          //@node
+    struct ListNode *link;
+} ListNode;
+
+ListNode* insert_first(ListNode *head, element value) {
+    ListNode *p = (ListNode *)malloc(sizeof(ListNode));   //@pf_new
+    p->data = value;                       //@pf_new
+    p->link = head;                        //@pf_link
+    head = p;                              //@pf_head
+    return head;
+}
+
+ListNode* insert(ListNode *head, ListNode *pre, element value) {
+    ListNode *p = (ListNode *)malloc(sizeof(ListNode));   //@i_new
+    p->data = value;                       //@i_new
+    p->link = pre->link;                   //@i_link1
+    pre->link = p;                         //@i_link2
+    return head;
+}
+
+ListNode* delete_first(ListNode *head) {
+    ListNode *removed;
+    if (head == NULL) return NULL;         //@df_null
+    removed = head;                        //@df_rm
+    head = removed->link;                  //@df_head
+    free(removed);                         //@df_free
+    return head;
+}
+
+ListNode* delete(ListNode *head, ListNode *pre) {
+    ListNode *removed;
+    removed = pre->link;                   //@d_rm
+    pre->link = removed->link;             //@d_link
+    free(removed);                         //@d_free
+    return head;
+}
+
+ListNode* search_list(ListNode *head, element x) {
+    ListNode *p = head;
+    while (p != NULL) {                    //@s_loop
+        if (p->data == x) return p;        //@s_found
+        p = p->link;                       //@s_loop
+    }
+    return NULL;                           //@s_null
+}` },
+
+  /* ───────── 순차 탐색 ───────── */
+  { id:"linear", group:"탐색", name:"순차 탐색", icon:"👀", big:"O(n)",
+    desc:"<b>순차 탐색(sequential search)</b>: 배열의 처음부터 <b>하나씩 차례로</b> 비교해요. 정렬돼 있지 않아도 되지만, 평균 (n+1)/2 번, 최악 n 번 비교해요.",
+    render:"array", input:{ label:"list[]", def:[7, 2, 9, 4, 11, 5, 8] },
+    ops:[
+      { name:"seq_search(key)", params:[{k:"t", label:"key", type:"num", def:11}],
+        run(st, p, R){
+          const a = st.arr;
+          for (let i = 0; i < a.length; i++){
+            R.add("cmp", `list[${i}] = ${a[i]} 이 key ${p.t} 와 같은가? ${a[i] === p.t ? "네!" : "아니요."}`, { arr:a, marks:{ [i]:a[i] === p.t ? "found" : "cmp" }, ptrs:{ i } }, { i, key:p.t });
+            if (a[i] === p.t){ R.add("found", `인덱스 ${i} 에서 찾았어요. 비교 ${i + 1}번.`, { arr:a, marks:{ [i]:"found" }, ptrs:{ i } }, { i }); return st; }
+          }
+          R.add("none", `끝까지 봤지만 없어요. 비교 ${a.length}번 — 최악의 경우 O(n).`, { arr:a, marks:{}, ptrs:{} });
+          return st; } }
+    ],
+    py:`
+def seq_search(key, low, high):
+    for i in range(low, high + 1):     #@loop
+        if list[i] == key:             #@cmp
+            return i                   #@found
+    return -1                          #@none`,
+    c:`
+int seq_search(int key, int low, int high) {
+    int i;
+    for (i = low; i <= high; i++)      //@loop
+        if (list[i] == key)            //@cmp
+            return i;                  //@found
+    return -1;                         //@none
+}` },
+
+  /* ───────── 이진 탐색 ───────── */
+  { id:"binary", group:"탐색", name:"이진 탐색", icon:"✂️", big:"O(log n) · 정렬된 배열",
+    desc:"<b>이진 탐색(binary search)</b>: <b>정렬된</b> 배열의 가운데(middle)와 비교해서, key 가 작으면 왼쪽 절반, 크면 오른쪽 절반에서 다시 찾아요. 매번 절반씩 줄어드니 비교 횟수는 log₂n 번. 책처럼 <b>순환(재귀)</b>으로 써요.",
+    render:"array", input:{ label:"list[] (자동 정렬)", def:[3, 8, 12, 17, 23, 31, 40, 46, 58], sort:true },
+    ops:[
+      { name:"search_binary(key)", params:[{k:"t", label:"key", type:"num", def:31}],
+        run(st, p, R){
+          const a = st.arr; let n = 0;
+          const dim = (lo, hi)=>{ const m = {}; for (let i = 0; i < a.length; i++) if (i < lo || i > hi) m[i] = "dim"; return m; };
+          const go = (lo, hi, depth)=>{
+            R.add("cond", `search_binary(${p.t}, ${lo}, ${hi})${depth ? " (순환 " + depth + "단계)" : ""}: low ≤ high? ${lo <= hi ? "네" : "아니요 → 없음"}`, { arr:a, marks:dim(lo, hi), ptrs:{ low:lo, high:hi } }, { low:lo, high:hi });
+            if (lo > hi){ R.add("none", `탐색 구간이 사라졌어요 — ${p.t} 는 없어요. 비교 ${n}번.`, { arr:a, marks:dim(1, 0), ptrs:{} }); return; }
+            const mid = Math.floor((lo + hi) / 2); n++;
+            R.add("mid", `middle = (${lo} + ${hi}) / 2 = ${mid}, list[middle] = ${a[mid]}`, { arr:a, marks:Object.assign(dim(lo, hi), { [mid]:"cmp" }), ptrs:{ low:lo, middle:mid, high:hi } }, { low:lo, middle:mid, high:hi });
+            if (a[mid] === p.t){ R.add("found", `key == list[${mid}] 찾았어요! 비교 ${n}번.`, { arr:a, marks:Object.assign(dim(lo, hi), { [mid]:"found" }), ptrs:{ middle:mid } }, { middle:mid }); return; }
+            if (p.t < a[mid]){ R.add("left", `key ${p.t} < ${a[mid]} → 왼쪽 절반 (${lo} ~ ${mid - 1}) 에서 다시`, { arr:a, marks:dim(lo, mid - 1), ptrs:{ low:lo, high:mid - 1 } }, { low:lo, high:mid - 1 }); go(lo, mid - 1, depth + 1); }
+            else { R.add("right", `key ${p.t} > ${a[mid]} → 오른쪽 절반 (${mid + 1} ~ ${hi}) 에서 다시`, { arr:a, marks:dim(mid + 1, hi), ptrs:{ low:mid + 1, high:hi } }, { low:mid + 1, high:hi }); go(mid + 1, hi, depth + 1); }
+          };
+          go(0, a.length - 1, 0);
+          return st; } }
+    ],
+    py:`
+def search_binary(key, low, high):
+    if low <= high:                            #@cond
+        middle = (low + high) // 2             #@mid
+        if key == list[middle]:                #@found
+            return middle                      #@found
+        elif key < list[middle]:               #@left
+            return search_binary(key, low, middle - 1)    #@left
+        else:                                  #@right
+            return search_binary(key, middle + 1, high)   #@right
+    return -1                                  #@none`,
+    c:`
+int search_binary(int key, int low, int high) {
+    int middle;
+    if (low <= high) {                         //@cond
+        middle = (low + high) / 2;             //@mid
+        if (key == list[middle])               //@found
+            return middle;                     //@found
+        else if (key < list[middle])           //@left
+            return search_binary(key, low, middle - 1);   //@left
+        else                                   //@right
+            return search_binary(key, middle + 1, high);  //@right
+    }
+    return -1;                                 //@none
+}` },
+
+  /* ───────── 선택 정렬 ───────── */
+  { id:"selection", group:"정렬", name:"선택 정렬", icon:"🎯", big:"O(n²) · 이동 횟수 적음",
+    desc:"<b>선택 정렬(selection sort)</b>: 오른쪽 리스트에서 <b>가장 작은 숫자를 선택</b>해 왼쪽 리스트의 끝으로 옮겨요. 비교는 n(n−1)/2 번으로 항상 같지만 이동(SWAP)은 많아야 n−1 번이라 자료 이동이 많을 때 유리해요.",
+    render:"array", input:{ label:"list[]", def:[5, 3, 8, 1, 2, 7] },
+    ops:[
+      { name:"selection_sort(list, n)", params:[],
+        run(st, p, R){
+          const a = st.arr.slice(); const n = a.length; const sorted = {};
+          for (let i = 0; i < n - 1; i++){
+            let least = i;
+            R.add("i", `i = ${i}: 오른쪽 리스트 list[${i}..${n - 1}] 에서 최솟값을 찾아요. 일단 least = ${i} (${a[i]})`, { arr:a, marks:Object.assign(dsClone(sorted), { [i]:"min" }), ptrs:{ i, least } }, { i, least });
+            for (let j = i + 1; j < n; j++){
+              R.add("cmp", `list[${j}] = ${a[j]} < list[least] = ${a[least]} ?`, { arr:a, marks:Object.assign(dsClone(sorted), { [least]:"min", [j]:"cmp" }), ptrs:{ i, j, least } }, { i, j, least });
+              if (a[j] < a[least]){ least = j; R.add("newmin", `네 → least = ${j}`, { arr:a, marks:Object.assign(dsClone(sorted), { [least]:"min" }), ptrs:{ i, j, least } }, { i, j, least }); }
+            }
+            if (i !== least){ [a[i], a[least]] = [a[least], a[i]]; R.add("swap", `SWAP(list[${i}], list[${least}]) — 이번 바퀴의 유일한 이동`, { arr:a, marks:Object.assign(dsClone(sorted), { [i]:"swap", [least]:"swap" }), ptrs:{ i, least } }, { i, least }); }
+            else R.add("swap", `i == least 라 그대로 둬요.`, { arr:a, marks:Object.assign(dsClone(sorted), { [i]:"min" }), ptrs:{ i } }, { i });
+            sorted[i] = "sorted";
+          }
+          sorted[n - 1] = "sorted";
+          R.add("done", `정렬 끝. 비교 ${n * (n - 1) / 2}번 = n(n−1)/2 → O(n²).`, { arr:a, marks:sorted, ptrs:{} });
+          return { arr:a }; } }
+    ],
+    py:`
+def selection_sort(list, n):
+    for i in range(n - 1):                 #@i
+        least = i                          #@i
+        for j in range(i + 1, n):          #@j
+            if list[j] < list[least]:      #@cmp
+                least = j                  #@newmin
+        list[i], list[least] = list[least], list[i]   #@swap
+                                           #@done`,
+    c:`
+#define SWAP(x, y, t) ((t) = (x), (x) = (y), (y) = (t))
+
+void selection_sort(int list[], int n) {
+    int i, j, least, temp;
+    for (i = 0; i < n - 1; i++) {          //@i
+        least = i;                         //@i
+        for (j = i + 1; j < n; j++)        //@j
+            if (list[j] < list[least])     //@cmp
+                least = j;                 //@newmin
+        SWAP(list[i], list[least], temp);  //@swap
+    }
+}                                          //@done` },
+
+  /* ───────── 삽입 정렬 ───────── */
+  { id:"insertion", group:"정렬", name:"삽입 정렬", icon:"🃏", big:"O(n²) · 거의 정렬돼 있으면 O(n)",
+    desc:"<b>삽입 정렬(insertion sort)</b>: 정렬된 왼쪽 부분에 새 항목(key)의 <b>올바른 위치를 찾아 삽입</b>해요. key 보다 큰 항목들을 한 칸씩 뒤로 이동시킨 뒤 빈자리에 넣어요. 이미 정렬된 입력이면 비교 n−1 번으로 끝나는 <b>안정적인</b> 정렬이에요.",
+    render:"array", input:{ label:"list[]", def:[5, 3, 8, 1, 2, 7] },
+    ops:[
+      { name:"insertion_sort(list, n)", params:[],
+        run(st, p, R){
+          const a = st.arr.slice(); const n = a.length;
+          const sortedTo = (k)=>{ const m = {}; for (let x = 0; x <= k; x++) m[x] = "sorted"; return m; };
+          for (let i = 1; i < n; i++){
+            const key = a[i]; let j = i - 1;
+            R.add("key", `key = list[${i}] = ${key}. 왼쪽 ${i}개는 이미 정렬돼 있어요.`, { arr:a, marks:Object.assign(sortedTo(i - 1), { [i]:"cmp" }), ptrs:{ i }, hold:key }, { i, key });
+            while (j >= 0 && a[j] > key){
+              R.add("cmp", `list[${j}] = ${a[j]} > key ${key} → 한 칸 뒤로 이동`, { arr:a, marks:Object.assign(sortedTo(i), { [j]:"swap", [j + 1]:"move" }), ptrs:{ i, j }, hold:key }, { i, j, key });
+              a[j + 1] = a[j]; j--;
+              R.add("shift", `list[${j + 2}] = ${a[j + 2]}, j = ${j}`, { arr:a, marks:Object.assign(sortedTo(i), { [j + 2]:"move" }), ptrs:{ i, j }, hold:key }, { i, j, key });
+            }
+            if (j >= 0) R.add("cmp", `list[${j}] = ${a[j]} ≤ key ${key} → 여기서 멈춰요.`, { arr:a, marks:Object.assign(sortedTo(i), { [j]:"cmp" }), ptrs:{ i, j }, hold:key }, { i, j, key });
+            a[j + 1] = key;
+            R.add("place", `list[${j + 1}] = key (${key})`, { arr:a, marks:Object.assign(sortedTo(i), { [j + 1]:"found" }), ptrs:{ i } }, { i, key });
+          }
+          R.add("done", "정렬 끝.", { arr:a, marks:sortedTo(n - 1), ptrs:{} });
+          return { arr:a }; } }
+    ],
+    py:`
+def insertion_sort(list, n):
+    for i in range(1, n):
+        key = list[i]                      #@key
+        j = i - 1                          #@key
+        while j >= 0 and list[j] > key:    #@cmp
+            list[j + 1] = list[j]          #@shift
+            j -= 1                         #@shift
+        list[j + 1] = key                  #@place
+                                           #@done`,
+    c:`
+void insertion_sort(int list[], int n) {
+    int i, j, key;
+    for (i = 1; i < n; i++) {
+        key = list[i];                     //@key
+        for (j = i - 1; j >= 0 && list[j] > key; j--)   //@cmp
+            list[j + 1] = list[j];         //@shift
+        list[j + 1] = key;                 //@place
+    }
+}                                          //@done` },
+
+  /* ───────── 버블 정렬 ───────── */
+  { id:"bubble", group:"정렬", name:"버블 정렬", icon:"🫧", big:"O(n²)",
+    desc:"<b>버블 정렬(bubble sort)</b>: <b>인접한 두 항목을 비교</b>해 순서가 틀리면 교환해요. 한 번의 스캔(패스)이 끝나면 가장 큰 항목이 맨 뒤로 '거품처럼' 올라가요. 책처럼 i 를 n−1 에서 1 까지 줄여 가며 스캔 범위를 좁혀요.",
+    render:"array", input:{ label:"list[]", def:[5, 3, 8, 1, 2, 7] },
+    ops:[
+      { name:"bubble_sort(list, n)", params:[],
+        run(st, p, R){
+          const a = st.arr.slice(); const n = a.length; const sorted = {};
+          for (let i = n - 1; i > 0; i--){
+            R.add("i", `i = ${i}: list[0..${i}] 를 한 번 스캔해요. 뒤의 ${n - 1 - i}개는 이미 제자리.`, { arr:a, marks:dsClone(sorted), ptrs:{ i } }, { i });
+            for (let j = 0; j < i; j++){
+              R.add("cmp", `list[${j}] = ${a[j]} 과 list[${j + 1}] = ${a[j + 1]} 비교`, { arr:a, marks:Object.assign(dsClone(sorted), { [j]:"cmp", [j + 1]:"cmp" }), ptrs:{ i, j } }, { i, j });
+              if (a[j] > a[j + 1]){ [a[j], a[j + 1]] = [a[j + 1], a[j]]; R.add("swap", `${a[j + 1]} > ${a[j]} → SWAP`, { arr:a, marks:Object.assign(dsClone(sorted), { [j]:"swap", [j + 1]:"swap" }), ptrs:{ i, j } }, { i, j }); }
+            }
+            sorted[i] = "sorted";
+            R.add("i", `스캔 끝: 가장 큰 값 ${a[i]} 이 list[${i}] 에 고정.`, { arr:a, marks:dsClone(sorted), ptrs:{} }, { i });
+          }
+          sorted[0] = "sorted";
+          R.add("done", `정렬 끝. 비교 ${n * (n - 1) / 2}번 → O(n²).`, { arr:a, marks:sorted, ptrs:{} });
+          return { arr:a }; } }
+    ],
+    py:`
+def bubble_sort(list, n):
+    for i in range(n - 1, 0, -1):          #@i
+        for j in range(i):                 #@j
+            if list[j] > list[j + 1]:      #@cmp
+                list[j], list[j + 1] = list[j + 1], list[j]   #@swap
+                                           #@done`,
+    c:`
+void bubble_sort(int list[], int n) {
+    int i, j, temp;
+    for (i = n - 1; i > 0; i--) {          //@i
+        for (j = 0; j < i; j++)            //@j
+            if (list[j] > list[j + 1])     //@cmp
+                SWAP(list[j], list[j + 1], temp);   //@swap
+    }
+}                                          //@done` },
+
+  /* ───────── 퀵 정렬 ───────── */
+  { id:"quick", group:"정렬", name:"퀵 정렬", icon:"⚡", big:"평균 O(n log n) · 최악 O(n²)",
+    desc:"<b>퀵 정렬(quick sort)</b>: <b>피벗(pivot)</b>을 기준으로 작은 것은 왼쪽, 큰 것은 오른쪽으로 <b>분할(partition)</b>한 뒤 양쪽을 다시 퀵 정렬해요(분할 정복). 책의 partition 은 <b>첫 항목을 피벗</b>으로 잡고 low 는 오른쪽으로, high 는 왼쪽으로 움직이다 <b>서로 엇갈리면</b> 피벗과 list[high] 를 교환해요.",
+    render:"array", input:{ label:"list[]", def:[5, 3, 8, 4, 9, 1, 6, 2, 7] },
+    ops:[
+      { name:"quick_sort(list, 0, n-1)", params:[],
+        run(st, p, R){
+          const a = st.arr.slice(); const done = {};
+          const rm = (lo, hi, extra)=>{ const m = dsClone(done); for (let x = 0; x < a.length; x++) if (x < lo || x > hi) m[x] = m[x] || "dim"; return Object.assign(m, extra || {}); };
+          const qs = (left, right, depth)=>{
+            if (left > right) return;
+            if (left === right){ done[left] = "sorted"; R.add("cond", `quick_sort(${left}, ${right}): left < right 가 아니라 끝 — 하나뿐이면 정렬된 것.`, { arr:a, marks:rm(left, right), ptrs:{} }, { left, right }); return; }
+            R.add("cond", `quick_sort(list, ${left}, ${right})${depth ? " — 순환 깊이 " + depth : ""}: left < right 이니 분할해요.`, { arr:a, marks:rm(left, right), ptrs:{ left, right } }, { left, right });
+            const pivot = a[left]; let low = left, high = right + 1;
+            R.add("pivot", `partition: pivot = list[left] = ${pivot}. low = ${low}, high = ${high} (한 칸 밖에서 시작)`, { arr:a, marks:rm(left, right, { [left]:"pivot" }), ptrs:{ low, high:Math.min(high, a.length - 1) } }, { pivot, low, high });
+            do {
+              do { low++; R.add("low", `low++ → ${low}: list[${low}] = ${a[low] !== undefined ? a[low] : "끝"} ${a[low] < pivot ? "< pivot, 계속" : "≥ pivot, 멈춤"}`, { arr:a, marks:rm(left, right, { [left]:"pivot", [low]:"cmp" }), ptrs:{ low, high:Math.min(high, a.length - 1) } }, { low, high, pivot }); } while (low <= right && a[low] < pivot);
+              do { high--; R.add("high", `high−− → ${high}: list[${high}] = ${a[high]} ${a[high] > pivot ? "> pivot, 계속" : "≤ pivot, 멈춤"}`, { arr:a, marks:rm(left, right, { [left]:"pivot", [low]:"cmp", [high]:"cmp" }), ptrs:{ low, high } }, { low, high, pivot }); } while (a[high] > pivot);
+              if (low < high){ [a[low], a[high]] = [a[high], a[low]]; R.add("swap", `low(${low}) < high(${high}) → SWAP(list[low], list[high])`, { arr:a, marks:rm(left, right, { [left]:"pivot", [low]:"swap", [high]:"swap" }), ptrs:{ low, high } }, { low, high }); }
+              else R.add("cross", `low(${low}) ≥ high(${high}) — 엇갈렸어요. 분할 반복 끝.`, { arr:a, marks:rm(left, right, { [left]:"pivot", [low]:"cmp", [high]:"cmp" }), ptrs:{ low, high } }, { low, high });
+            } while (low < high);
+            [a[left], a[high]] = [a[high], a[left]]; done[high] = "sorted";
+            R.add("place", `SWAP(list[left], list[high]): 피벗 ${pivot} 이 list[${high}] 자리로 — 왼쪽은 모두 작고 오른쪽은 모두 커요. 피벗 위치 확정!`, { arr:a, marks:rm(left, right), ptrs:{ q:high } }, { q:high });
+            R.add("rec1", `왼쪽 부분 quick_sort(${left}, ${high - 1})`, { arr:a, marks:rm(left, high - 1), ptrs:{} }, { left, right:high - 1 });
+            qs(left, high - 1, depth + 1);
+            R.add("rec2", `오른쪽 부분 quick_sort(${high + 1}, ${right})`, { arr:a, marks:rm(high + 1, right), ptrs:{} }, { left:high + 1, right });
+            qs(high + 1, right, depth + 1);
+          };
+          qs(0, a.length - 1, 0);
+          for (let x = 0; x < a.length; x++) done[x] = "sorted";
+          R.add("done", "정렬 끝. 매번 절반쯤으로 나뉘면 O(n log n), 이미 정렬된 입력이면 한쪽으로만 쏠려 O(n²).", { arr:a, marks:done, ptrs:{} });
+          return { arr:a }; } }
+    ],
+    py:`
+def partition(list, left, right):
+    pivot = list[left]                     #@pivot
+    low, high = left, right + 1            #@pivot
+    while True:
+        low += 1                           #@low
+        while list[low] < pivot: low += 1  #@low
+        high -= 1                          #@high
+        while list[high] > pivot: high -= 1   #@high
+        if low < high:                     #@swap
+            list[low], list[high] = list[high], list[low]   #@swap
+        else:                              #@cross
+            break                          #@cross
+    list[left], list[high] = list[high], list[left]   #@place
+    return high                            #@place
+
+def quick_sort(list, left, right):
+    if left < right:                       #@cond
+        q = partition(list, left, right)   #@cond
+        quick_sort(list, left, q - 1)      #@rec1
+        quick_sort(list, q + 1, right)     #@rec2
+                                           #@done`,
+    c:`
+int partition(int list[], int left, int right) {
+    int pivot, temp;
+    int low, high;
+    low = left;                            //@pivot
+    high = right + 1;                      //@pivot
+    pivot = list[left];                    //@pivot
+    do {
+        do low++; while (list[low] < pivot);     //@low
+        do high--; while (list[high] > pivot);   //@high
+        if (low < high) SWAP(list[low], list[high], temp);   //@swap
+    } while (low < high);                  //@cross
+    SWAP(list[left], list[high], temp);    //@place
+    return high;                           //@place
+}
+
+void quick_sort(int list[], int left, int right) {
+    if (left < right) {                    //@cond
+        int q = partition(list, left, right);   //@cond
+        quick_sort(list, left, q - 1);     //@rec1
+        quick_sort(list, q + 1, right);    //@rec2
+    }
+}                                          //@done` },
+
+  /* ───────── 합병 정렬 ───────── */
+  { id:"merge", group:"정렬", name:"합병 정렬", icon:"🪢", big:"항상 O(n log n) · 보조 배열 sorted[] 필요",
+    desc:"<b>합병 정렬(merge sort)</b>: 리스트를 <b>반으로 분할</b>하기를 하나 남을 때까지 반복한 뒤(분할), 정렬된 두 부분 리스트를 <b>합병(merge)</b>해요(정복). 합병할 때 보조 배열 <b>sorted[]</b>에 작은 것부터 채우고 다시 list[] 로 복사해요. 입력과 상관없이 O(n log n)이라 <b>안정적</b>이에요.",
+    render:"array", input:{ label:"list[]", def:[27, 10, 12, 20, 25, 13, 15, 22] },
+    ops:[
+      { name:"merge_sort(list, 0, n-1)", params:[],
+        run(st, p, R){
+          const a = st.arr.slice();
+          const rm = (lo, hi, extra)=>{ const m = {}; for (let x = 0; x < a.length; x++) if (x < lo || x > hi) m[x] = "dim"; return Object.assign(m, extra || {}); };
+          const ms = (left, right, depth)=>{
+            if (left >= right){ R.add("cond", `merge_sort(${left}, ${right}): 항목이 하나 — 더 못 나눠요.`, { arr:a, marks:rm(left, right, { [left]:"sorted" }), ptrs:{} }, { left, right }); return; }
+            const mid = Math.floor((left + right) / 2);
+            R.add("split", `merge_sort(${left}, ${right}): mid = ${mid} → [${left}..${mid}] 와 [${mid + 1}..${right}] 로 분할 (깊이 ${depth})`, { arr:a, marks:rm(left, right), ptrs:{ left, mid, right } }, { left, mid, right });
+            ms(left, mid, depth + 1); ms(mid + 1, right, depth + 1);
+            let i = left, j = mid + 1, k = left; const sorted = new Array(a.length).fill(null);
+            const aux = ()=> ({ L:a.slice(left, mid + 1), R:a.slice(mid + 1, right + 1), i:i - left, j:j - (mid + 1), out:sorted.slice(left, k).filter(v=> v !== null) });
+            R.add("merge", `merge(list, ${left}, ${mid}, ${right}): i = ${i}, j = ${j}, k = ${k}`, { arr:a, marks:rm(left, right, { [i]:"cmp", [j]:"cmp" }), ptrs:{ i, j }, aux:aux() }, { i, j, k });
+            while (i <= mid && j <= right){
+              const takeL = a[i] <= a[j];
+              R.add("cmp", `list[${i}] = ${a[i]} ${takeL ? "≤" : ">"} list[${j}] = ${a[j]} → sorted[${k}] = ${takeL ? a[i] : a[j]}`, { arr:a, marks:rm(left, right, { [i]:"cmp", [j]:"cmp" }), ptrs:{ i, j }, aux:aux() }, { i, j, k });
+              sorted[k++] = takeL ? a[i++] : a[j++];
+            }
+            if (i > mid) for (let l = j; l <= right; l++){ sorted[k++] = a[l]; R.add("restR", `왼쪽이 다 떨어져서 오른쪽 나머지 list[${l}] = ${a[l]} 을 그대로 복사`, { arr:a, marks:rm(left, right, { [l]:"move" }), ptrs:{ l }, aux:aux() }, { l, k }); }
+            else for (let l = i; l <= mid; l++){ sorted[k++] = a[l]; R.add("restL", `오른쪽이 다 떨어져서 왼쪽 나머지 list[${l}] = ${a[l]} 을 그대로 복사`, { arr:a, marks:rm(left, right, { [l]:"move" }), ptrs:{ l }, aux:aux() }, { l, k }); }
+            for (let l = left; l <= right; l++) a[l] = sorted[l];
+            const m = rm(left, right); for (let x = left; x <= right; x++) m[x] = "sorted";
+            R.add("copy", `sorted[${left}..${right}] 를 list 로 다시 복사: [${a.slice(left, right + 1).join(", ")}]`, { arr:a, marks:m, ptrs:{} });
+          };
+          ms(0, a.length - 1, 0);
+          const all = {}; for (let x = 0; x < a.length; x++) all[x] = "sorted";
+          R.add("done", "정렬 끝. 분할 깊이 log n × 층마다 n 번 비교 → O(n log n).", { arr:a, marks:all, ptrs:{} });
+          return { arr:a }; } }
+    ],
+    py:`
+sorted = [0] * MAX_SIZE                    #@init
+
+def merge(list, left, mid, right):
+    i, j, k = left, mid + 1, left          #@merge
+    while i <= mid and j <= right:         #@cmp
+        if list[i] <= list[j]:             #@cmp
+            sorted[k] = list[i]; i += 1    #@cmp
+        else:
+            sorted[k] = list[j]; j += 1    #@cmp
+        k += 1
+    if i > mid:                            #@restR
+        for l in range(j, right + 1): sorted[k] = list[l]; k += 1   #@restR
+    else:                                  #@restL
+        for l in range(i, mid + 1):   sorted[k] = list[l]; k += 1   #@restL
+    for l in range(left, right + 1):       #@copy
+        list[l] = sorted[l]                #@copy
+
+def merge_sort(list, left, right):
+    if left < right:                       #@cond
+        mid = (left + right) // 2          #@split
+        merge_sort(list, left, mid)        #@split
+        merge_sort(list, mid + 1, right)   #@split
+        merge(list, left, mid, right)      #@merge
+                                           #@done`,
+    c:`
+int sorted[MAX_SIZE];   // 추가 공간이 필요   //@init
+
+void merge(int list[], int left, int mid, int right) {
+    int i, j, k, l;
+    i = left; j = mid + 1; k = left;       //@merge
+    while (i <= mid && j <= right) {       //@cmp
+        if (list[i] <= list[j]) sorted[k++] = list[i++];   //@cmp
+        else                    sorted[k++] = list[j++];   //@cmp
+    }
+    if (i > mid)                           //@restR
+        for (l = j; l <= right; l++) sorted[k++] = list[l];   //@restR
+    else                                   //@restL
+        for (l = i; l <= mid; l++) sorted[k++] = list[l];     //@restL
+    for (l = left; l <= right; l++)        //@copy
+        list[l] = sorted[l];               //@copy
+}
+
+void merge_sort(int list[], int left, int right) {
+    int mid;
+    if (left < right) {                    //@cond
+        mid = (left + right) / 2;          //@split
+        merge_sort(list, left, mid);       //@split
+        merge_sort(list, mid + 1, right);  //@split
+        merge(list, left, mid, right);     //@merge
+    }
+}                                          //@done` },
+
+  /* ───────── 이진 탐색 트리 ───────── */
+  { id:"bst", group:"트리", name:"이진 탐색 트리", icon:"🌳", big:"탐색·삽입·삭제 평균 O(log n) · 최악 O(n)",
+    desc:"<b>이진 탐색 트리(BST)</b>: 모든 노드에 대해 <b>왼쪽 서브트리 키 &lt; 노드 키 &lt; 오른쪽 서브트리 키</b>. 이 성질 덕분에 탐색할 때 한쪽 서브트리를 통째로 건너뛰어요. 삭제는 세 경우 — ① 단말 노드 ② 자식 하나 ③ 자식 둘(<b>오른쪽 서브트리의 최솟값</b>, 즉 중위 후속자로 대체). 중위 순회하면 오름차순이 나와요.",
+    render:"tree",
+    state:()=>{ const s = { nodes:{}, root:null, nextId:1 }; [35, 18, 68, 7, 26, 3, 22, 30, 99].forEach(v=> dsBstInsert(s, v)); return s; },
+    ops:[
+      { name:"search(root, key)", params:[{k:"v", label:"key", type:"num", def:22}],
+        run(st, p, R){
+          const s = dsClone(st); let cur = s.root; const path = []; let n = 0;
+          while (cur !== null){
+            const nd = s.nodes[cur]; path.push(cur); n++;
+            if (nd.v === p.v){ R.add("s_found", `key == node->key (${nd.v}) 찾았어요! 비교 ${n}번 (순차 탐색이면 최대 ${Object.keys(s.nodes).length}번).`, Object.assign({}, s, { hl:{ [cur]:"found" }, path })); return st; }
+            const left = p.v < nd.v;
+            R.add(left ? "s_left" : "s_right", `key ${p.v} ${left ? "<" : ">"} ${nd.v} → ${left ? "왼쪽" : "오른쪽"} 서브트리로. 반대쪽은 볼 필요 없어요.`, Object.assign({}, s, { hl:{ [cur]:"cur" }, path:path.slice() }), { key:p.v, node:nd.v });
+            cur = left ? nd.l : nd.r;
+          }
+          R.add("s_null", `node == NULL — ${p.v} 는 트리에 없어요. 비교 ${n}번.`, Object.assign({}, s, { hl:{}, path }));
+          return st; } },
+      { name:"insert_node(root, key)", params:[{k:"v", label:"key", type:"num", def:12}],
+        run(st, p, R){
+          const s = dsClone(st); const path = [];
+          if (s.root === null){ const id = s.nextId++; s.nodes[id] = { v:p.v, l:null, r:null }; s.root = id; R.add("ins_new", "공백 트리 — 새 노드가 루트예요.", Object.assign({}, s, { hl:{ [id]:"new" } })); return s; }
+          let cur = s.root;
+          while (true){
+            const n = s.nodes[cur]; path.push(cur);
+            if (p.v === n.v){ R.add("ins_same", `key ${p.v} 가 이미 있어요 — 중복 키는 넣지 않고 그대로 둡니다.`, Object.assign({}, s, { hl:{ [cur]:"cmp" }, path })); return st; }
+            const left = p.v < n.v; const side = left ? "l" : "r";
+            R.add(left ? "ins_left" : "ins_right", `key ${p.v} ${left ? "<" : ">"} ${n.v} → ${left ? "왼쪽" : "오른쪽"} 서브트리에 순환 삽입.`, Object.assign({}, s, { hl:{ [cur]:"cur" }, path:path.slice() }), { key:p.v, node:n.v });
+            if (n[side] === null){
+              const id = s.nextId++; s.nodes[id] = { v:p.v, l:null, r:null }; n[side] = id;
+              R.add("ins_new", `node == NULL 인 자리에 new_node(${p.v}) 를 만들어 붙여요. 깊이 ${path.length} 만큼 비교했어요.`, Object.assign({}, s, { hl:{ [id]:"new" }, path:path.slice() }));
+              return s;
+            }
+            cur = n[side];
+          } } },
+      { name:"delete_node(root, key)", params:[{k:"v", label:"key", type:"num", def:18}],
+        run(st, p, R){
+          const s = dsClone(st);
+          const find = (v)=>{ let cur = s.root, par = null; while (cur !== null){ const n = s.nodes[cur]; if (n.v === v) return { cur, par }; par = cur; cur = v < n.v ? n.l : n.r; } return { cur:null, par }; };
+          const { cur, par } = find(p.v);
+          if (cur === null){ R.add("d_search", `${p.v} 를 찾아 내려갔지만 없어요.`, s); return st; }
+          const n = s.nodes[cur];
+          R.add("d_search", `삭제할 노드 ${n.v} 를 찾았어요. 자식이 ${n.l !== null && n.r !== null ? "둘" : (n.l !== null || n.r !== null ? "하나" : "없음(단말)")}이에요.`, Object.assign({}, s, { hl:{ [cur]:"del" } }));
+          const replaceChild = (parId, oldId, newId)=>{ if (parId === null) s.root = newId; else { const pn = s.nodes[parId]; if (pn.l === oldId) pn.l = newId; else pn.r = newId; } };
+          if (n.l === null && n.r === null){
+            R.add("d_leaf", `경우 ①: 단말 노드 — 부모의 링크를 NULL 로 바꾸고 free.`, Object.assign({}, s, { hl:{ [cur]:"del" } }));
+            replaceChild(par, cur, null); delete s.nodes[cur];
+            R.add("d_leaf", `삭제 완료.`, s); return s;
+          }
+          if (n.l === null || n.r === null){
+            const child = n.l !== null ? n.l : n.r;
+            R.add("d_one", `경우 ②: 자식이 하나 — 부모가 그 자식(${s.nodes[child].v})을 직접 가리키게 하고 free.`, Object.assign({}, s, { hl:{ [cur]:"del", [child]:"cur" } }));
+            replaceChild(par, cur, child); delete s.nodes[cur];
+            R.add("d_one", `삭제 완료.`, Object.assign({}, s, { hl:{ [child]:"found" } })); return s;
+          }
+          let sp = cur, succ = n.r;
+          R.add("d_two", `경우 ③: 자식이 둘 — 오른쪽 서브트리에서 <b>가장 작은 값</b>(min_value_node)을 찾아요.`, Object.assign({}, s, { hl:{ [cur]:"del", [succ]:"cur" } }));
+          while (s.nodes[succ].l !== null){ sp = succ; succ = s.nodes[succ].l; R.add("d_min", `왼쪽으로 계속 → ${s.nodes[succ].v}`, Object.assign({}, s, { hl:{ [cur]:"del", [succ]:"cur" } })); }
+          const sv = s.nodes[succ].v;
+          R.add("d_min", `후속자 = ${sv}. 이 값을 삭제 노드 자리에 복사해요.`, Object.assign({}, s, { hl:{ [cur]:"del", [succ]:"found" } }));
+          n.v = sv;
+          R.add("d_copy", `node->key = ${sv}. 이제 후속자 노드(오른쪽 서브트리의 ${sv})를 지워요 — 그 노드는 왼쪽 자식이 없어서 경우 ①·② 로 끝나요.`, Object.assign({}, s, { hl:{ [cur]:"new", [succ]:"del" } }));
+          replaceChild(sp === cur ? cur : sp, succ, s.nodes[succ].r);
+          if (sp === cur) n.r = s.nodes[succ].r;
+          delete s.nodes[succ];
+          R.add("d_copy", `삭제 완료. 왼쪽 < ${sv} < 오른쪽 성질이 그대로 유지돼요.`, Object.assign({}, s, { hl:{ [cur]:"found" } }));
+          return s; } },
+      { name:"순회", params:[{k:"kind", label:"종류", type:"sel", def:"in", opts:[{v:"pre",t:"전위 순회 (VLR)"},{v:"in",t:"중위 순회 (LVR)"},{v:"post",t:"후위 순회 (LRV)"}]}],
+        py:(p)=> p.kind === "pre" ? `
+def preorder(root):
+    if root is not None:               #@t_null
+        print(root.key)                #@t_visit
+        preorder(root.left)            #@t_left
+        preorder(root.right)           #@t_right` : p.kind === "in" ? `
+def inorder(root):
+    if root is not None:               #@t_null
+        inorder(root.left)             #@t_left
+        print(root.key)                #@t_visit
+        inorder(root.right)            #@t_right` : `
+def postorder(root):
+    if root is not None:               #@t_null
+        postorder(root.left)           #@t_left
+        postorder(root.right)          #@t_right
+        print(root.key)                #@t_visit`,
+        c:(p)=> p.kind === "pre" ? `
+void preorder(TreeNode *root) {
+    if (root != NULL) {                //@t_null
+        printf("[%d] ", root->key);    //@t_visit
+        preorder(root->left);          //@t_left
+        preorder(root->right);         //@t_right
+    }
+}` : p.kind === "in" ? `
+void inorder(TreeNode *root) {
+    if (root != NULL) {                //@t_null
+        inorder(root->left);           //@t_left
+        printf("[%d] ", root->key);    //@t_visit
+        inorder(root->right);          //@t_right
+    }
+}` : `
+void postorder(TreeNode *root) {
+    if (root != NULL) {                //@t_null
+        postorder(root->left);         //@t_left
+        postorder(root->right);        //@t_right
+        printf("[%d] ", root->key);    //@t_visit
+    }
+}`,
+        run(st, p, R){
+          const s = dsClone(st); const order = []; const visited = {};
+          const name = { pre:"전위", in:"중위", post:"후위" }[p.kind];
+          const go = (id)=>{
+            if (id === null) return;
+            const n = s.nodes[id];
+            const visit = ()=>{ order.push(n.v); visited[id] = "found"; R.add("t_visit", `${n.v} 방문(V) — 출력: ${order.join(" ")}`, Object.assign({}, s, { hl:Object.assign({}, visited, { [id]:"found" }), order:order.slice() })); };
+            const left = ()=>{ R.add("t_left", n.l === null ? `${n.v} 의 왼쪽(L)은 NULL — 바로 돌아와요.` : `${n.v} 의 왼쪽 서브트리(L, ${s.nodes[n.l].v})로.`, Object.assign({}, s, { hl:Object.assign({}, visited, { [id]:"cur" }), order:order.slice() })); go(n.l); };
+            const right = ()=>{ R.add("t_right", n.r === null ? `${n.v} 의 오른쪽(R)은 NULL — 바로 돌아와요.` : `${n.v} 의 오른쪽 서브트리(R, ${s.nodes[n.r].v})로.`, Object.assign({}, s, { hl:Object.assign({}, visited, { [id]:"cur" }), order:order.slice() })); go(n.r); };
+            if (p.kind === "pre"){ visit(); left(); right(); }
+            else if (p.kind === "in"){ left(); visit(); right(); }
+            else { left(); right(); visit(); }
+          };
+          go(s.root);
+          R.add("t_null", `${name} 순회 결과: ${order.join(" ")}${p.kind === "in" ? " — 이진 탐색 트리의 중위 순회는 오름차순!" : ""}`, Object.assign({}, s, { hl:visited, order }));
+          return st; } }
+    ],
+    py:`
+class TreeNode:
+    def __init__(self, key):
+        self.key = key
+        self.left = self.right = None
+
+def search(node, key):
+    if node is None: return None           #@s_null
+    if key == node.key: return node        #@s_found
+    elif key < node.key:                   #@s_left
+        return search(node.left, key)      #@s_left
+    else:                                  #@s_right
+        return search(node.right, key)     #@s_right
+
+def insert_node(node, key):
+    if node is None: return TreeNode(key)  #@ins_new
+    if key < node.key:                     #@ins_left
+        node.left = insert_node(node.left, key)     #@ins_left
+    elif key > node.key:                   #@ins_right
+        node.right = insert_node(node.right, key)   #@ins_right
+    return node                            #@ins_same
+
+def min_value_node(node):
+    while node.left is not None:           #@d_min
+        node = node.left                   #@d_min
+    return node
+
+def delete_node(root, key):
+    if root is None: return root
+    if key < root.key:   root.left  = delete_node(root.left, key)    #@d_search
+    elif key > root.key: root.right = delete_node(root.right, key)   #@d_search
+    else:
+        if root.left is None and root.right is None:   #@d_leaf
+            return None                                #@d_leaf
+        if root.left is None:  return root.right       #@d_one
+        if root.right is None: return root.left        #@d_one
+        temp = min_value_node(root.right)              #@d_two
+        root.key = temp.key                            #@d_copy
+        root.right = delete_node(root.right, temp.key) #@d_copy
+    return root`,
+    c:`
+typedef int element;
+typedef struct TreeNode {
+    element key;
+    struct TreeNode *left, *right;
+} TreeNode;
+
+TreeNode* search(TreeNode *node, int key) {
+    if (node == NULL) return NULL;         //@s_null
+    if (key == node->key) return node;     //@s_found
+    else if (key < node->key)              //@s_left
+        return search(node->left, key);    //@s_left
+    else                                   //@s_right
+        return search(node->right, key);   //@s_right
+}
+
+TreeNode* insert_node(TreeNode *node, int key) {
+    if (node == NULL) return new_node(key);        //@ins_new
+    if (key < node->key)                           //@ins_left
+        node->left = insert_node(node->left, key); //@ins_left
+    else if (key > node->key)                      //@ins_right
+        node->right = insert_node(node->right, key);   //@ins_right
+    return node;                                   //@ins_same
+}
+
+TreeNode* min_value_node(TreeNode *node) {
+    TreeNode *current = node;
+    while (current->left != NULL)          //@d_min
+        current = current->left;           //@d_min
+    return current;
+}
+
+TreeNode* delete_node(TreeNode *root, int key) {
+    if (root == NULL) return root;
+    if (key < root->key)                                   //@d_search
+        root->left = delete_node(root->left, key);         //@d_search
+    else if (key > root->key)                              //@d_search
+        root->right = delete_node(root->right, key);       //@d_search
+    else {
+        if (root->left == NULL) {                          //@d_leaf,d_one
+            TreeNode *temp = root->right; free(root); return temp;   //@d_leaf,d_one
+        } else if (root->right == NULL) {                  //@d_one
+            TreeNode *temp = root->left; free(root); return temp;    //@d_one
+        }
+        TreeNode *temp = min_value_node(root->right);      //@d_two
+        root->key = temp->key;                             //@d_copy
+        root->right = delete_node(root->right, temp->key); //@d_copy
+    }
+    return root;
+}` },
+
+  /* ───────── AVL 트리 ───────── */
+  { id:"avl", group:"트리", name:"AVL 트리", icon:"⚖️", big:"항상 O(log n) · 균형 인수 |bf| ≤ 1",
+    desc:"이진 탐색 트리는 한쪽으로 쏠리면 O(n)이 돼요. <b>AVL 트리</b>는 모든 노드에서 <b>균형 인수 = (왼쪽 높이) − (오른쪽 높이)</b> 가 −1, 0, 1 이 되도록 삽입할 때마다 <b>회전</b>해요. 불균형 유형 4가지: <b>LL → 오른쪽 회전, RR → 왼쪽 회전, LR → 왼쪽 후 오른쪽, RL → 오른쪽 후 왼쪽</b>. 노드 위 작은 숫자가 균형 인수예요.",
+    render:"tree",
+    state:()=> ({ nodes:{ 1:{ v:50, l:2, r:3 }, 2:{ v:30, l:null, r:null }, 3:{ v:70, l:null, r:null } }, root:1, nextId:4, showBf:true }),
+    ops:[
+      { name:"insert(root, key)", params:[{k:"v", label:"key", type:"num", def:10}],
+        run(st, p, R){
+          const s = dsClone(st);
+          const H = (id)=> id === null ? 0 : 1 + Math.max(H(s.nodes[id].l), H(s.nodes[id].r));
+          const BF = (id)=> id === null ? 0 : H(s.nodes[id].l) - H(s.nodes[id].r);
+          const bfAll = ()=>{ const o = {}; Object.keys(s.nodes).forEach(id=> o[id] = BF(Number(id))); return o; };
+          const snap = (hl, extra)=> Object.assign({}, s, { hl:hl || {}, bf:bfAll() }, extra || {});
+          const rotR = (id)=>{ const n = s.nodes[id], c = n.l; n.l = s.nodes[c].r; s.nodes[c].r = id; return c; };
+          const rotL = (id)=>{ const n = s.nodes[id], c = n.r; n.r = s.nodes[c].l; s.nodes[c].l = id; return c; };
+          let dup = false;
+          const ins = (id, key, depth)=>{
+            if (id === null){ const nid = s.nextId++; s.nodes[nid] = { v:key, l:null, r:null }; R.add("new", `NULL 자리에 새 노드 ${key} 생성.`, snap({ [nid]:"new" })); return nid; }
+            const n = s.nodes[id];
+            if (key === n.v){ dup = true; R.add("cmp", `${key} 는 이미 있어요 — 그대로 둡니다.`, snap({ [id]:"cmp" })); return id; }
+            const left = key < n.v;
+            R.add("cmp", `${key} ${left ? "<" : ">"} ${n.v} → ${left ? "왼쪽" : "오른쪽"}으로 순환 삽입`, snap({ [id]:"cur" }), { key, node:n.v });
+            if (left) n.l = ins(n.l, key, depth + 1); else n.r = ins(n.r, key, depth + 1);
+            if (dup) return id;
+            const b = BF(id);
+            R.add("bf", `되돌아오며 ${n.v} 의 균형 인수 검사: ${H(n.l)} − ${H(n.r)} = <b>${b}</b>${Math.abs(b) > 1 ? " → 불균형!" : " (OK)"}`, snap({ [id]:Math.abs(b) > 1 ? "swap" : "cur" }), { node:n.v, balance:b });
+            if (b > 1 && key < s.nodes[n.l].v){
+              R.add("ll", `<b>LL 유형</b> (왼쪽-왼쪽으로 무거움) → ${n.v} 를 오른쪽 회전. 자식 ${s.nodes[n.l].v} 이 위로 올라와요.`, snap({ [id]:"swap", [n.l]:"pivot" }));
+              const r = rotR(id); R.add("ll", `회전 완료: ${s.nodes[r].v} 이 부모가 됐어요.`, snap({ [r]:"found", [id]:"cur" })); return r;
+            }
+            if (b < -1 && key > s.nodes[n.r].v){
+              R.add("rr", `<b>RR 유형</b> (오른쪽-오른쪽으로 무거움) → ${n.v} 를 왼쪽 회전.`, snap({ [id]:"swap", [n.r]:"pivot" }));
+              const r = rotL(id); R.add("rr", `회전 완료: ${s.nodes[r].v} 이 부모가 됐어요.`, snap({ [r]:"found", [id]:"cur" })); return r;
+            }
+            if (b > 1 && key > s.nodes[n.l].v){
+              R.add("lr", `<b>LR 유형</b> → 먼저 왼쪽 자식 ${s.nodes[n.l].v} 을 왼쪽 회전(LL 모양으로 만들기)`, snap({ [id]:"swap", [n.l]:"pivot" }));
+              n.l = rotL(n.l); R.add("lr", `이제 LL 모양. ${n.v} 를 오른쪽 회전.`, snap({ [id]:"swap", [n.l]:"pivot" }));
+              const r = rotR(id); R.add("lr", `회전 완료: ${s.nodes[r].v} 이 부모.`, snap({ [r]:"found" })); return r;
+            }
+            if (b < -1 && key < s.nodes[n.r].v){
+              R.add("rl", `<b>RL 유형</b> → 먼저 오른쪽 자식 ${s.nodes[n.r].v} 을 오른쪽 회전(RR 모양으로 만들기)`, snap({ [id]:"swap", [n.r]:"pivot" }));
+              n.r = rotR(n.r); R.add("rl", `이제 RR 모양. ${n.v} 를 왼쪽 회전.`, snap({ [id]:"swap", [n.r]:"pivot" }));
+              const r = rotL(id); R.add("rl", `회전 완료: ${s.nodes[r].v} 이 부모.`, snap({ [r]:"found" })); return r;
+            }
+            return id;
+          };
+          s.root = ins(s.root, p.v, 0);
+          if (!dup) R.add("ret", `삽입 끝. 모든 노드의 |균형 인수| ≤ 1, 높이 ${H(s.root)}.`, snap({}));
+          return s; } },
+      { name:"초기 트리로", params:[], run(st, p, R){ const s = { nodes:{ 1:{ v:50, l:2, r:3 }, 2:{ v:30, l:null, r:null }, 3:{ v:70, l:null, r:null } }, root:1, nextId:4, showBf:true }; R.add("ret", "50 / 30 / 70 세 노드로 되돌렸어요. 10, 20 처럼 한쪽으로만 넣어 보세요.", Object.assign({}, s, { hl:{}, bf:{ 1:0, 2:0, 3:0 } })); return s; } }
+    ],
+    py:`
+def get_height(node):
+    if node is None: return 0
+    return 1 + max(get_height(node.left), get_height(node.right))
+
+def get_balance(node):                     #@bf
+    if node is None: return 0
+    return get_height(node.left) - get_height(node.right)   #@bf
+
+def rotate_right(parent):                  #@ll,lr
+    child = parent.left
+    parent.left = child.right
+    child.right = parent
+    return child
+
+def rotate_left(parent):                   #@rr,rl
+    child = parent.right
+    parent.right = child.left
+    child.left = parent
+    return child
+
+def insert(node, key):
+    if node is None: return AVLNode(key)   #@new
+    if key < node.key:                     #@cmp
+        node.left = insert(node.left, key)     #@cmp
+    elif key > node.key:                   #@cmp
+        node.right = insert(node.right, key)   #@cmp
+    else:
+        return node
+    balance = get_balance(node)            #@bf
+    if balance > 1 and key < node.left.key:        # LL   #@ll
+        return rotate_right(node)                          #@ll
+    if balance < -1 and key > node.right.key:      # RR   #@rr
+        return rotate_left(node)                           #@rr
+    if balance > 1 and key > node.left.key:        # LR   #@lr
+        node.left = rotate_left(node.left)                 #@lr
+        return rotate_right(node)                          #@lr
+    if balance < -1 and key < node.right.key:      # RL   #@rl
+        node.right = rotate_right(node.right)              #@rl
+        return rotate_left(node)                           #@rl
+    return node                            #@ret`,
+    c:`
+typedef struct AVLNode {
+    int key;
+    struct AVLNode *left, *right;
+} AVLNode;
+
+int get_height(AVLNode *node) {
+    if (node == NULL) return 0;
+    return 1 + max(get_height(node->left), get_height(node->right));
+}
+
+int get_balance(AVLNode *node) {          //@bf
+    if (node == NULL) return 0;
+    return get_height(node->left) - get_height(node->right);   //@bf
+}
+
+AVLNode* rotate_right(AVLNode *parent) {  //@ll,lr
+    AVLNode *child = parent->left;
+    parent->left = child->right;
+    child->right = parent;
+    return child;
+}
+
+AVLNode* rotate_left(AVLNode *parent) {   //@rr,rl
+    AVLNode *child = parent->right;
+    parent->right = child->left;
+    child->left = parent;
+    return child;
+}
+
+AVLNode* insert(AVLNode *node, int key) {
+    if (node == NULL) return create_node(key);     //@new
+    if (key < node->key)                           //@cmp
+        node->left = insert(node->left, key);      //@cmp
+    else if (key > node->key)                      //@cmp
+        node->right = insert(node->right, key);    //@cmp
+    else return node;
+    int balance = get_balance(node);               //@bf
+    // LL 타입
+    if (balance > 1 && key < node->left->key)      //@ll
+        return rotate_right(node);                 //@ll
+    // RR 타입
+    if (balance < -1 && key > node->right->key)    //@rr
+        return rotate_left(node);                  //@rr
+    // LR 타입
+    if (balance > 1 && key > node->left->key) {    //@lr
+        node->left = rotate_left(node->left);      //@lr
+        return rotate_right(node);                 //@lr
+    }
+    // RL 타입
+    if (balance < -1 && key < node->right->key) {  //@rl
+        node->right = rotate_right(node->right);   //@rl
+        return rotate_left(node);                  //@rl
+    }
+    return node;                                   //@ret
+}` },
+
+  /* ───────── 레드블랙 트리 ───────── */
+  { id:"rb", group:"트리", name:"레드블랙 트리", icon:"🔴", big:"항상 O(log n) · 회전 적음",
+    desc:"AVL 처럼 균형을 지키지만 <b>색깔 규칙</b>으로 느슨하게 지켜요: ① 노드는 빨강 또는 검정 ② 루트는 검정 ③ <b>빨강의 자식은 모두 검정</b>(빨강 연속 금지) ④ 어떤 노드에서든 리프까지 가는 경로의 <b>검정 노드 수가 같다</b>. 새 노드는 <b>빨강</b>으로 넣고, 부모도 빨강이면 삼촌 색에 따라 <b>색 바꾸기</b> 또는 <b>회전</b>으로 고쳐요. 표준(CLRS) 방식이에요.",
+    render:"tree",
+    state:()=> ({ nodes:{ 1:{ v:20, l:2, r:3, c:"B" }, 2:{ v:10, l:null, r:null, c:"B" }, 3:{ v:30, l:null, r:null, c:"B" } }, root:1, nextId:4 }),
+    ops:[
+      { name:"insert(key)", params:[{k:"v", label:"key", type:"num", def:35}],
+        run(st, p, R){
+          const s = dsClone(st);
+          const N = s.nodes; const col = (id)=> id === null ? "B" : N[id].c;
+          const parentOf = (id)=>{ for (const k in N){ if (N[k].l === id || N[k].r === id) return Number(k); } return null; };
+          const snap = (hl)=> Object.assign({}, s, { hl:hl || {} });
+          const rotL = (x)=>{ const y = N[x].r, px = parentOf(x); N[x].r = N[y].l; N[y].l = x; if (px === null) s.root = y; else if (N[px].l === x) N[px].l = y; else N[px].r = y; };
+          const rotR = (x)=>{ const y = N[x].l, px = parentOf(x); N[x].l = N[y].r; N[y].r = x; if (px === null) s.root = y; else if (N[px].l === x) N[px].l = y; else N[px].r = y; };
+          // 일반 BST 삽입
+          let cur = s.root, par = null;
+          while (cur !== null){ if (p.v === N[cur].v){ R.add("bst", `${p.v} 는 이미 있어요.`, snap({ [cur]:"cmp" })); return st; } par = cur; cur = p.v < N[cur].v ? N[cur].l : N[cur].r; }
+          const z = s.nextId++; N[z] = { v:p.v, l:null, r:null, c:"R" };
+          if (par === null) s.root = z; else if (p.v < N[par].v) N[par].l = z; else N[par].r = z;
+          R.add("bst", `보통의 이진 탐색 트리처럼 ${p.v} 를 넣고 <b>빨강</b>으로 칠해요 (검정 높이를 깨지 않으려고).`, snap({ [z]:"new" }));
+          let x = z;
+          while (x !== s.root && col(parentOf(x)) === "R"){
+            const pa = parentOf(x), g = parentOf(pa);
+            R.add("loop", `부모 ${N[pa].v} 도 빨강 → 빨강 연속 위반! 할아버지 ${N[g].v} 기준으로 고쳐요.`, snap({ [x]:"swap", [pa]:"swap", [g]:"cur" }));
+            const paLeft = N[g].l === pa; const u = paLeft ? N[g].r : N[g].l;
+            if (col(u) === "R"){
+              R.add("case1", `<b>경우 1</b>: 삼촌 ${N[u].v} 도 빨강 → 부모·삼촌을 검정, 할아버지를 빨강으로 <b>색 바꾸기</b>.`, snap({ [pa]:"swap", [u]:"swap", [g]:"cur" }));
+              N[pa].c = "B"; N[u].c = "B"; N[g].c = "R"; x = g;
+              R.add("case1", `색을 바꿨어요. 이제 할아버지 ${N[g].v} 를 새 x 로 보고 위로 올라가 다시 검사.`, snap({ [g]:"cur" }));
+              continue;
+            }
+            const xIsInner = paLeft ? (N[pa].r === x) : (N[pa].l === x);
+            if (xIsInner){
+              R.add("case2", `<b>경우 2</b>: 삼촌은 검정, x 가 안쪽(꺾인 모양) → 부모 ${N[pa].v} 를 ${paLeft ? "왼쪽" : "오른쪽"} 회전해서 일직선으로.`, snap({ [x]:"swap", [pa]:"pivot" }));
+              if (paLeft) rotL(pa); else rotR(pa);
+              x = pa;
+              R.add("case2", `일직선이 됐어요.`, snap({ [x]:"swap", [parentOf(x)]:"swap" }));
+            }
+            const pa2 = parentOf(x), g2 = parentOf(pa2);
+            R.add("case3", `<b>경우 3</b>: 일직선 → 부모 ${N[pa2].v} 를 검정, 할아버지 ${N[g2].v} 를 빨강으로 바꾸고 할아버지를 ${paLeft ? "오른쪽" : "왼쪽"} 회전.`, snap({ [pa2]:"pivot", [g2]:"cur" }));
+            N[pa2].c = "B"; N[g2].c = "R";
+            if (paLeft) rotR(g2); else rotL(g2);
+            R.add("case3", `회전 완료 — 빨강 연속이 사라졌고 검정 높이도 그대로예요.`, snap({ [pa2]:"found" }));
+          }
+          if (N[s.root].c !== "B"){ N[s.root].c = "B"; R.add("root", `루트는 항상 검정 — 루트 ${N[s.root].v} 를 검정으로.`, snap({ [s.root]:"found" })); }
+          else R.add("root", `루트는 이미 검정. 삽입 끝.`, snap({}));
+          return s; } },
+      { name:"초기 트리로", params:[], run(st, p, R){ const s = { nodes:{ 1:{ v:20, l:2, r:3, c:"B" }, 2:{ v:10, l:null, r:null, c:"B" }, 3:{ v:30, l:null, r:null, c:"B" } }, root:1, nextId:4 }; R.add("root", "20 / 10 / 30 으로 되돌렸어요. 35 → 40 → 50 순서로 넣어 보세요 (경우 1 → 3 이 나와요).", Object.assign({}, s, { hl:{} })); return s; } }
+    ],
+    py:`
+RED, BLACK = "R", "B"
+
+def insert(key):
+    z = bst_insert(key)                    #@bst
+    z.color = RED                          #@bst
+    while z != root and z.parent.color == RED:     #@loop
+        p, g = z.parent, z.parent.parent   #@loop
+        uncle = g.right if p == g.left else g.left
+        if uncle is not None and uncle.color == RED:      # 경우 1   #@case1
+            p.color = uncle.color = BLACK  #@case1
+            g.color = RED                  #@case1
+            z = g                          #@case1
+        else:
+            if (p == g.left) != (z == p.left):            # 경우 2 (꺾임)   #@case2
+                z = p                      #@case2
+                rotate_left(z) if z == g.left else rotate_right(z)   #@case2
+                p = z.parent
+            p.color = BLACK                               # 경우 3   #@case3
+            g.color = RED                  #@case3
+            rotate_right(g) if p == g.left else rotate_left(g)      #@case3
+    root.color = BLACK                     #@root`,
+    c:`
+typedef enum { RED, BLACK } Color;
+typedef struct RBNode {
+    int key; Color color;
+    struct RBNode *left, *right, *parent;
+} RBNode;
+
+void insert(int key) {
+    RBNode *z = bst_insert(key);           //@bst
+    z->color = RED;                        //@bst
+    while (z != root && z->parent->color == RED) {    //@loop
+        RBNode *p = z->parent, *g = p->parent;        //@loop
+        RBNode *uncle = (p == g->left) ? g->right : g->left;
+        if (uncle != NULL && uncle->color == RED) {   // 경우 1   //@case1
+            p->color = uncle->color = BLACK;          //@case1
+            g->color = RED;                           //@case1
+            z = g;                                    //@case1
+        } else {
+            if ((p == g->left) != (z == p->left)) {   // 경우 2 (꺾임)   //@case2
+                z = p;                                //@case2
+                if (z == g->left) rotate_left(z); else rotate_right(z);   //@case2
+                p = z->parent;
+            }
+            p->color = BLACK;                         // 경우 3   //@case3
+            g->color = RED;                           //@case3
+            if (p == g->left) rotate_right(g); else rotate_left(g);       //@case3
+        }
+    }
+    root->color = BLACK;                   //@root
+}` },
+
+  /* ───────── 그래프 DFS ───────── */
+  { id:"dfs", group:"그래프", name:"깊이 우선 탐색 (DFS)", icon:"🧗", big:"인접 행렬 O(n²) · 인접 리스트 O(n + e)",
+    desc:"<b>깊이 우선 탐색(DFS)</b>: 한 방향으로 <b>갈 수 있는 데까지</b> 가다가 더 갈 곳이 없으면 <b>되돌아와서(백트래킹)</b> 다른 방향으로. 책의 <code>dfs_mat</code> 은 <b>인접 행렬</b>과 <code>visited[]</code> 배열, <b>순환 호출</b>(= 시스템 스택)을 써요. 정점 번호가 작은 이웃부터 방문해요.",
+    render:"graph",
+    ops:[
+      { name:"dfs_mat(g, v)", params:[{k:"s", label:"시작 정점 v", type:"sel", def:"0", opts:DS_GRAPH.names}],
+        run(st, p, R){
+          const G = DS_GRAPH.adj; const visited = []; const stack = []; const used = [];
+          const snap = (cur, extra)=> Object.assign({ visited:visited.slice(), frontier:stack.slice(), kind:"stack", cur, used:used.slice(), order:visited.slice() }, extra || {});
+          const dfs = (v, from)=>{
+            stack.push(v); visited.push(v); if (from) used.push([from, v]);
+            R.add("mark", `visited[${v}] = TRUE, "정점 ${v} →" 출력 (${visited.length}번째). 호출 스택: ${stack.join(" › ")}`, snap(v), { v });
+            for (const w of DS_GRAPH.names){
+              const edge = G[v].includes(w);
+              if (!edge) continue;
+              R.add("for", `w = ${w}: adj_mat[${v}][${w}] = 1 (인접), visited[${w}] = ${visited.includes(w) ? "TRUE" : "FALSE"}`, snap(v, { edge:[v, w] }), { v, w });
+              if (!visited.includes(w)){
+                R.add("rec", `아직 안 갔으니 dfs_mat(g, ${w}) 순환 호출 — 더 깊이!`, snap(v, { edge:[v, w] }), { v, w });
+                dfs(w, v);
+                R.add("for", `dfs_mat(${w}) 에서 돌아왔어요(백트래킹). 다시 ${v} 의 다음 이웃을 봐요.`, snap(v), { v });
+              }
+            }
+            stack.pop();
+            R.add("ret", `${v} 의 이웃을 다 봤어요 → 함수 종료, 되돌아가요.`, snap(stack[stack.length - 1] || null), { v });
+          };
+          dfs(p.s, null);
+          R.add("done", `탐색 끝. 방문 순서: ${visited.join(" → ")}`, snap(null));
+          return st; } }
+    ],
+    py:`
+MAX_VERTICES = 8
+adj_mat = [[0] * MAX_VERTICES for _ in range(MAX_VERTICES)]
+visited = [False] * MAX_VERTICES
+
+def dfs_mat(g, v):
+    visited[v] = True                      #@mark
+    print(f"정점 {v} ->", end=" ")          #@mark
+    for w in range(g.n):                   #@for
+        if g.adj_mat[v][w] and not visited[w]:     #@for
+            dfs_mat(g, w)                  #@rec
+                                           #@ret,done`,
+    c:`
+#define MAX_VERTICES 8
+typedef struct GraphType {
+    int n;                                 // 정점의 개수
+    int adj_mat[MAX_VERTICES][MAX_VERTICES];
+} GraphType;
+int visited[MAX_VERTICES];
+
+void dfs_mat(GraphType *g, int v) {
+    int w;
+    visited[v] = TRUE;                     //@mark
+    printf("정점 %d -> ", v);               //@mark
+    for (w = 0; w < g->n; w++)             //@for
+        if (g->adj_mat[v][w] && !visited[w])   //@for
+            dfs_mat(g, w);                 //@rec
+}                                          //@ret,done` },
+
+  /* ───────── 그래프 BFS ───────── */
+  { id:"bfs", group:"그래프", name:"너비 우선 탐색 (BFS)", icon:"🕸️", big:"인접 행렬 O(n²) · 큐 사용",
+    desc:"<b>너비 우선 탐색(BFS)</b>: 시작 정점에서 <b>가까운 정점부터</b> 차례로(레벨 순서). 방문한 정점을 <b>큐</b>에 넣고, 큐에서 꺼낸 정점의 인접 정점을 다시 큐에 넣어요. 큐가 공백이 되면 끝. 간선 수 기준 <b>최단 경로</b>를 찾을 때 써요.",
+    render:"graph",
+    ops:[
+      { name:"bfs_mat(g, v)", params:[{k:"s", label:"시작 정점 v", type:"sel", def:"0", opts:DS_GRAPH.names}],
+        run(st, p, R){
+          const G = DS_GRAPH.adj; const visited = [p.s]; const queue = [p.s]; const order = []; const used = [];
+          const snap = (cur, extra)=> Object.assign({ visited:visited.slice(), frontier:queue.slice(), kind:"queue", cur, used:used.slice(), order:order.slice() }, extra || {});
+          R.add("init_v", `visited[${p.s}] = TRUE, "${p.s} 방문" 출력`, snap(p.s), { v:p.s });
+          R.add("init_q", `enqueue(${p.s}). 큐: [${queue.join(", ")}]`, snap(p.s), { queue:queue.join(",") });
+          while (queue.length){
+            R.add("loop", `!is_empty(q) → 계속. 큐: [${queue.join(", ")}]`, snap(null), { queue:queue.join(",") });
+            const v = queue.shift(); order.push(v);
+            R.add("pop", `v = dequeue() = ${v}`, snap(v), { v });
+            for (const w of DS_GRAPH.names){
+              if (!G[v].includes(w)) continue;
+              R.add("for", `w = ${w}: adj_mat[${v}][${w}] = 1, visited[${w}] = ${visited.includes(w) ? "TRUE (건너뜀)" : "FALSE"}`, snap(v, { edge:[v, w] }), { v, w });
+              if (!visited.includes(w)){
+                visited.push(w); used.push([v, w]);
+                R.add("mark", `visited[${w}] = TRUE, "${w} 방문" 출력`, snap(v, { edge:[v, w] }), { v, w });
+                queue.push(w);
+                R.add("push", `enqueue(${w}). 큐: [${queue.join(", ")}]`, snap(v, { edge:[v, w] }), { queue:queue.join(",") });
+              }
+            }
+          }
+          R.add("done", `큐가 공백 — 탐색 끝. 방문 순서: ${visited.join(" → ")}`, snap(null));
+          return st; } }
+    ],
+    py:`
+from collections import deque
+visited = [False] * MAX_VERTICES
+
+def bfs_mat(g, v):
+    q = deque()
+    visited[v] = True                      #@init_v
+    print(f"{v} 방문 ->", end=" ")          #@init_v
+    q.append(v)                            #@init_q
+    while q:                               #@loop
+        v = q.popleft()                    #@pop
+        for w in range(g.n):               #@for
+            if g.adj_mat[v][w] and not visited[w]:     #@for
+                visited[w] = True          #@mark
+                print(f"{w} 방문 ->", end=" ")   #@mark
+                q.append(w)                #@push
+                                           #@done`,
+    c:`
+void bfs_mat(GraphType *g, int v) {
+    int w;
+    QueueType q;
+    queue_init(&q);                        // 큐 초기화
+    visited[v] = TRUE;                     //@init_v
+    printf("%d 방문 -> ", v);               //@init_v
+    enqueue(&q, v);                        //@init_q
+    while (!is_empty(&q)) {                //@loop
+        v = dequeue(&q);                   //@pop
+        for (w = 0; w < g->n; w++)         //@for
+            if (g->adj_mat[v][w] && !visited[w]) {   //@for
+                visited[w] = TRUE;         //@mark
+                printf("%d 방문 -> ", w);   //@mark
+                enqueue(&q, w);            //@push
+            }
+    }
+}                                          //@done` },
+
+  /* ───────── 다익스트라 ───────── */
+  { id:"dijkstra", group:"그래프", name:"최단 경로 — Dijkstra", icon:"🗺️", big:"O(n²) (인접 행렬)",
+    desc:"<b>Dijkstra 최단 경로</b>: 시작 정점에서 각 정점까지의 <b>최단 거리 distance[]</b>를 구해요. 아직 확정 안 된 정점 중 distance 가 <b>가장 작은 정점 u 를 선택(choose)</b>해 확정(found)하고, u 를 거쳐 가면 더 가까워지는 정점의 distance 를 갱신해요(완화). 이걸 n−1 번 반복. 가중치가 음수면 안 돼요.",
+    render:"dijkstra",
+    ops:[
+      { name:"shortest_path(g, start)", params:[{k:"s", label:"start", type:"sel", def:"0", opts:["0","1","2","3","4","5","6"]}],
+        run(st, p, R){
+          const n = DS_WGRAPH.n; const start = Number(p.s);
+          const W = Array.from({ length:n }, ()=> Array(n).fill(DS_INF)); for (let i = 0; i < n; i++) W[i][i] = 0;
+          DS_WGRAPH.edges.forEach(([a, b, w])=>{ W[a][b] = w; W[b][a] = w; });
+          const distance = W[start].slice(); const found = Array(n).fill(false); const via = Array(n).fill(start);
+          const snap = (extra)=> Object.assign({ distance:distance.slice(), found:found.slice(), via:via.slice(), start }, extra || {});
+          R.add("init", `distance[i] = weight[${start}][i] 로 초기화 (직접 연결 없으면 ∞), found[] 는 모두 FALSE.`, snap({}), { start });
+          found[start] = true; distance[start] = 0;
+          R.add("init2", `found[${start}] = TRUE, distance[${start}] = 0. 시작 정점은 확정.`, snap({ u:start }), { u:start });
+          for (let i = 0; i < n - 1; i++){
+            let min = DS_INF + 1, u = -1;
+            for (let k = 0; k < n; k++) if (!found[k] && distance[k] < min){ min = distance[k]; u = k; }
+            if (u < 0) break;
+            R.add("choose", `choose(): 아직 확정 안 된 정점 중 distance 가 가장 작은 정점 = <b>${u}</b> (${distance[u]}).`, snap({ u }), { i, u, dist:distance[u] });
+            found[u] = true;
+            R.add("found", `found[${u}] = TRUE — ${u} 까지의 최단 거리 ${distance[u]} 확정. (더 짧은 길은 있을 수 없어요)`, snap({ u }), { u });
+            for (let w = 0; w < n; w++){
+              if (found[w] || W[u][w] >= DS_INF) continue;
+              const nd = distance[u] + W[u][w]; const better = nd < distance[w];
+              R.add("relax", `w = ${w}: distance[${u}] + weight[${u}][${w}] = ${distance[u]} + ${W[u][w]} = ${nd} ${better ? "<" : "≥"} distance[${w}] = ${distance[w] >= DS_INF ? "∞" : distance[w]} → ${better ? "<b>갱신</b>" : "그대로"}`, snap({ u, w, edge:[u, w] }), { u, w });
+              if (better){ distance[w] = nd; via[w] = u; R.add("update", `distance[${w}] = ${nd} (${u} 를 거쳐 가는 길이 더 짧아요)`, snap({ u, w, edge:[u, w], upd:w }), { w, distance:nd }); }
+            }
+          }
+          R.add("done", `끝. ${start} 에서 각 정점까지 최단 거리: ${distance.map((d, i)=> i + ":" + (d >= DS_INF ? "∞" : d)).join("  ")}`, snap({}));
+          return st; } }
+    ],
+    py:`
+INF = 1000000
+distance = [INF] * MAX_VERTICES
+found = [False] * MAX_VERTICES
+
+def choose(distance, n, found):
+    min_d, minpos = INF + 1, -1            #@choose
+    for i in range(n):                     #@choose
+        if distance[i] < min_d and not found[i]:   #@choose
+            min_d, minpos = distance[i], i #@choose
+    return minpos
+
+def shortest_path(g, start):
+    for i in range(g.n):                   #@init
+        distance[i] = g.weight[start][i]   #@init
+        found[i] = False                   #@init
+    found[start] = True                    #@init2
+    distance[start] = 0                    #@init2
+    for i in range(g.n - 1):
+        u = choose(distance, g.n, found)   #@choose
+        found[u] = True                    #@found
+        for w in range(g.n):               #@relax
+            if not found[w]:               #@relax
+                if distance[u] + g.weight[u][w] < distance[w]:   #@relax
+                    distance[w] = distance[u] + g.weight[u][w]   #@update
+                                           #@done`,
+    c:`
+#define INF 1000000
+typedef struct GraphType {
+    int n;
+    int weight[MAX_VERTICES][MAX_VERTICES];
+} GraphType;
+int distance[MAX_VERTICES];   // 시작 정점으로부터의 최단 경로 거리
+int found[MAX_VERTICES];      // 방문한 정점 표시
+
+int choose(int distance[], int n, int found[]) {
+    int i, min, minpos;
+    min = INT_MAX; minpos = -1;            //@choose
+    for (i = 0; i < n; i++)                //@choose
+        if (distance[i] < min && !found[i]) {   //@choose
+            min = distance[i]; minpos = i; //@choose
+        }
+    return minpos;
+}
+
+void shortest_path(GraphType *g, int start) {
+    int i, u, w;
+    for (i = 0; i < g->n; i++) {           //@init
+        distance[i] = g->weight[start][i]; //@init
+        found[i] = FALSE;                  //@init
+    }
+    found[start] = TRUE;                   //@init2
+    distance[start] = 0;                   //@init2
+    for (i = 0; i < g->n - 1; i++) {
+        u = choose(distance, g->n, found); //@choose
+        found[u] = TRUE;                   //@found
+        for (w = 0; w < g->n; w++)         //@relax
+            if (!found[w])                 //@relax
+                if (distance[u] + g->weight[u][w] < distance[w])   //@relax
+                    distance[w] = distance[u] + g->weight[u][w];   //@update
+    }
+}                                          //@done` },
+
+  /* ───────── 해시 테이블 ───────── */
+  { id:"hash", group:"해싱", name:"해싱 — 체이닝", icon:"🗄️", big:"평균 O(1) · 충돌은 연결 리스트로",
+    desc:"<b>해싱(hashing)</b>: 탐색키를 <b>해시 함수</b> h(key) = key % TABLE_SIZE 에 넣어 나온 번호(<b>버킷</b>)에 바로 저장·탐색해요. 다른 키가 같은 버킷에 오는 것이 <b>충돌(collision)</b>. <b>체이닝</b>은 버킷마다 연결 리스트를 두어 충돌한 항목을 뒤에 이어 붙여요. 파이썬의 dict 가 해시 테이블이에요.",
+    render:"hash",
+    state:()=> ({ size:7, buckets:[[], [15], [], [10, 24], [], [], [13]] }),
+    ops:[
+      { name:"hash_chain_add(item)", params:[{k:"k", label:"key", type:"num", def:17}],
+        run(st, p, R){
+          const s = dsClone(st); const b = ((p.k % s.size) + s.size) % s.size;
+          R.add("hash", `hash_value = hash_function(${p.k}) = ${p.k} % ${s.size} = <b>${b}</b>`, Object.assign({}, s, { hl:{ b } }), { key:p.k, hash_value:b });
+          const chain = s.buckets[b];
+          for (let i = 0; i < chain.length; i++){
+            R.add("walk", `버킷 ${b} 의 리스트를 따라가요: ${chain[i]} ${chain[i] === p.k ? "== key → 이미 저장돼 있어요" : "≠ key"}`, Object.assign({}, s, { hl:{ b, idx:i, cls:chain[i] === p.k ? "found" : "cmp" } }), { node:chain[i] });
+            if (chain[i] === p.k){ R.add("dup", `"이미 탐색키가 저장되어 있음" — 넣지 않아요.`, Object.assign({}, s, { hl:{ b, idx:i, cls:"found" } })); return st; }
+          }
+          const collide = chain.length > 0;
+          chain.push(p.k);
+          R.add("ins", collide ? `리스트 끝에 닿았어요. 이미 ${chain.slice(0, -1).join(", ")} 이 있으니 <b>충돌</b> — 마지막 노드(node_before) 뒤에 이어 붙여요.` : `버킷 ${b} 가 비어 있어요 → ht[${b}] 가 새 노드를 가리키게.`, Object.assign({}, s, { hl:{ b, idx:chain.length - 1, cls:"new" } }), { key:p.k, hash_value:b });
+          return s; } },
+      { name:"hash_chain_search(item)", params:[{k:"k", label:"key", type:"num", def:24}],
+        run(st, p, R){
+          const s = dsClone(st); const b = ((p.k % s.size) + s.size) % s.size;
+          R.add("shash", `hash_value = ${p.k} % ${s.size} = <b>${b}</b> → 버킷 ${b} 의 리스트만 보면 돼요.`, Object.assign({}, s, { hl:{ b } }), { key:p.k, hash_value:b });
+          const chain = s.buckets[b];
+          for (let i = 0; i < chain.length; i++){
+            R.add("scmp", `node->key = ${chain[i]} ${chain[i] === p.k ? "== key 찾았어요!" : "≠ key → node = node->link"}`, Object.assign({}, s, { hl:{ b, idx:i, cls:chain[i] === p.k ? "found" : "cmp" } }), { key:p.k, node:chain[i] });
+            if (chain[i] === p.k){ R.add("sfound", `"탐색 성공". 해시 계산 1번 + 비교 ${i + 1}번. 충돌이 적을수록 O(1)에 가까워요.`, Object.assign({}, s, { hl:{ b, idx:i, cls:"found" } })); return st; }
+          }
+          R.add("snone", `리스트 끝(NULL)에 닿았어요 — "키를 찾지 못했음". 다른 버킷은 볼 필요 없어요.`, Object.assign({}, s, { hl:{ b } }));
+          return st; } }
+    ],
+    py:`
+TABLE_SIZE = 7
+hash_table = [[] for _ in range(TABLE_SIZE)]   #@init
+
+def hash_function(key):
+    return key % TABLE_SIZE                #@hash,shash
+
+def hash_chain_add(key):
+    hash_value = hash_function(key)        #@hash
+    for k in hash_table[hash_value]:       #@walk
+        if k == key:                       #@walk
+            print("이미 탐색키가 저장되어 있음")   #@dup
+            return                         #@dup
+    hash_table[hash_value].append(key)     #@ins
+
+def hash_chain_search(key):
+    hash_value = hash_function(key)        #@shash
+    for k in hash_table[hash_value]:       #@scmp
+        if k == key:                       #@scmp
+            print("탐색 성공"); return      #@sfound
+    print("키를 찾지 못했음")               #@snone`,
+    c:`
+#define TABLE_SIZE 7
+typedef struct { int key; } element;
+struct ListNode {
+    element item;
+    struct ListNode *link;
+};
+struct ListNode *hash_table[TABLE_SIZE];   //@init
+
+int hash_function(int key) {
+    return key % TABLE_SIZE;               //@hash,shash
+}
+
+void hash_chain_add(element item, struct ListNode *ht[]) {
+    int hash_value = hash_function(item.key);   //@hash
+    struct ListNode *ptr;
+    struct ListNode *node_before = NULL, *node = ht[hash_value];
+    for (; node; node = node->link) {      //@walk
+        if (node->item.key == item.key) {  //@walk
+            fprintf(stderr, "이미 탐색키가 저장되어 있음\\n");   //@dup
+            return;                        //@dup
+        }
+        node_before = node;
+    }
+    ptr = (struct ListNode *)malloc(sizeof(struct ListNode));   //@ins
+    ptr->item = item; ptr->link = NULL;    //@ins
+    if (node_before) node_before->link = ptr;   //@ins
+    else ht[hash_value] = ptr;             //@ins
+}
+
+void hash_chain_search(element item, struct ListNode *ht[]) {
+    struct ListNode *node;
+    int hash_value = hash_function(item.key);   //@shash
+    for (node = ht[hash_value]; node; node = node->link) {   //@scmp
+        if (node->item.key == item.key) {  //@scmp
+            fprintf(stderr, "탐색 성공\\n");   //@sfound
+            return;                        //@sfound
+        }
+    }
+    printf("키를 찾지 못했음\\n");            //@snone
+}` },
+
+  /* ───────── 하노이 탑 ───────── */
+  { id:"hanoi", group:"순환", name:"하노이 탑", icon:"🗼", big:"이동 2ⁿ − 1 번",
+    desc:"막대 A 의 원판 n 개를 C 로 옮겨요. 한 번에 하나씩, 큰 원판을 작은 원판 위에 놓으면 안 돼요. <b>순환(recursion)</b>으로 풀어요: n−1 개를 B 로 옮기고 → 가장 큰 원판을 C 로 → n−1 개를 B 에서 C 로. 그 n−1 개도 같은 방법이에요. 이동 횟수는 2ⁿ − 1.",
+    render:"hanoi",
+    idle:()=> ({ pegs:{ A:[3, 2, 1], B:[], C:[] }, n:3, moves:0, calls:[] }),
+    ops:[
+      { name:"hanoi_tower(n, 'A', 'B', 'C')", params:[{k:"n", label:"n", type:"num", def:3, min:1, max:5}],
+        run(st, p, R){
+          const n = Math.max(1, Math.min(5, p.n)); const pegs = { A:[], B:[], C:[] }; for (let d = n; d >= 1; d--) pegs.A.push(d);
+          let moves = 0; const calls = [];
+          const snap = (moving)=> ({ pegs:dsClone(pegs), n, moving:moving || null, calls:calls.slice(), moves });
+          const hanoi = (k, from, tmp, to)=>{
+            calls.push(`hanoi_tower(${k}, ${from}, ${tmp}, ${to})`);
+            if (k === 1){
+              R.add("base", `n == 1: 원판 1 을 ${from} 에서 ${to} 로 옮기면 끝 (순환 종료 조건).`, snap(), { n:k, from, to });
+              pegs[to].push(pegs[from].pop()); moves++;
+              R.add("move1", `이동 ${moves}: "원판 1을 ${from}에서 ${to}으로 옮긴다."`, snap({ disk:1, src:from, dst:to }), { n:k, from, to });
+              calls.pop(); return;
+            }
+            R.add("rec1", `hanoi_tower(${k}, ${from}→${to}): 먼저 위의 ${k - 1}개를 ${from} 에서 ${tmp} 로 (순환 호출).`, snap(), { n:k, from, tmp, to });
+            hanoi(k - 1, from, to, tmp);
+            pegs[to].push(pegs[from].pop()); moves++;
+            R.add("move", `이동 ${moves}: "원판 ${k}을 ${from}에서 ${to}으로 옮긴다."`, snap({ disk:k, src:from, dst:to }), { n:k, from, to });
+            R.add("rec2", `${tmp} 에 치워 둔 ${k - 1}개를 ${to} 로 (순환 호출).`, snap(), { n:k, from, tmp, to });
+            hanoi(k - 1, tmp, from, to);
+            calls.pop();
+          };
+          hanoi(n, "A", "B", "C");
+          R.add("done", `완성! 총 ${moves}번 = 2^${n} − 1.`, snap());
+          return st; } }
+    ],
+    py:`
+def hanoi_tower(n, frm, tmp, to):
+    if n == 1:                             #@base
+        print(f"원판 1을 {frm}에서 {to}으로 옮긴다.")   #@move1
+    else:
+        hanoi_tower(n - 1, frm, to, tmp)   #@rec1
+        print(f"원판 {n}을 {frm}에서 {to}으로 옮긴다.")  #@move
+        hanoi_tower(n - 1, tmp, frm, to)   #@rec2
+
+hanoi_tower(3, 'A', 'B', 'C')              #@done`,
+    c:`
+void hanoi_tower(int n, char from, char tmp, char to) {
+    if (n == 1)                            //@base
+        printf("원판 1을 %c에서 %c으로 옮긴다.\\n", from, to);   //@move1
+    else {
+        hanoi_tower(n - 1, from, to, tmp); //@rec1
+        printf("원판 %d을 %c에서 %c으로 옮긴다.\\n", n, from, to);   //@move
+        hanoi_tower(n - 1, tmp, from, to); //@rec2
+    }
+}
+
+int main(void) { hanoi_tower(3, 'A', 'B', 'C'); return 0; }   //@done` },
+
+  /* ───────── 팩토리얼 (순환) ───────── */
+  { id:"factorial", group:"순환", name:"순환 — 팩토리얼과 호출 스택", icon:"🔁", big:"순환 깊이 n · 스택 메모리 O(n)",
+    desc:"<b>순환(recursion)</b>: 함수가 자기 자신을 호출해요. 호출할 때마다 <b>활성 레코드</b>(매개변수·복귀 주소)가 <b>시스템 스택</b>에 쌓이고, <b>순환 종료 조건</b>(n ≤ 1)에 닿으면 값이 위에서부터 차례로 돌아와요. 종료 조건이 없으면 스택이 넘쳐요.",
+    render:"callstack",
+    idle:()=> ({ frames:[], result:null }),
+    ops:[
+      { name:"factorial(n)", params:[{k:"n", label:"n", type:"num", def:4, min:1, max:7}],
+        run(st, p, R){
+          const n = Math.max(1, Math.min(7, p.n)); const frames = [];
+          const snap = (result)=> ({ frames:dsClone(frames), result: result === undefined ? null : result });
+          const fact = (k)=>{
+            frames.push({ name:`factorial(${k})`, status:"active", note:"" });
+            if (k <= 1){
+              R.add("base", `factorial(${k}): n ≤ 1 — 순환 종료 조건! 1 을 반환.`, snap(), { n:k });
+              frames[frames.length - 1].status = "ret"; frames[frames.length - 1].note = "= 1";
+              R.add("ret1", `return 1 → 활성 레코드가 스택에서 제거돼요.`, snap(1), { n:k });
+              frames.pop(); return 1;
+            }
+            frames[frames.length - 1].status = "wait"; frames[frames.length - 1].note = `= ${k} × factorial(${k - 1}) … 기다리는 중`;
+            R.add("rec", `factorial(${k}) = ${k} × factorial(${k - 1}) — factorial(${k - 1}) 가 끝날 때까지 스택에서 기다려요.`, snap(), { n:k });
+            const r = fact(k - 1);
+            frames[frames.length - 1].status = "ret"; frames[frames.length - 1].note = `= ${k} × ${r} = ${k * r}`;
+            R.add("rec", `factorial(${k - 1}) = ${r} 가 돌아왔어요 → ${k} × ${r} = ${k * r} 반환.`, snap(k * r), { n:k, result:k * r });
+            frames.pop(); return k * r;
+          };
+          const r = fact(n);
+          R.add("done", `factorial(${n}) = ${r}. 스택 깊이는 최대 ${n}.`, snap(r), { result:r });
+          return st; } }
+    ],
+    py:`
+def factorial(n):
+    if n <= 1:                             #@base
+        return 1                           #@ret1
+    else:
+        return n * factorial(n - 1)        #@rec
+
+print(factorial(4))                        #@done`,
+    c:`
+int factorial(int n) {
+    if (n <= 1) return 1;                  //@base,ret1
+    else return (n * factorial(n - 1));    //@rec
+}
+
+int main(void) { printf("%d", factorial(4)); return 0; }   //@done` }
+  ];
+
+  // BST 초기 트리용 조용한 삽입
+  function dsBstInsert(s, v){
+    const id = s.nextId++; s.nodes[id] = { v, l:null, r:null };
+    if (s.root === null){ s.root = id; return; }
+    let cur = s.root;
+    while (true){ const n = s.nodes[cur]; const side = v < n.v ? "l" : "r"; if (n[side] === null){ n[side] = id; return; } cur = n[side]; }
+  }
+
+  /* ---------------- 그림 그리기 ---------------- */
+  const DS_CLS = { cmp:"ds-cmp", swap:"ds-swap", sorted:"ds-sorted", found:"ds-found", pivot:"ds-pivot", dim:"ds-dim",
+                   min:"ds-min", move:"ds-move", new:"ds-new", del:"ds-del", cur:"ds-cur", prev:"ds-prev" };
+  const dsC = (k)=> DS_CLS[k] || "";
+
+  function dsRenderArray(s){
+    const a = s.arr || []; const marks = s.marks || {}; const ptrs = s.ptrs || {};
+    const cap = s.cap || a.length;
+    const nums = a.filter(v=> typeof v === "number"); const max = Math.max(1, ...nums.map(Math.abs));
+    let h = '<div class="ds-arr">';
+    for (let i = 0; i < cap; i++){
+      const v = a[i]; const empty = v === null || v === undefined;
+      const bar = empty ? 0 : Math.max(8, Math.round(Math.abs(v) / max * 64));
+      const lab = Object.keys(ptrs).filter(k=> ptrs[k] === i);
+      h += '<div class="ds-cell' + (empty ? ' ds-empty' : '') + '">'
+        +  '<div class="ds-barwrap"><div class="ds-bar ' + dsC(marks[i]) + '" style="height:' + bar + 'px"></div></div>'
+        +  '<div class="ds-box ' + dsC(marks[i]) + '">' + (empty ? '' : esc(String(v))) + '</div>'
+        +  '<div class="ds-idx">' + i + '</div>'
+        +  '<div class="ds-ptr">' + lab.map(k=> '<span>' + esc(k) + '</span>').join("") + '</div>'
+        + '</div>';
+    }
+    h += '</div>';
+    if (s.hold !== undefined) h += '<div class="ds-aux">손에 든 값 key = <b>' + esc(String(s.hold)) + '</b></div>';
+    if (s.aux) h += '<div class="ds-aux">왼쪽 [' + s.aux.L.map((v, i)=> i < s.aux.i ? '<s>' + v + '</s>' : (i === s.aux.i ? '<b>' + v + '</b>' : v)).join(", ") + ']'
+      + ' &nbsp; 오른쪽 [' + s.aux.R.map((v, j)=> j < s.aux.j ? '<s>' + v + '</s>' : (j === s.aux.j ? '<b>' + v + '</b>' : v)).join(", ") + ']'
+      + ' &nbsp; → 합친 것 [' + s.aux.out.join(", ") + ']</div>';
+    return h;
+  }
+
+  function dsRenderStack(s){
+    const hl = s.hl || {}; let h = '<div class="ds-stackwrap"><div class="ds-stack">';
+    for (let i = 0; i < s.cap; i++){                       // column-reverse 라 0번이 맨 아래, top 이 맨 위
+      const v = s.items[i]; const empty = v === undefined;
+      h += '<div class="ds-slot' + (empty ? ' ds-empty' : '') + ' ' + dsC(hl[i]) + '">' + (empty ? '' : esc(String(v)))
+        + (i === s.items.length - 1 ? '<span class="ds-tag">top</span>' : '') + '</div>';
+    }
+    h += '</div><div class="ds-side">' + (s.popped !== undefined ? '꺼낸 값: <b>' + s.popped + '</b>' : '') + '<div class="ds-note">top = ' + (s.items.length - 1) + ' · 크기 ' + s.items.length + '/' + s.cap + '</div></div></div>';
+    return h;
+  }
+
+  function dsRenderQueue(s){
+    const hl = s.hl || {}; let h = '<div class="ds-arr ds-queue">';
+    s.cells.forEach((v, i)=>{
+      const empty = v === null; const tags = [];
+      if (i === s.front && s.front >= 0) tags.push("front"); if (i === s.rear && s.rear >= 0) tags.push("rear");
+      h += '<div class="ds-cell"><div class="ds-box ' + (empty ? 'ds-empty' : '') + ' ' + dsC(hl[i]) + '">' + (empty ? '' : esc(String(v))) + '</div>'
+        + '<div class="ds-idx">' + i + '</div><div class="ds-ptr">' + tags.map(t=> '<span>' + t + '</span>').join("") + '</div></div>';
+    });
+    h += '</div>' + (s.popped !== undefined ? '<div class="ds-aux">꺼낸 값: <b>' + s.popped + '</b></div>' : '')
+      + '<div class="ds-note">front = ' + s.front + ' · rear = ' + s.rear + ' &nbsp;·&nbsp; 항목은 data[front+1] ~ data[rear] &nbsp;·&nbsp; ← 삭제(front) · 삽입(rear) →</div>';
+    return h;
+  }
+
+  function dsRenderLinked(s){
+    const hl = s.hl || {}; const W = 96, G = 46, X0 = 70, Y = 40;
+    const nodes = s.nodes; const n = nodes.length;
+    const width = Math.max(320, X0 + n * (W + G) + 40); const pending = s.pending;
+    let svg = '<svg class="ds-svg" viewBox="0 0 ' + width + ' ' + (pending ? 150 : 100) + '" style="max-width:' + width + 'px">';
+    svg += '<defs><marker id="dsArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="currentColor"/></marker></defs>';
+    // head
+    svg += '<text x="8" y="' + (Y + 5) + '" class="ds-lbl">head</text>';
+    if (n) svg += '<line x1="46" y1="' + Y + '" x2="' + (X0 - 4) + '" y2="' + Y + '" class="ds-line" marker-end="url(#dsArrow)"/>';
+    else svg += '<text x="50" y="' + (Y + 5) + '" class="ds-lbl">→ NULL</text>';
+    const xOf = (i)=> X0 + i * (W + G);
+    nodes.forEach((nd, i)=>{
+      const x = xOf(i); const cls = dsC(hl[nd.id]);
+      svg += '<g class="ds-node ' + cls + '"><rect x="' + x + '" y="' + (Y - 18) + '" width="' + (W * 0.62) + '" height="36" rx="6"/>'
+        + '<rect x="' + (x + W * 0.62) + '" y="' + (Y - 18) + '" width="' + (W * 0.38) + '" height="36" rx="6" class="ds-nextbox"/>'
+        + '<text x="' + (x + W * 0.31) + '" y="' + (Y + 5) + '" class="ds-val">' + esc(String(nd.v)) + '</text>'
+        + '<circle cx="' + (x + W * 0.81) + '" cy="' + Y + '" r="3" class="ds-dot"/></g>';
+      const skip = s.skip && s.skip[0] === nd.id;
+      if (i < n - 1){
+        if (skip) svg += '<path d="M' + (x + W * 0.81) + ',' + Y + ' C ' + (x + W + G * 0.6) + ',' + (Y - 40) + ' ' + (xOf(i + 2) - G * 0.6) + ',' + (Y - 40) + ' ' + (xOf(i + 2) - 4) + ',' + (Y - 6) + '" class="ds-line ds-skipline" marker-end="url(#dsArrow)"/>';
+        else svg += '<line x1="' + (x + W * 0.81) + '" y1="' + Y + '" x2="' + (xOf(i + 1) - 4) + '" y2="' + Y + '" class="ds-line" marker-end="url(#dsArrow)"/>';
+      } else svg += '<text x="' + (x + W + 6) + '" y="' + (Y + 5) + '" class="ds-lbl">NULL</text>';
+      if (hl[nd.id] === "cur" || hl[nd.id] === "prev") svg += '<text x="' + (x + W * 0.31) + '" y="' + (Y + 36) + '" class="ds-lbl ds-lblc">' + hl[nd.id] + '</text>';
+    });
+    if (pending){
+      const px = s.pendingAt !== undefined ? Math.max(X0, xOf(s.pendingAt) - (W + G) / 2) : X0, py = 115;
+      svg += '<g class="ds-node ' + dsC(hl[pending.id]) + '"><rect x="' + px + '" y="' + (py - 18) + '" width="' + (W * 0.62) + '" height="36" rx="6"/>'
+        + '<rect x="' + (px + W * 0.62) + '" y="' + (py - 18) + '" width="' + (W * 0.38) + '" height="36" rx="6" class="ds-nextbox"/>'
+        + '<text x="' + (px + W * 0.31) + '" y="' + (py + 5) + '" class="ds-val">' + esc(String(pending.v)) + '</text>'
+        + '<circle cx="' + (px + W * 0.81) + '" cy="' + py + '" r="3" class="ds-dot"/></g>'
+        + '<text x="' + (px - 4) + '" y="' + (py + 5) + '" class="ds-lbl" text-anchor="end">node</text>';
+      if (s.pendingNext){ const ti = nodes.findIndex(nd=> nd.id === s.pendingNext);
+        svg += '<path d="M' + (px + W * 0.81) + ',' + py + ' C ' + (px + W + 30) + ',' + py + ' ' + (xOf(ti) - 30) + ',' + (Y + 40) + ' ' + (xOf(ti) + 4) + ',' + (Y + 20) + '" class="ds-line ds-newline" marker-end="url(#dsArrow)"/>'; }
+      else svg += '<text x="' + (px + W + 6) + '" y="' + (py + 5) + '" class="ds-lbl">NULL</text>';
+    }
+    svg += '</svg>';
+    return '<div class="ds-svgwrap">' + svg + '</div>';
+  }
+
+  function dsRenderTree(s){
+    const hl = s.hl || {}; const ids = []; const pos = {};
+    let depthMax = 0;
+    (function walk(id, d){ if (id === null || id === undefined) return; const n = s.nodes[id]; walk(n.l, d + 1); pos[id] = { x:ids.length, d }; ids.push(id); depthMax = Math.max(depthMax, d); walk(n.r, d + 1); })(s.root, 0);
+    const cw = 52, rh = 62, W = Math.max(280, ids.length * cw + 40), H = (depthMax + 1) * rh + 30;
+    const X = (id)=> 20 + pos[id].x * cw + cw / 2, Yf = (id)=> 28 + pos[id].d * rh;
+    let svg = '<svg class="ds-svg" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + W + 'px">';
+    ids.forEach(id=>{ const n = s.nodes[id]; [n.l, n.r].forEach(c=>{ if (c !== null) svg += '<line x1="' + X(id) + '" y1="' + Yf(id) + '" x2="' + X(c) + '" y2="' + Yf(c) + '" class="ds-line' + ((s.path || []).includes(id) && (s.path || []).includes(c) ? ' ds-pathline' : '') + '"/>'; }); });
+    ids.forEach(id=>{ const n = s.nodes[id];
+      const colorCls = n.c === "R" ? " ds-red" : (n.c === "B" ? " ds-black" : "");
+      svg += '<g class="ds-tnode ' + dsC(hl[id]) + colorCls + '"><circle cx="' + X(id) + '" cy="' + Yf(id) + '" r="19"/><text x="' + X(id) + '" y="' + (Yf(id) + 5) + '" class="ds-val">' + n.v + '</text></g>';
+      if (s.bf && s.bf[id] !== undefined) svg += '<text x="' + (X(id) + 21) + '" y="' + (Yf(id) - 13) + '" class="ds-lbl ds-lblc' + (Math.abs(s.bf[id]) > 1 ? ' ds-bfbad' : '') + '">' + (s.bf[id] > 0 ? "+" : "") + s.bf[id] + '</text>'; });
+    if (s.root === null) svg += '<text x="20" y="40" class="ds-lbl">빈 트리</text>';
+    svg += '</svg>';
+    return '<div class="ds-svgwrap">' + svg + '</div>' + (s.order ? '<div class="ds-aux">방문 순서: <b>' + s.order.join(" → ") + '</b></div>' : '');
+  }
+
+  function dsRenderGraph(s){
+    const G = DS_GRAPH; const vis = new Set(s.visited || []); const used = s.used || [];
+    const sx = 1.55, ox = 40, oy = 22;
+    const P = (i)=> [ox + G.pos[i][0] * sx, oy + G.pos[i][1] * sx];
+    let svg = '<svg class="ds-svg" viewBox="0 0 380 340" style="max-width:380px">';
+    const seen = new Set();
+    G.names.forEach((a, i)=> G.adj[a].forEach(b=>{ const key = [a, b].sort().join(); if (seen.has(key)) return; seen.add(key);
+      const j = G.names.indexOf(b); const [x1, y1] = P(i), [x2, y2] = P(j);
+      const isUsed = used.some(e=> (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a));
+      const isEdge = s.edge && ((s.edge[0] === a && s.edge[1] === b) || (s.edge[0] === b && s.edge[1] === a));
+      svg += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" class="ds-line' + (isUsed ? ' ds-usedline' : '') + (isEdge ? ' ds-edgeline' : '') + '"/>'; }));
+    G.names.forEach((a, i)=>{ const [x, y] = P(i); const cls = s.cur === a ? "ds-cur" : vis.has(a) ? "ds-found" : "";
+      const ord = (s.order || []).indexOf(a);
+      svg += '<g class="ds-tnode ' + cls + '"><circle cx="' + x + '" cy="' + y + '" r="19"/><text x="' + x + '" y="' + (y + 5) + '" class="ds-val">' + a + '</text></g>'
+        + (ord >= 0 ? '<text x="' + (x + 22) + '" y="' + (y - 14) + '" class="ds-lbl ds-lblc">' + (ord + 1) + '</text>' : ''); });
+    svg += '</svg>';
+    const fr = s.frontier || [];
+    const frHtml = '<div class="ds-frontier"><b>' + (s.kind === "stack" ? "호출 스택" : "큐") + '</b> '
+      + (fr.length ? fr.map((v, i)=> '<span class="ds-chip' + (s.kind === "stack" ? (i === fr.length - 1 ? ' ds-cur' : '') : (i === 0 ? ' ds-cur' : '')) + '">' + v + '</span>').join(s.kind === "stack" ? " › " : " ") : '<span class="ds-note">(비어 있음)</span>')
+      + (s.kind === "queue" ? ' <span class="ds-note">← 앞에서 꺼냄</span>' : ' <span class="ds-note">← 맨 뒤가 지금 실행 중</span>') + '</div>'
+      + '<div class="ds-aux">방문 순서: <b>' + (s.order || []).join(" → ") + '</b> &nbsp; 방문 표시: ' + [...vis].join(", ") + '</div>';
+    return '<div class="ds-graphwrap"><div class="ds-svgwrap">' + svg + '</div>' + frHtml + '</div>';
+  }
+
+  function dsRenderHash(s){
+    const hl = s.hl || {}; let h = '<div class="ds-hash">';
+    s.buckets.forEach((chain, b)=>{
+      h += '<div class="ds-bucket' + (hl.b === b ? ' ds-bcur' : '') + '"><div class="ds-bidx">' + b + '</div><div class="ds-chain">'
+        + (chain.length ? chain.map((k, i)=> '<span class="ds-hcell ' + (hl.b === b && hl.idx === i ? dsC(hl.cls || "cur") : '') + '">' + k + '</span>').join('<span class="ds-harrow">→</span>') : '<span class="ds-note">비어 있음</span>')
+        + '</div></div>';
+    });
+    return h + '</div><div class="ds-note">해시 함수: key % ' + s.size + ' &nbsp;·&nbsp; 같은 칸에 여러 개 = 충돌(체이닝)</div>';
+  }
+
+  function dsRenderHanoi(s){
+    const pegs = ["A", "B", "C"]; const n = s.n; const W = 360, H = 150, pw = W / 3;
+    let svg = '<svg class="ds-svg" viewBox="0 0 ' + W + ' ' + H + '" style="max-width:' + W + 'px">';
+    pegs.forEach((p, pi)=>{
+      const cx = pw * pi + pw / 2;
+      svg += '<rect x="' + (cx - 3) + '" y="20" width="6" height="105" rx="3" class="ds-peg"/><rect x="' + (pw * pi + 10) + '" y="122" width="' + (pw - 20) + '" height="6" rx="3" class="ds-peg"/>'
+        + '<text x="' + cx + '" y="145" text-anchor="middle" class="ds-lbl">' + p + '</text>';
+      (s.pegs[p] || []).forEach((d, di)=>{ const w = 22 + d * (pw - 40) / n; const y = 122 - (di + 1) * 16;
+        const mv = s.moving && s.moving.disk === d && s.moving.dst === p;
+        svg += '<rect x="' + (cx - w / 2) + '" y="' + y + '" width="' + w + '" height="14" rx="5" class="ds-disk ds-d' + d + (mv ? ' ds-moving' : '') + '"/>'; });
+    });
+    svg += '</svg>';
+    return '<div class="ds-svgwrap">' + svg + '</div><div class="ds-aux">이동 횟수: <b>' + s.moves + '</b>' + (s.calls && s.calls.length ? ' &nbsp;·&nbsp; 호출 스택: ' + s.calls.map((c, i)=> '<span class="ds-chip' + (i === s.calls.length - 1 ? ' ds-cur' : '') + '">' + esc(c) + '</span>').join(" › ") : '') + '</div>';
+  }
+
+  function dsRenderCallstack(s){
+    let h = '<div class="ds-stackwrap"><div class="ds-frames">';
+    for (let i = 0; i < s.frames.length; i++){             // column-reverse 라 처음 호출이 맨 아래
+      const f = s.frames[i];
+      h += '<div class="ds-frame ds-f-' + f.status + '"><b>' + esc(f.name) + '</b><span>' + esc(f.note || (f.status === "active" ? "실행 중" : "")) + '</span></div>';
+    }
+    if (!s.frames.length) h += '<div class="ds-note">스택이 비었어요</div>';
+    h += '</div><div class="ds-side"><div class="ds-note">↑ 위가 지금 실행 중<br>아래는 기다리는 호출</div>' + (s.result !== null && s.result !== undefined ? '<div class="ds-aux">돌아온 값: <b>' + s.result + '</b></div>' : '') + '</div></div>';
+    return h;
+  }
+
+  // 원형 큐: 칸을 둥글게
+  function dsRenderRing(s){
+    const n = s.size, hl = s.hl || {}, cx = 130, cy = 120, r = 82;
+    let svg = '<svg class="ds-svg" viewBox="0 0 260 240" style="max-width:260px">';
+    for (let i = 0; i < n; i++){
+      const ang = -Math.PI / 2 + i * 2 * Math.PI / n; const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+      const v = s.cells[i]; const cls = hl[i] ? dsC(hl[i]) : (v === null ? "ds-ring-empty" : "");
+      svg += '<g class="ds-tnode ' + cls + '"><rect x="' + (x - 20) + '" y="' + (y - 18) + '" width="40" height="36" rx="8"/>'
+        + '<text x="' + x + '" y="' + (y + 5) + '" class="ds-val">' + (v === null ? "" : v) + '</text></g>'
+        + '<text x="' + (cx + (r + 34) * Math.cos(ang)) + '" y="' + (cy + (r + 34) * Math.sin(ang) + 4) + '" class="ds-lbl" text-anchor="middle">' + i + '</text>';
+      const tags = []; if (i === s.front) tags.push("front"); if (i === s.rear) tags.push("rear");
+      if (tags.length) svg += '<text x="' + (cx + (r - 34) * Math.cos(ang)) + '" y="' + (cy + (r - 34) * Math.sin(ang) + 4) + '" class="ds-lbl ds-lblc" text-anchor="middle">' + tags.join("=") + '</text>';
+    }
+    svg += '<text x="' + cx + '" y="' + (cy + 4) + '" class="ds-lbl" text-anchor="middle" style="font-size:11px">' + (s.front === s.rear ? "공백" : "") + '</text></svg>';
+    const cnt = (s.rear - s.front + n) % n;
+    return '<div class="ds-svgwrap">' + svg + '</div>' + (s.popped !== undefined ? '<div class="ds-aux">꺼낸 값: <b>' + s.popped + '</b></div>' : '')
+      + '<div class="ds-note">front = ' + s.front + ' · rear = ' + s.rear + ' · 항목 ' + cnt + '개 (최대 ' + (n - 1) + '개, 한 칸은 항상 비움) · 시계 방향으로 증가</div>';
+  }
+
+  // 다익스트라: 가중치 그래프 + distance/found 표
+  function dsRenderDijkstra(s){
+    const G = DS_WGRAPH, sx = 1.25, ox = 25, oy = 22;
+    const P = (i)=> [ox + G.pos[i][0] * sx, oy + G.pos[i][1] * sx];
+    let svg = '<svg class="ds-svg" viewBox="0 0 380 240" style="max-width:380px">';
+    G.edges.forEach(([a, b, w])=>{ const [x1, y1] = P(a), [x2, y2] = P(b);
+      const isEdge = s.edge && ((s.edge[0] === a && s.edge[1] === b) || (s.edge[0] === b && s.edge[1] === a));
+      const isTree = s.found && s.found[a] && s.found[b] && (s.via[a] === b || s.via[b] === a);
+      svg += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" class="ds-line' + (isTree ? ' ds-usedline' : '') + (isEdge ? ' ds-edgeline' : '') + '"/>'
+        + '<rect x="' + ((x1 + x2) / 2 - 11) + '" y="' + ((y1 + y2) / 2 - 9) + '" width="22" height="18" rx="4" class="ds-wbox"/>'
+        + '<text x="' + ((x1 + x2) / 2) + '" y="' + ((y1 + y2) / 2 + 4) + '" class="ds-lbl ds-wlbl" text-anchor="middle">' + w + '</text>'; });
+    for (let i = 0; i < G.n; i++){ const [x, y] = P(i); const cls = s.u === i ? "ds-cur" : (s.found && s.found[i] ? "ds-found" : (s.w === i ? "ds-new" : ""));
+      const d = s.distance ? s.distance[i] : null;
+      svg += '<g class="ds-tnode ' + cls + '"><circle cx="' + x + '" cy="' + y + '" r="17"/><text x="' + x + '" y="' + (y + 5) + '" class="ds-val">' + i + '</text></g>'
+        + (d !== null ? '<text x="' + (x + 20) + '" y="' + (y - 12) + '" class="ds-lbl ds-lblc">' + (d >= DS_INF ? "∞" : d) + '</text>' : ''); }
+    svg += '</svg>';
+    let tbl = '<table class="ds-dtable"><tr><th>정점</th>' + Array.from({ length:G.n }, (_, i)=> '<th' + (s.u === i ? ' class="ds-cur"' : '') + '>' + i + '</th>').join("") + '</tr>'
+      + '<tr><td>distance</td>' + Array.from({ length:G.n }, (_, i)=> '<td' + (s.upd === i ? ' class="ds-new"' : (s.w === i ? ' class="ds-cmp"' : '')) + '>' + (s.distance ? (s.distance[i] >= DS_INF ? "∞" : s.distance[i]) : "") + '</td>').join("") + '</tr>'
+      + '<tr><td>found</td>' + Array.from({ length:G.n }, (_, i)=> '<td' + (s.found && s.found[i] ? ' class="ds-sorted"' : '') + '>' + (s.found ? (s.found[i] ? "T" : "F") : "") + '</td>').join("") + '</tr></table>';
+    return '<div class="ds-graphwrap"><div class="ds-svgwrap">' + svg + '</div>' + tbl + '<div class="ds-note">노드 옆 숫자 = 현재 distance · 초록 노드 = 확정(found) · 초록 간선 = 최단 경로 트리</div></div>';
+  }
+
+  const DS_RENDER = { array:dsRenderArray, stack:dsRenderStack, queue:dsRenderQueue, ring:dsRenderRing, linked:dsRenderLinked, tree:dsRenderTree,
+                      graph:dsRenderGraph, dijkstra:dsRenderDijkstra, hash:dsRenderHash, hanoi:dsRenderHanoi, callstack:dsRenderCallstack };
+
+  /* ---------------- 화면·재생 ---------------- */
+  let dsInited = false, dsScene = null, dsState = {}, dsSteps = [], dsPos = 0, dsTimer = null, dsCode = { py:null, c:null }, dsCurOp = null;
+
+  function dsInit(){
+    if (dsInited) return; dsInited = true;
+    const groups = [];
+    DS_SCENES.forEach(sc=>{ let g = groups.find(x=> x.name === sc.group); if (!g){ g = { name:sc.group, items:[] }; groups.push(g); } g.items.push(sc); });
+    $("dsMenu").innerHTML = groups.map(g=> '<div class="ds-group"><div class="ds-gname">' + esc(g.name) + '</div>'
+      + g.items.map(sc=> '<button data-ds-id="' + sc.id + '"><i>' + sc.icon + '</i>' + esc(sc.name) + '</button>').join("") + '</div>').join("");
+    document.querySelectorAll("[data-ds-id]").forEach(b=> b.onclick = ()=> dsOpen(b.dataset.dsId));
+    $("dsPrev").onclick = ()=> dsGo(dsPos - 1);
+    $("dsNext").onclick = ()=> dsGo(dsPos + 1);
+    $("dsFirst").onclick = ()=> dsGo(0);
+    $("dsLast").onclick = ()=> dsGo(dsSteps.length - 1);
+    $("dsPlay").onclick = dsTogglePlay;
+    $("dsReset").onclick = ()=>{ if (dsScene.state) dsState[dsScene.id] = dsScene.state(); else if (dsScene.input) dsState[dsScene.id] = { arr: dsInputArr() }; dsStop(); dsSteps = []; dsPos = 0; dsDrawIdle(); };
+    $("dsSpeed").oninput = ()=>{ if (dsTimer){ dsStop(); dsTogglePlay(); } };
+    document.querySelectorAll("#dsCodeTabs button").forEach(b=> b.onclick = ()=>{
+      document.querySelectorAll("#dsCodeTabs button").forEach(x=> x.classList.toggle("on", x === b));
+      $("dsCodeWrap").dataset.show = b.dataset.lang;
+    });
+    document.addEventListener("keydown", (e)=>{
+      if ($("dsView").hidden || e.target.matches("input, textarea, select")) return;
+      if (e.key === "ArrowRight"){ dsGo(dsPos + 1); e.preventDefault(); }
+      if (e.key === "ArrowLeft"){ dsGo(dsPos - 1); e.preventDefault(); }
+      if (e.key === " "){ dsTogglePlay(); e.preventDefault(); }
+    });
+    dsOpen("array");
+  }
+
+  function dsInputArr(){
+    const el = $("dsInput"); if (!el || el.hidden) return [];
+    let arr = el.value.split(/[,\s]+/).map(Number).filter(v=> !isNaN(v) && v !== "" && isFinite(v)).slice(0, 12);
+    if (dsScene.input.sort) arr.sort((a, b)=> a - b);
+    return arr;
+  }
+
+  function dsOpen(id){
+    dsStop();
+    dsScene = DS_SCENES.find(s=> s.id === id) || DS_SCENES[0];
+    document.querySelectorAll("[data-ds-id]").forEach(b=> b.classList.toggle("on", b.dataset.dsId === dsScene.id));
+    $("dsTitle").innerHTML = dsScene.icon + ' ' + esc(dsScene.name) + ' <span class="ds-big">' + esc(dsScene.big) + '</span>';
+    $("dsDesc").innerHTML = dsScene.desc;
+    // 입력 배열
+    const inWrap = $("dsInputWrap");
+    if (dsScene.input){
+      inWrap.hidden = false; $("dsInputLabel").textContent = dsScene.input.label;
+      $("dsInput").value = dsScene.input.def.join(", ");
+      $("dsInput").hidden = false;
+      $("dsRandom").onclick = ()=>{ const n = 6 + Math.floor(Math.random() * 3); const a = Array.from({ length:n }, ()=> 1 + Math.floor(Math.random() * 60)); $("dsInput").value = a.join(", "); dsResetForInput(); };
+      $("dsInput").onchange = dsResetForInput;
+      dsState[dsScene.id] = { arr: dsInputArr() };
+    } else { inWrap.hidden = true; if (!dsState[dsScene.id]) dsState[dsScene.id] = dsScene.state ? dsScene.state() : {}; }
+    // 동작 버튼들
+    $("dsOps").innerHTML = dsScene.ops.map((op, oi)=> '<div class="ds-op">'
+      + op.params.map(p=> '<label>' + esc(p.label) + (p.type === "sel"
+          ? '<select id="dsp_' + oi + '_' + p.k + '">' + p.opts.map(o=>{ const v = typeof o === "string" ? o : o.v, t = typeof o === "string" ? o : o.t; return '<option value="' + esc(v) + '"' + (v === p.def ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join("") + '</select>'
+          : '<input type="number" id="dsp_' + oi + '_' + p.k + '" value="' + p.def + '"' + (p.min !== undefined ? ' min="' + p.min + '"' : '') + (p.max !== undefined ? ' max="' + p.max + '"' : '') + '>') + '</label>').join("")
+      + '<button class="btn-write" data-op="' + oi + '">▶ ' + esc(op.name) + '</button></div>').join("");
+    document.querySelectorAll("[data-op]").forEach(b=> b.onclick = ()=> dsRun(Number(b.dataset.op)));
+    dsScene.ops.forEach((op, oi)=> op.params.forEach(p=>{ const el = $("dsp_" + oi + "_" + p.k); if (el && (op.py || op.c)) el.onchange = ()=>{ if (dsCurOp === oi) dsSetCode(oi); }; }));
+    dsCurOp = null; dsSetCode(null);
+    dsSteps = []; dsPos = 0; dsDrawIdle();
+  }
+  function dsResetForInput(){ dsStop(); dsState[dsScene.id] = { arr: dsInputArr() }; dsSteps = []; dsPos = 0; dsDrawIdle(); }
+
+  function dsReadParams(oi){
+    const p = {}; dsScene.ops[oi].params.forEach(pr=>{ const el = $("dsp_" + oi + "_" + pr.k); p[pr.k] = pr.type === "num" ? Number(el.value) : el.value; }); return p;
+  }
+
+  // 코드 칸 채우기 (동작마다 코드가 다르면 그 코드로)
+  function dsSetCode(oi){
+    const op = oi === null ? null : dsScene.ops[oi]; const p = oi === null ? {} : dsReadParams(oi);
+    const pySrc = op && op.py ? (typeof op.py === "function" ? op.py(p) : op.py) : dsScene.py;
+    const cSrc  = op && op.c  ? (typeof op.c  === "function" ? op.c(p)  : op.c)  : dsScene.c;
+    dsCode.py = dsParseCode(pySrc); dsCode.c = dsParseCode(cSrc);
+    $("dsPy").innerHTML = dsCode.py.lines.map((ln, i)=> '<div class="ds-ln" data-l="' + i + '"><span class="ds-no">' + (i + 1) + '</span><span class="ds-src">' + (hlPython(ln) || " ") + '</span></div>').join("");
+    $("dsC").innerHTML  = dsCode.c.lines.map((ln, i)=> '<div class="ds-ln" data-l="' + i + '"><span class="ds-no">' + (i + 1) + '</span><span class="ds-src">' + (hlC(ln) || " ") + '</span></div>').join("");
+  }
+
+  function dsRun(oi){
+    dsStop();
+    const op = dsScene.ops[oi]; const p = dsReadParams(oi);
+    if (dsScene.input) dsState[dsScene.id] = { arr: dsInputArr() };
+    if (dsScene.input && !dsState[dsScene.id].arr.length){ toast("배열에 숫자를 넣어주세요."); return; }
+    dsCurOp = oi; dsSetCode(oi);
+    const R = dsRecorder();
+    const before = dsClone(dsState[dsScene.id]);
+    const after = op.run(before, p, R);
+    if (after) dsState[dsScene.id] = dsClone(after);
+    dsSteps = R.steps; dsPos = 0;
+    if (!dsSteps.length){ dsDrawIdle(); return; }
+    dsShow(0);
+    if ($("dsAuto").checked) dsTogglePlay();
+  }
+
+  function dsDrawIdle(){
+    const st = dsScene.idle ? dsScene.idle() : dsState[dsScene.id];
+    $("dsStage").innerHTML = DS_RENDER[dsScene.render](Object.assign({ marks:{}, ptrs:{}, hl:{} }, st, dsScene.render === "graph" ? { visited:[], frontier:[], order:[] } : {}));
+    $("dsMsg").innerHTML = '<span class="ds-note">동작 버튼을 누르면 한 단계씩 보여드려요. (← → 키, 스페이스로 재생)</span>';
+    $("dsVars").innerHTML = ""; $("dsStep").textContent = "";
+    document.querySelectorAll(".ds-ln.on").forEach(e=> e.classList.remove("on"));
+    ["dsPrev", "dsNext", "dsFirst", "dsLast", "dsPlay"].forEach(id=> $(id).disabled = true);
+  }
+
+  function dsShow(i){
+    const s = dsSteps[i]; if (!s) return; dsPos = i;
+    $("dsStage").innerHTML = DS_RENDER[dsScene.render](s.snap);
+    $("dsMsg").innerHTML = s.msg;
+    $("dsVars").innerHTML = Object.keys(s.vars).map(k=> '<span class="ds-var">' + esc(k) + ' = <b>' + esc(String(s.vars[k])) + '</b></span>').join("");
+    $("dsStep").textContent = (i + 1) + " / " + dsSteps.length;
+    ["py", "c"].forEach(lang=>{
+      const pane = $(lang === "py" ? "dsPy" : "dsC"); pane.querySelectorAll(".ds-ln.on").forEach(e=> e.classList.remove("on"));
+      const lines = (dsCode[lang].labels[s.label] || []);
+      lines.forEach(l=>{ const el = pane.querySelector('[data-l="' + l + '"]'); if (el) el.classList.add("on"); });
+      if (lines.length){ const el = pane.querySelector('[data-l="' + lines[0] + '"]'); if (el && el.scrollIntoView) { const r = el.getBoundingClientRect(), pr = pane.getBoundingClientRect(); if (r.top < pr.top || r.bottom > pr.bottom) pane.scrollTop += r.top - pr.top - pr.height / 2; } }
+    });
+    $("dsPrev").disabled = $("dsFirst").disabled = i === 0;
+    $("dsNext").disabled = $("dsLast").disabled = i >= dsSteps.length - 1;
+    $("dsPlay").disabled = false;
+    if (i >= dsSteps.length - 1) dsStop();
+  }
+  function dsGo(i){ if (!dsSteps.length) return; dsStop(); dsShow(Math.max(0, Math.min(dsSteps.length - 1, i))); }
+  function dsTogglePlay(){
+    if (!dsSteps.length) return;
+    if (dsTimer){ dsStop(); return; }
+    if (dsPos >= dsSteps.length - 1) dsShow(0);
+    $("dsPlay").textContent = "⏸ 멈춤";
+    const ms = Math.round(1400 / Number($("dsSpeed").value || 1));
+    dsTimer = setInterval(()=>{ if (dsPos >= dsSteps.length - 1){ dsStop(); return; } dsShow(dsPos + 1); }, ms);
+  }
+  function dsStop(){ if (dsTimer){ clearInterval(dsTimer); dsTimer = null; } const b = $("dsPlay"); if (b) b.textContent = "▶ 재생"; }
 
   /* =====================================================================
      앱(푸시) 알림

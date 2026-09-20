@@ -124,6 +124,7 @@
   :root[data-theme="dark"] .lab-kinds button{background:#1b2531; border-color:#33455e}
   :root[data-theme="dark"] .learn-libs button{background:#1b2531; border-color:#33455e}
   :root[data-theme="dark"] .learn-card, :root[data-theme="dark"] .ld-box{background:#1b2531; border-color:#33455e}
+  :root[data-theme="dark"] .learn-card .lc-tb{background:#3a2f0c; border-color:#6b5514; color:#ffd766}
   :root[data-theme="dark"] .learn-intro .fn{background:#161d27; border-color:#33455e}
   :root[data-theme="dark"] .learn-card .lc-p select,
   :root[data-theme="dark"] .learn-card .lc-p input,
@@ -375,6 +376,12 @@
   .learn-card .lc-h b{font-size:14.5px; color:var(--ink)}
   .learn-card .lc-h code{font-family:var(--mono); font-size:11.5px; color:var(--blue-dark);
                          background:var(--blue-tint); border-radius:6px; padding:2px 7px}
+  .learn-card .lc-tb{font-size:11px; font-weight:700; color:#7a5a00; background:#fff4cc;
+                     border:1px solid #f1dc94; border-radius:999px; padding:2px 9px; white-space:nowrap}
+  .learn-sec{margin:22px 0 10px; padding:0 0 6px; font-size:14px; color:var(--ink); border-bottom:2px solid var(--line)}
+  .learn-sec:first-child{margin-top:4px}
+  .learn-sec small{font-weight:400; color:var(--ink-faint); margin-left:8px}
+  .ld-box td.nan{color:#b98a00; font-style:italic}
   .learn-card .lc-d{margin:0 0 12px; font-size:13px; line-height:1.7; color:var(--ink-soft)}
   .learn-card .lc-p{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;
                     margin-bottom:12px}
@@ -1862,6 +1869,7 @@
         <div class="lab-pick">
           <button class="btn-ghost" data-ds="s1">📊 학생 성적 (예제)</button>
           <button class="btn-ghost" data-ds="s2">☕ 카페 판매 (예제)</button>
+          <button class="btn-ghost" data-ds="s3">🍅 토마토 재배 (예제 · 빈 칸 있음)</button>
           <button class="btn-ghost" id="labUpBtn">📄 내 CSV 올리기</button>
           <input type="file" id="labUp" hidden
                  accept=".csv,.txt,text/csv,text/plain,text/comma-separated-values,application/csv,application/vnd.ms-excel">
@@ -1921,7 +1929,7 @@
       <p class="lab-lead">
         데이터과학 시간에 쓰는 도구 다섯 가지를 <b>버튼으로 눌러보며</b> 익혀요.
         값을 고르면 <b>아래 코드가 그 자리에서 바뀌고</b>, <b>▶ 실행</b>을 누르면 결과가 나와요.
-        코드는 복사해서 시뮬레이터에서 고쳐볼 수 있어요.
+        코드는 복사해서 시뮬레이터에서 고쳐볼 수 있어요. <b>📚 교과서 순서</b>를 누르면 『데이터 과학』 단원 차례대로 볼 수 있어요.
       </p>
       <div class="learn-libs" id="learnLibs"></div>
       <div class="learn-intro" id="learnIntro"></div>
@@ -4723,13 +4731,18 @@ _imgs
           self.__mp = self.__mp || {};
           const extras = [];
           if (/\\bseaborn\\b/.test(e.data.code)) extras.push("seaborn");
+          if (/\\bmlxtend\\b/.test(e.data.code)) extras.push("mlxtend");
           for (const name of extras){
             if (self.__mp[name]) continue;
             self.postMessage({ t:"status", m: name + " 설치 중… (처음 한 번만)" });
             try {
               await py.loadPackage("micropip");
               const mp = py.pyimport("micropip");
-              await mp.install(name);
+              // mlxtend 는 최신 joblib 을 요구하지만 Pyodide 의 joblib 으로도 잘 돕니다 → 의존성 검사 없이 본체만
+              if (name === "mlxtend"){
+                await py.loadPackage(["scipy", "scikit-learn", "joblib"]);   // mlxtend 가 속으로 쓰는 것들
+                await mp.install.callKwargs(name, { deps: false });
+              } else await mp.install(name);
               self.__mp[name] = true;
             } catch(err){
               self.postMessage({ t:"err", msg: name + " 을(를) 설치하지 못했어요. 인터넷 연결을 확인해주세요.\\n" + String(err) });
@@ -4763,7 +4776,9 @@ _imgs
     const rows = String(msg).split("\n");
     let line = null;
     rows.forEach(r=>{ const m = r.match(/File "<exec>", line (\d+)/); if (m) line = m[1]; });
-    const last = rows.filter(r=> r.trim() && !/^\s/.test(r)).pop() || String(msg).trim();
+    // "XxxError: ..." 줄을 우선으로 (Pyodide 는 그 뒤에 안내 문장을 덧붙이기도 합니다)
+    const errRow = rows.filter(r=> /^[A-Za-z_.]+(Error|Exception|Exit|Interrupt)\b/.test(r.trim())).pop();
+    const last = errRow || rows.filter(r=> r.trim() && !/^\s/.test(r)).pop() || String(msg).trim();
     return (line ? line + "번째 줄에서 오류\n" : "") + last.trim();
   }
 
@@ -6018,7 +6033,8 @@ _imgs
 
   const LAB_SAMPLES = {
     s1: { name: "학생성적.csv", csv: "번호,성별,반,공부시간,국어,영어,수학,과학,동아리\n1,여,1,2.9,70,62,63,76,독서\n2,남,1,3.8,74,79,68,72,독서\n3,남,1,2.0,55,61,66,69,코딩\n4,남,3,2.4,52,57,68,64,코딩\n5,남,2,2.8,63,69,74,67,코딩\n6,여,2,2.0,63,68,64,73,독서\n7,남,3,0.6,50,50,40,52,음악\n8,여,1,3.1,76,76,76,68,음악\n9,여,2,1.8,55,44,59,65,음악\n10,남,1,2.7,52,45,64,57,음악\n11,여,3,4.6,82,81,78,88,음악\n12,남,3,4.0,55,81,64,71,체육\n13,여,3,5.0,74,86,73,72,음악\n14,여,1,3.8,72,71,66,68,체육\n15,남,2,4.6,81,72,82,87,음악\n16,남,2,2.6,64,72,55,66,독서\n17,남,1,2.6,61,58,57,52,체육\n18,여,3,2.5,67,64,62,76,코딩\n19,여,3,2.6,67,43,62,55,음악\n20,남,1,3.3,71,60,62,58,음악\n21,남,3,4.2,86,86,74,89,음악\n22,여,3,2.9,75,63,64,74,음악\n23,여,3,1.5,43,53,46,54,체육\n24,남,1,4.5,83,83,82,79,독서\n25,여,1,0.5,58,70,45,43,음악\n26,남,2,3.9,64,78,79,69,체육\n27,남,2,3.4,69,61,51,70,음악\n28,여,1,1.1,62,50,59,34,독서\n29,여,2,3.2,72,86,88,79,독서\n30,여,3,3.5,58,60,46,70,체육\n31,남,3,5.5,82,80,75,81,체육\n32,남,1,2.5,62,69,71,79,코딩\n33,여,3,3.4,74,72,51,63,독서\n34,여,3,1.2,40,49,57,52,체육\n35,남,3,3.3,63,75,84,76,코딩\n36,여,1,3.5,69,75,78,66,코딩\n37,남,1,1.6,83,57,52,56,독서\n38,여,3,4.7,69,60,79,73,체육\n39,남,2,2.1,60,52,66,52,체육\n40,여,1,3.6,77,63,62,72,체육\n41,남,2,3.2,60,68,60,62,체육\n42,여,3,2.4,66,71,56,75,독서\n43,남,2,3.0,74,65,75,65,독서\n44,남,1,3.2,67,69,76,67,코딩\n45,남,2,1.9,67,50,55,54,음악\n46,남,2,4.1,73,75,86,82,코딩\n47,남,1,4.1,71,70,80,78,음악\n48,남,1,2.7,80,53,59,66,체육\n49,여,3,2.3,64,51,63,58,음악\n50,여,1,5.5,92,84,100,88,코딩\n51,남,2,2.2,50,54,60,82,코딩\n52,여,3,1.0,56,49,54,39,체육\n53,남,2,5.7,87,98,83,90,음악\n54,남,1,2.3,77,57,59,68,독서\n55,여,1,3.6,84,82,70,61,독서\n56,여,1,6.5,97,89,98,96,코딩\n57,여,1,2.9,84,70,79,79,독서\n58,남,2,4.5,71,80,82,80,코딩\n59,남,3,3.4,64,67,69,67,독서\n60,여,3,2.7,72,54,46,55,체육" },
-    s2: { name: "카페판매.csv", csv: "날짜,요일,기온,메뉴,가격,판매량\n2026-09-01,월,33.1,아이스아메리카노,4500,55\n2026-09-01,월,33.1,따뜻한라떼,5000,8\n2026-09-01,월,33.1,스무디,6000,55\n2026-09-01,월,33.1,핫초코,5500,8\n2026-09-02,화,21.7,아이스아메리카노,4500,30\n2026-09-02,화,21.7,따뜻한라떼,5000,31\n2026-09-02,화,21.7,스무디,6000,19\n2026-09-02,화,21.7,핫초코,5500,19\n2026-09-03,수,19.3,아이스아메리카노,4500,28\n2026-09-03,수,19.3,따뜻한라떼,5000,37\n2026-09-03,수,19.3,스무디,6000,22\n2026-09-03,수,19.3,핫초코,5500,32\n2026-09-04,목,23.1,아이스아메리카노,4500,31\n2026-09-04,목,23.1,따뜻한라떼,5000,34\n2026-09-04,목,23.1,스무디,6000,45\n2026-09-04,목,23.1,핫초코,5500,33\n2026-09-05,금,26.1,아이스아메리카노,4500,37\n2026-09-05,금,26.1,따뜻한라떼,5000,11\n2026-09-05,금,26.1,스무디,6000,41\n2026-09-05,금,26.1,핫초코,5500,8\n2026-09-06,토,25.8,아이스아메리카노,4500,54\n2026-09-06,토,25.8,따뜻한라떼,5000,25\n2026-09-06,토,25.8,스무디,6000,56\n2026-09-06,토,25.8,핫초코,5500,22\n2026-09-07,일,20.1,아이스아메리카노,4500,29\n2026-09-07,일,20.1,따뜻한라떼,5000,47\n2026-09-07,일,20.1,스무디,6000,30\n2026-09-07,일,20.1,핫초코,5500,51\n2026-09-08,월,21.4,아이스아메리카노,4500,36\n2026-09-08,월,21.4,따뜻한라떼,5000,33\n2026-09-08,월,21.4,스무디,6000,30\n2026-09-08,월,21.4,핫초코,5500,39\n2026-09-09,화,19.7,아이스아메리카노,4500,32\n2026-09-09,화,19.7,따뜻한라떼,5000,32\n2026-09-09,화,19.7,스무디,6000,15\n2026-09-09,화,19.7,핫초코,5500,40\n2026-09-10,수,29.1,아이스아메리카노,4500,29\n2026-09-10,수,29.1,따뜻한라떼,5000,15\n2026-09-10,수,29.1,스무디,6000,55\n2026-09-10,수,29.1,핫초코,5500,13\n2026-09-11,목,14.6,아이스아메리카노,4500,14\n2026-09-11,목,14.6,따뜻한라떼,5000,44\n2026-09-11,목,14.6,스무디,6000,13\n2026-09-11,목,14.6,핫초코,5500,51\n2026-09-12,금,5.1,아이스아메리카노,4500,2\n2026-09-12,금,5.1,따뜻한라떼,5000,65\n2026-09-12,금,5.1,스무디,6000,2\n2026-09-12,금,5.1,핫초코,5500,78\n2026-09-13,토,23.4,아이스아메리카노,4500,46\n2026-09-13,토,23.4,따뜻한라떼,5000,16\n2026-09-13,토,23.4,스무디,6000,45\n2026-09-13,토,23.4,핫초코,5500,41\n2026-09-14,일,23.8,아이스아메리카노,4500,57\n2026-09-14,일,23.8,따뜻한라떼,5000,28\n2026-09-14,일,23.8,스무디,6000,50\n2026-09-14,일,23.8,핫초코,5500,35\n2026-09-15,월,23.9,아이스아메리카노,4500,29\n2026-09-15,월,23.9,따뜻한라떼,5000,20\n2026-09-15,월,23.9,스무디,6000,42\n2026-09-15,월,23.9,핫초코,5500,21\n2026-09-16,화,20.4,아이스아메리카노,4500,30\n2026-09-16,화,20.4,따뜻한라떼,5000,37\n2026-09-16,화,20.4,스무디,6000,12\n2026-09-16,화,20.4,핫초코,5500,34\n2026-09-17,수,21.2,아이스아메리카노,4500,30\n2026-09-17,수,21.2,따뜻한라떼,5000,40\n2026-09-17,수,21.2,스무디,6000,24\n2026-09-17,수,21.2,핫초코,5500,24\n2026-09-18,목,29.4,아이스아메리카노,4500,41\n2026-09-18,목,29.4,따뜻한라떼,5000,16\n2026-09-18,목,29.4,스무디,6000,56\n2026-09-18,목,29.4,핫초코,5500,14\n2026-09-19,금,21.5,아이스아메리카노,4500,33\n2026-09-19,금,21.5,따뜻한라떼,5000,19\n2026-09-19,금,21.5,스무디,6000,36\n2026-09-19,금,21.5,핫초코,5500,31\n2026-09-20,토,24.9,아이스아메리카노,4500,48\n2026-09-20,토,24.9,따뜻한라떼,5000,27\n2026-09-20,토,24.9,스무디,6000,58\n2026-09-20,토,24.9,핫초코,5500,32\n2026-09-21,일,25.6,아이스아메리카노,4500,49\n2026-09-21,일,25.6,따뜻한라떼,5000,38\n2026-09-21,일,25.6,스무디,6000,50\n2026-09-21,일,25.6,핫초코,5500,30" }
+    s2: { name: "카페판매.csv", csv: "날짜,요일,기온,메뉴,가격,판매량\n2026-09-01,월,33.1,아이스아메리카노,4500,55\n2026-09-01,월,33.1,따뜻한라떼,5000,8\n2026-09-01,월,33.1,스무디,6000,55\n2026-09-01,월,33.1,핫초코,5500,8\n2026-09-02,화,21.7,아이스아메리카노,4500,30\n2026-09-02,화,21.7,따뜻한라떼,5000,31\n2026-09-02,화,21.7,스무디,6000,19\n2026-09-02,화,21.7,핫초코,5500,19\n2026-09-03,수,19.3,아이스아메리카노,4500,28\n2026-09-03,수,19.3,따뜻한라떼,5000,37\n2026-09-03,수,19.3,스무디,6000,22\n2026-09-03,수,19.3,핫초코,5500,32\n2026-09-04,목,23.1,아이스아메리카노,4500,31\n2026-09-04,목,23.1,따뜻한라떼,5000,34\n2026-09-04,목,23.1,스무디,6000,45\n2026-09-04,목,23.1,핫초코,5500,33\n2026-09-05,금,26.1,아이스아메리카노,4500,37\n2026-09-05,금,26.1,따뜻한라떼,5000,11\n2026-09-05,금,26.1,스무디,6000,41\n2026-09-05,금,26.1,핫초코,5500,8\n2026-09-06,토,25.8,아이스아메리카노,4500,54\n2026-09-06,토,25.8,따뜻한라떼,5000,25\n2026-09-06,토,25.8,스무디,6000,56\n2026-09-06,토,25.8,핫초코,5500,22\n2026-09-07,일,20.1,아이스아메리카노,4500,29\n2026-09-07,일,20.1,따뜻한라떼,5000,47\n2026-09-07,일,20.1,스무디,6000,30\n2026-09-07,일,20.1,핫초코,5500,51\n2026-09-08,월,21.4,아이스아메리카노,4500,36\n2026-09-08,월,21.4,따뜻한라떼,5000,33\n2026-09-08,월,21.4,스무디,6000,30\n2026-09-08,월,21.4,핫초코,5500,39\n2026-09-09,화,19.7,아이스아메리카노,4500,32\n2026-09-09,화,19.7,따뜻한라떼,5000,32\n2026-09-09,화,19.7,스무디,6000,15\n2026-09-09,화,19.7,핫초코,5500,40\n2026-09-10,수,29.1,아이스아메리카노,4500,29\n2026-09-10,수,29.1,따뜻한라떼,5000,15\n2026-09-10,수,29.1,스무디,6000,55\n2026-09-10,수,29.1,핫초코,5500,13\n2026-09-11,목,14.6,아이스아메리카노,4500,14\n2026-09-11,목,14.6,따뜻한라떼,5000,44\n2026-09-11,목,14.6,스무디,6000,13\n2026-09-11,목,14.6,핫초코,5500,51\n2026-09-12,금,5.1,아이스아메리카노,4500,2\n2026-09-12,금,5.1,따뜻한라떼,5000,65\n2026-09-12,금,5.1,스무디,6000,2\n2026-09-12,금,5.1,핫초코,5500,78\n2026-09-13,토,23.4,아이스아메리카노,4500,46\n2026-09-13,토,23.4,따뜻한라떼,5000,16\n2026-09-13,토,23.4,스무디,6000,45\n2026-09-13,토,23.4,핫초코,5500,41\n2026-09-14,일,23.8,아이스아메리카노,4500,57\n2026-09-14,일,23.8,따뜻한라떼,5000,28\n2026-09-14,일,23.8,스무디,6000,50\n2026-09-14,일,23.8,핫초코,5500,35\n2026-09-15,월,23.9,아이스아메리카노,4500,29\n2026-09-15,월,23.9,따뜻한라떼,5000,20\n2026-09-15,월,23.9,스무디,6000,42\n2026-09-15,월,23.9,핫초코,5500,21\n2026-09-16,화,20.4,아이스아메리카노,4500,30\n2026-09-16,화,20.4,따뜻한라떼,5000,37\n2026-09-16,화,20.4,스무디,6000,12\n2026-09-16,화,20.4,핫초코,5500,34\n2026-09-17,수,21.2,아이스아메리카노,4500,30\n2026-09-17,수,21.2,따뜻한라떼,5000,40\n2026-09-17,수,21.2,스무디,6000,24\n2026-09-17,수,21.2,핫초코,5500,24\n2026-09-18,목,29.4,아이스아메리카노,4500,41\n2026-09-18,목,29.4,따뜻한라떼,5000,16\n2026-09-18,목,29.4,스무디,6000,56\n2026-09-18,목,29.4,핫초코,5500,14\n2026-09-19,금,21.5,아이스아메리카노,4500,33\n2026-09-19,금,21.5,따뜻한라떼,5000,19\n2026-09-19,금,21.5,스무디,6000,36\n2026-09-19,금,21.5,핫초코,5500,31\n2026-09-20,토,24.9,아이스아메리카노,4500,48\n2026-09-20,토,24.9,따뜻한라떼,5000,27\n2026-09-20,토,24.9,스무디,6000,58\n2026-09-20,토,24.9,핫초코,5500,32\n2026-09-21,일,25.6,아이스아메리카노,4500,49\n2026-09-21,일,25.6,따뜻한라떼,5000,38\n2026-09-21,일,25.6,스무디,6000,50\n2026-09-21,일,25.6,핫초코,5500,30" },
+    s3: { name: "토마토재배.csv", csv: "수집일,내부온도,습도,이산화탄소,일사량,열매수\n2026-04-01,23.9,58.0,471,162,28\n2026-04-02,24.2,56.2,451,156,27\n2026-04-03,22.4,56.8,439,290,29\n2026-04-04,23.3,67.5,512,248,30\n2026-04-05,27.9,55.9,500,199,29\n2026-04-06,22.7,,494,180,28\n2026-04-07,25.8,62.4,456,160,25\n2026-04-08,23.2,68.6,439,203,29\n2026-04-09,24.7,61.0,491,268,31\n2026-04-10,25.4,65.5,502,274,32\n2026-04-11,27.9,57.4,438,278,33\n2026-04-12,24.9,55.8,473,279,34\n2026-04-13,85.0,61.3,477,251,35\n2026-04-14,24.7,71.8,512,230,33\n2026-04-15,22.4,69.0,470,318,36\n2026-04-16,23.7,62.7,473,153,26\n2026-04-17,23.0,57.3,388,280,29\n2026-04-18,23.5,,501,163,27\n2026-04-19,25.3,72.7,494,296,33\n2026-04-20,24.5,62.2,503,312,32\n2026-04-21,23.1,59.6,412,232,31\n2026-04-22,23.6,55.1,438,212,30\n2026-04-23,27.7,68.8,452,,36\n2026-04-24,22.3,73.0,489,298,35\n2026-04-25,24.4,63.0,394,257,29\n2026-04-26,22.4,59.2,402,207,25\n2026-04-27,22.0,58.0,394,211,24\n2026-04-28,27.2,67.3,400,192,30\n2026-04-29,24.2,57.5,498,318,35\n2026-04-30,24.9,56.7,394,208,28\n2026-05-01,27.0,,383,311,37\n2026-05-02,22.9,65.9,383,239,34\n2026-05-03,27.2,68.9,416,212,30\n2026-05-04,26.6,65.7,4800,206,29\n2026-05-05,26.9,74.7,499,287,38\n2026-05-06,26.4,59.5,452,210,28\n2026-05-07,22.2,60.6,416,267,35\n2026-05-08,24.7,73.7,518,312,34\n2026-05-09,23.3,59.5,407,184,29\n2026-05-10,27.4,71.8,447,261,37\n2026-05-11,22.5,68.2,507,282,\n2026-05-12,24.9,58.6,490,206,33\n2026-05-13,27.8,62.9,436,310,40\n2026-05-14,23.0,57.5,401,303,36\n2026-05-15,22.9,71.5,517,261,30" }
   };
 
   /* =====================================================================
@@ -6789,7 +6805,7 @@ _imgs
       + "자주 쓰는 것: <span class='fn'>read_csv</span><span class='fn'>head</span><span class='fn'>describe</span>"
       + "<span class='fn'>df[조건]</span><span class='fn'>groupby</span><span class='fn'>sort_values</span><span class='fn'>value_counts</span>",
     cards: [
-      { t:"CSV 파일 읽어서 앞부분 보기", fn:"pd.read_csv · head", ds:"s1",
+      { t:"CSV 파일 읽어서 앞부분 보기", fn:"pd.read_csv · head", ds:"s1", tb:[2, 1, 2, "데이터 불러오기 · head"],
         d:"파일을 표로 읽어 옵니다. head(n)은 앞에서 n줄만 보여줘요. 데이터를 받으면 제일 먼저 하는 일이에요.",
         params:[{k:"n", label:"몇 줄 볼까요", type:"num", def:5, min:1, max:20}],
         code:(p)=> `import pandas as pd
@@ -6798,7 +6814,18 @@ df = pd.read_csv("data.csv")     # 표로 읽기
 print("행 개수:", len(df), " 열 개수:", df.shape[1])
 print(df.head(${p.n}))                 # 앞 ${p.n}줄` },
 
-      { t:"표 요약 한 번에 보기", fn:"describe · info", ds:"s1",
+      { t:"표의 크기와 끝부분 — shape · tail · columns", fn:"df.shape · tail · columns", ds:"s3", tb:[2,1,2,"데이터의 특성 분석"],
+        d:"shape 는 (행, 열) 개수, tail(n) 은 뒤에서 n줄, columns 는 열 이름 목록이에요. 데이터를 받으면 head → shape → info 순으로 훑어보는 습관을 들여요.",
+        params:[{k:"n", label:"뒤에서 몇 줄", type:"num", def:3, min:1, max:15}],
+        code:(p)=> `import pandas as pd
+
+df = pd.read_csv("data.csv")
+print("행·열 개수:", df.shape)               # (행, 열)
+print("열 이름:", list(df.columns))
+print()
+print(df.tail(${p.n}))                          # 뒤에서 ${p.n}줄` },
+
+      { t:"표 요약 한 번에 보기", fn:"describe · info", ds:"s1", tb:[2, 1, 2, "info · describe"],
         d:"describe()는 숫자 열마다 평균·최소·최대 등을 계산해 줘요. info()는 열 이름과 종류를 보여줘요.",
         params:[{k:"what", label:"무엇을 볼까요", type:"sel", def:"describe",
                  opts:[{v:"describe",t:"describe — 숫자 요약"},{v:"info",t:"info — 열 종류"}]}],
@@ -6819,7 +6846,7 @@ df = pd.read_csv("data.csv")
 print(len(골라낸), "명이 조건에 맞아요")
 print(골라낸.head(10))` },
 
-      { t:"무리별로 묶어서 계산하기", fn:"groupby", ds:"s1",
+      { t:"무리별로 묶어서 계산하기", fn:"groupby", ds:"s1", tb:[2, 4, 6, "groupby"],
         d:"'동아리별 수학 평균' 처럼 무리(그룹)마다 계산할 때 써요. 데이터 분석에서 가장 많이 쓰는 기능이에요.",
         params:[{k:"by", label:"무리 기준", type:"col", cols:"cat", def:"동아리"},
                 {k:"val", label:"계산할 열", type:"col", cols:"num", def:"수학"},
@@ -6859,7 +6886,154 @@ print(df[[${pq(p.a)}, ${pq(p.b)}, "합계", "평균"]].head(8))` },
         code:(p)=> `import pandas as pd
 
 df = pd.read_csv("data.csv")
-print(df[${pq(p.col)}].value_counts())` }
+print(df[${pq(p.col)}].value_counts())` },
+      { t:"결측치 찾기 — 비어 있는 칸 세기", fn:"isna() · sum()", ds:"s3", tb:[2,2,1,"결측치"],
+        d:"isna() 는 칸마다 비었으면 True, 아니면 False 를 줘요. 거기에 sum() 을 붙이면 열마다 빈 칸이 몇 개인지 세어져요. 전처리의 첫 단계예요.",
+        params:[{k:"how", label:"무엇을 볼까요", type:"sel", def:"count",
+                 opts:[{v:"count",t:"열별 빈 칸 개수"},{v:"rows",t:"빈 칸이 있는 행 보기"},{v:"ratio",t:"열별 빈 칸 비율(%)"}]}],
+        code:(p)=> `import pandas as pd
+
+df = pd.read_csv("data.csv")
+print("전체:", df.shape)
+${p.how === "count" ? 'print(df.isna().sum())                         # 열마다 빈 칸 개수'
+  : p.how === "rows" ? 'print(df[df.isna().any(axis=1)])              # 한 칸이라도 빈 행만'
+  : 'print((df.isna().mean() * 100).round(1))         # 빈 칸 비율 (%)'}` },
+
+      { t:"결측치 처리 — 지우거나 채우기", fn:"dropna · fillna · drop", ds:"s3", tb:[2,2,1,"결측치"],
+        d:"빈 칸은 그대로 두면 계산이 안 돼요. 행을 지우거나(dropna), 평균으로 채우거나(fillna), 열을 통째로 빼요(drop). 무엇을 고를지는 데이터가 얼마나 아까운지에 달렸어요.",
+        params:[{k:"how", label:"방법", type:"sel", def:"dropna",
+                 opts:[{v:"dropna",t:"dropna — 빈 칸 있는 행 삭제"},{v:"fillna",t:"fillna — 평균으로 채우기"},{v:"drop",t:"drop — 열 자체를 제거"}]},
+                {k:"col", label:"제거할 열 (drop 일 때)", type:"col", cols:"num", def:"습도"}],
+        code:(p)=> `import pandas as pd
+
+df = pd.read_csv("data.csv")
+print("처리 전:", df.shape, " 빈 칸:", int(df.isna().sum().sum()))
+${p.how === "dropna" ? 'df2 = df.dropna(axis="rows")                    # 빈 칸이 하나라도 있는 행 삭제'
+  : p.how === "fillna" ? '평균 = df.select_dtypes(include="number").mean()   # 숫자 열마다 평균\ndf2 = df.fillna(평균)                          # 빈 칸을 그 열의 평균으로'
+  : `df2 = df.drop(${pq(p.col)}, axis=1)              # 열 하나를 통째로 제거`}
+print("처리 후:", df2.shape, " 빈 칸:", int(df2.isna().sum().sum()))
+print()
+print(df2.head(8))` },
+
+      { t:"이상치 찾기 — 사분위수와 IQR", fn:"quantile · IQR 규칙 · boxplot", ds:"s3", tb:[2,4,4,"결측치와 이상치 처리"],
+        d:"Q1(25%)·Q3(75%) 사이 거리가 IQR 이에요. Q3 + 1.5×IQR 보다 크거나 Q1 − 1.5×IQR 보다 작으면 이상치로 봐요. 상자그림의 점이 바로 이 값들이에요.",
+        params:[{k:"col", label:"열", type:"col", cols:"num", def:"내부온도"},
+                {k:"k", label:"IQR 배수", type:"num", def:1.5, min:0.5, max:3, step:0.5},
+                {k:"how", label:"처리", type:"sel", def:"show", opts:[{v:"show",t:"찾기만"},{v:"remove",t:"이상치 행 제거"},{v:"clip",t:"경계값으로 바꾸기 (clip)"}]}],
+        code:(p)=> `import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("data.csv")
+값 = df[${pq(p.col)}]
+q1 = 값.quantile(0.25)                 # 1사분위수
+q3 = 값.quantile(0.75)                 # 3사분위수
+iqr = q3 - q1
+아래 = q1 - ${p.k} * iqr
+위   = q3 + ${p.k} * iqr
+print(f"Q1={q1:.1f}  Q3={q3:.1f}  IQR={iqr:.1f}  →  정상 범위 {아래:.1f} ~ {위:.1f}")
+이상 = df[(값 < 아래) | (값 > 위)]
+print("이상치", len(이상), "개")
+print(이상[["수집일", ${pq(p.col)}]])
+${p.how === "show" ? `
+plt.figure(figsize=(3.2, 4.5))
+plt.boxplot(값.dropna(), labels=[${pq(p.col)}], sym="bo")   # sym: 이상치 점 모양
+plt.grid(alpha=.3)
+plt.tight_layout()`
+  : p.how === "remove" ? `
+df2 = df[(값 >= 아래) & (값 <= 위)]              # 정상 범위만 남기기
+fig, ax = plt.subplots(1, 2, figsize=(6.5, 4.5))
+ax[0].boxplot(값.dropna()); ax[0].set_title("처리 전")
+ax[1].boxplot(df2[${pq(p.col)}].dropna()); ax[1].set_title("제거 후")
+plt.tight_layout()
+print("행 수:", len(df), "→", len(df2))`
+  : `
+df2 = df.copy()
+df2[${pq(p.col)}] = 값.clip(lower=아래, upper=위)   # 범위 밖 값을 경계값으로
+fig, ax = plt.subplots(1, 2, figsize=(6.5, 4.5))
+ax[0].boxplot(값.dropna()); ax[0].set_title("처리 전")
+ax[1].boxplot(df2[${pq(p.col)}].dropna()); ax[1].set_title("clip 후")
+plt.tight_layout()`}` },
+
+      { t:"글자 다루기 — 날짜에서 월 뽑기, '$' 떼기", fn:"str[ ] · apply · astype", ds:"s3", tb:[2,4,6,"통합 데이터 분석 — str, groupby"],
+        d:"글자로 된 열은 계산이 안 돼요. str[5:7] 로 '2026-04-01' 에서 '04' 만 자르거나, apply 로 '$2.39' 의 $ 를 떼고 숫자로 바꿔요.",
+        params:[{k:"mode", label:"예제", type:"sel", def:"month", opts:[{v:"month",t:"날짜에서 월 뽑아 groupby"},{v:"dollar",t:"'$' 떼고 숫자로 바꾸기"}]}],
+        code:(p)=> p.mode === "month" ? `import pandas as pd
+
+df = pd.read_csv("data.csv")
+df["월"] = df["수집일"].str[5:7]                 # '2026-04-01' → '04'
+print(df[["수집일", "월"]].head(3))
+print()
+print(df.groupby("월")[["내부온도", "일사량", "열매수"]].mean().round(1))   # 월별 평균`
+: `import pandas as pd
+
+# 교과서의 chipotle 데이터처럼 가격이 '$2.39' 글자로 된 경우
+food = pd.DataFrame({"메뉴": ["타코", "부리토", "칩스", "샐러드"],
+                     "가격": ["$2.39", "$8.75", "$1.99", "$10.98"]})
+print(food.dtypes)                               # 가격이 object(글자)
+food["가격"] = food["가격"].apply(lambda x: float(x[1:]))   # 첫 글자($) 떼고 숫자로
+print()
+print(food)
+print(food.dtypes)                               # 이제 float64
+print("평균 가격:", food["가격"].mean())` },
+
+      { t:"정규화 — 값을 0~1 사이로", fn:"(x − min) / (max − min)", ds:"s1", tb:[2,2,3,"정규화"],
+        d:"단위가 다른 열(공부시간은 0~7, 점수는 0~100)을 같이 쓰려면 크기를 맞춰야 해요. 최솟값을 0, 최댓값을 1 로 만드는 게 min-max 정규화예요.",
+        params:[{k:"a", label:"열 1", type:"col", cols:"num", def:"공부시간"},
+                {k:"b", label:"열 2", type:"col", cols:"num", def:"수학"},
+                {k:"how", label:"방법", type:"sel", def:"formula", opts:[{v:"formula",t:"공식으로 직접"},{v:"sklearn",t:"MinMaxScaler 로"}]}],
+        code:(p)=> `import pandas as pd
+${p.how === "sklearn" ? 'from sklearn.preprocessing import MinMaxScaler\n' : ''}
+df = pd.read_csv("data.csv")
+X = df[[${pq(p.a)}, ${pq(p.b)}]]
+${p.how === "formula"
+  ? 'X_scaled = (X - X.min()) / (X.max() - X.min())        # 열마다 (x − 최소) / (최대 − 최소)'
+  : 'scaler = MinMaxScaler()\nX_scaled = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)'}
+비교 = pd.concat([X.add_suffix("(전)"), X_scaled.add_suffix("(후)")], axis=1)
+print(비교.head())
+print()
+print("정규화 후 최솟값:", X_scaled.min().values, " 최댓값:", X_scaled.max().values)` },
+
+      { t:"표 합치기 — 위아래로, 옆으로", fn:"pd.concat · pd.merge · rename", ds:null, tb:[2,3,4,"데이터 통합"],
+        d:"구조가 같은 표는 concat 으로 위아래로 이어요. 구조가 다른 표는 공통 열을 기준으로 merge 해요. 기준 열 이름이 다르면 rename 으로 먼저 맞춰요.",
+        params:[{k:"how", label:"예제", type:"sel", def:"concat",
+                 opts:[{v:"concat",t:"concat — 1호점 + 2호점 이어 붙이기"},{v:"merge",t:"merge — 공통 열로 합치기"},{v:"rename",t:"rename 뒤 merge — 열 이름이 다를 때"}]}],
+        code:(p)=> p.how === "concat" ? `import pandas as pd
+
+일호점 = pd.DataFrame({"날짜": ["04-01", "04-02"], "빵": [120, 98],  "우유": [40, 35]})
+이호점 = pd.DataFrame({"날짜": ["04-01", "04-02"], "빵": [80, 105], "우유": [22, 30]})
+합침 = pd.concat([일호점, 이호점], ignore_index=True)   # 위아래로 (열이 같을 때)
+print(합침)
+print()
+print("지점 합계:"); print(합침.groupby("날짜").sum())`
+: p.how === "merge" ? `import pandas as pd
+
+날씨 = pd.DataFrame({"날짜": ["04-01", "04-02", "04-03"], "기온": [12.5, 15.1, 9.8]})
+운동 = pd.DataFrame({"날짜": ["04-01", "04-02", "04-03"], "관심도": [61, 74, 40]})
+합침 = pd.merge(날씨, 운동)          # 공통 열 '날짜' 기준 (기본 inner)
+print(합침)
+print()
+print("상관계수:", round(합침["기온"].corr(합침["관심도"]), 2))`
+: `import pandas as pd
+
+날씨 = pd.DataFrame({"날짜": ["04-01", "04-02", "04-03"], "기온": [12.5, 15.1, 9.8]})
+운동 = pd.DataFrame({"일시": ["04-01", "04-02", "04-03"], "관심도": [61, 74, 40]})   # 열 이름이 '일시'
+운동 = 운동.rename(columns={"일시": "날짜"})          # 이름을 맞춘 뒤
+합침 = pd.merge(날씨, 운동, on="날짜")               # on= 으로 기준 열 지정
+print(합침)` },
+
+      { t:"상관계수 — 어느 열끼리 같이 움직이나", fn:"df.corr()", ds:"s1", tb:[2,3,3,"상관분석"],
+        d:"상관계수는 −1 ~ 1 사이 숫자예요. 1 에 가까우면 같이 커지고, −1 에 가까우면 반대로, 0 근처면 관계가 없어요. 관계가 있다 ≠ 원인이다, 는 꼭 기억해요.",
+        params:[{k:"target", label:"기준 열", type:"col", cols:"num", def:"수학"},
+                {k:"method", label:"방법", type:"sel", def:"pearson", opts:[{v:"pearson",t:"pearson (기본)"},{v:"spearman",t:"spearman (순위)"}]}],
+        code:(p)=> `import pandas as pd
+
+df = pd.read_csv("data.csv")
+상관 = df.drop(columns=["번호"]).corr(numeric_only=True, method=${pq(p.method)}).round(2)   # 번호는 뜻 없는 숫자라 뺌
+print(상관)
+print()
+print(${pq(p.target + "와 상관 높은 순:")})
+print(상관[${pq(p.target)}].drop(${pq(p.target)}).sort_values(ascending=False))` },
+
     ]},
 
   /* ───────────────────────── numpy ───────────────────────── */
@@ -6933,7 +7107,33 @@ print("뽑은 값 평균:", round(x.mean(), 2), " 표준편차:", round(x.std(),
 plt.figure(figsize=(6.5, 4))
 plt.hist(x, bins=25, edgecolor="white")
 plt.title("평균 ${p.mean}, 표준편차 ${p.std} 인 정규분포에서 ${p.size}개")
-plt.tight_layout()` }
+plt.tight_layout()` },
+      { t:"직선 맞추기 — 통계적 회귀", fn:"np.polyfit · np.poly1d", ds:"s1", tb:[3,2,2,"회귀 모델 만들기 ① polyfit"],
+        d:"점들 사이를 가장 잘 지나는 직선의 기울기와 절편을 찾아요. polyfit(x, y, 1) 의 1 이 '1차식' 이에요. 2·3 으로 바꾸면 곡선도 돼요.",
+        params:[{k:"x", label:"가로축 (입력)", type:"col", cols:"num", def:"공부시간"},
+                {k:"y", label:"세로축 (맞힐 값)", type:"col", cols:"num", def:"수학"},
+                {k:"deg", label:"차수", type:"sel", def:"1", opts:[{v:"1",t:"1차 (직선)"},{v:"2",t:"2차 (포물선)"},{v:"3",t:"3차"}]}],
+        code:(p)=> `import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("data.csv")
+x = df[${pq(p.x)}]
+y = df[${pq(p.y)}]
+
+계수 = np.polyfit(x, y, ${p.deg})            # [가중치..., 편향]
+식 = np.poly1d(계수)                       # 계수로 함수 만들기
+print("계수:", np.round(계수, 3))
+print("식:", 식)
+
+xs = np.linspace(x.min(), x.max(), 100)
+plt.figure(figsize=(6.5, 4.3))
+plt.scatter(x, y, alpha=.6, label="실제")
+plt.plot(xs, 식(xs), color="tab:red", linewidth=2, label="회귀 ${p.deg}차")
+plt.xlabel(${pq(p.x)}); plt.ylabel(${pq(p.y)})
+plt.legend(); plt.grid(alpha=.3)
+plt.tight_layout()` },
+
     ]},
   /* ───────────────────────── matplotlib ───────────────────────── */
   { id:"matplotlib", icon:"📈", name:"matplotlib", tag:"그래프 그리기 기본",
@@ -6944,7 +7144,7 @@ plt.tight_layout()` }
       + "<span class='fn'>fill_between</span><span class='fn'>twinx</span><span class='fn'>annotate</span><span class='fn'>subplots</span>"
       + "<span class='fn'>title / xlabel / legend</span>",
     cards: [
-      { t:"선그래프 — 날짜별 변화", fn:"plt.plot", ds:"s2",
+      { t:"선그래프 — 날짜별 변화", fn:"plt.plot", ds:"s2", tb:[2, 2, 4, "시각화 ① 선그래프"],
         d:"시간 순서대로 변하는 값을 볼 때 써요. 카페의 날짜별 판매량이에요. 메뉴를 바꿔보세요.",
         params:[{k:"menu", label:"메뉴", type:"uniq", col:"메뉴", def:"아이스아메리카노"},
                 {k:"color", label:"색", type:"sel", def:"tab:blue",
@@ -6983,7 +7183,7 @@ plt.legend(loc=${pq(p.loc)})
 plt.grid(alpha=.3)
 plt.tight_layout()` },
 
-      { t:"막대그래프 — 무리끼리 비교", fn:"plt.bar", ds:"s1",
+      { t:"막대그래프 — 무리끼리 비교", fn:"plt.bar", ds:"s1", tb:[2, 2, 4, "시각화 ② 막대그래프"],
         d:"무리별 평균처럼 몇 개 값을 나란히 비교할 때 써요. pandas 의 groupby 와 짝을 이뤄요.",
         params:[{k:"by", label:"가로축 (무리)", type:"col", cols:"cat", def:"동아리"},
                 {k:"val", label:"세로축 (평균)", type:"col", cols:"num", def:"수학"},
@@ -7064,7 +7264,7 @@ plt.ylabel("판매량")
 plt.legend()
 plt.tight_layout()` },
 
-      { t:"산점도 — 두 값의 관계", fn:"plt.scatter", ds:"s1",
+      { t:"산점도 — 두 값의 관계", fn:"plt.scatter", ds:"s1", tb:[2, 2, 4, "시각화 ④ 산점도"],
         d:"점 하나가 학생 한 명이에요. 점들이 오른쪽 위로 몰리면 두 값이 같이 커진다는 뜻이에요.",
         params:[{k:"x", label:"가로축", type:"col", cols:"num", def:"공부시간"},
                 {k:"y", label:"세로축", type:"col", cols:"num", def:"수학"},
@@ -7099,7 +7299,7 @@ plt.title(${pq(p.x + " vs " + p.y + " (색: " + p.c + ")")})
 plt.grid(alpha=.3)
 plt.tight_layout()` },
 
-      { t:"히스토그램 — 값이 퍼진 모양", fn:"plt.hist", ds:"s1",
+      { t:"히스토그램 — 값이 퍼진 모양", fn:"plt.hist", ds:"s1", tb:[2, 2, 4, "시각화 ⑤ 히스토그램"],
         d:"값을 구간으로 나눠 몇 개씩 있는지 세요. bins 를 바꾸면 구간 개수가 달라져요.",
         params:[{k:"col", label:"열", type:"col", cols:"num", def:"수학"},
                 {k:"bins", label:"구간 개수", type:"num", def:10, min:3, max:40}],
@@ -7113,7 +7313,7 @@ plt.title(${pq(p.col + " 분포")})
 plt.xlabel(${pq(p.col)}); plt.ylabel("학생 수")
 plt.tight_layout()` },
 
-      { t:"원그래프 — 비율 보기", fn:"plt.pie", ds:"s1",
+      { t:"원그래프 — 비율 보기", fn:"plt.pie", ds:"s1", tb:[2, 2, 4, "시각화 ③ 원그래프"],
         d:"전체에서 각 조각이 차지하는 비율을 봐요. autopct 로 퍼센트를 적고, explode 로 조각을 떼어 강조해요. 조각이 6개를 넘으면 막대가 나아요.",
         params:[{k:"col", label:"무엇의 비율", type:"col", cols:"cat", def:"동아리"},
                 {k:"pct", label:"퍼센트 표시", type:"chk", def:true},
@@ -7132,7 +7332,7 @@ plt.title(${pq(p.col + " 비율")})
 plt.tight_layout()
 print(개수)` },
 
-      { t:"상자그림 — 퍼짐과 이상치", fn:"plt.boxplot", ds:"s1",
+      { t:"상자그림 — 퍼짐과 이상치", fn:"plt.boxplot", ds:"s1", tb:[2, 2, 2, "이상치 확인 — 상자 그림"],
         d:"상자는 가운데 50%, 가운데 선은 중앙값, 밖의 점은 이상치예요. 여러 상자를 나란히 놓으면 무리끼리 비교돼요.",
         params:[{k:"how", label:"어떻게 나눌까요", type:"sel", def:"subjects",
                  opts:[{v:"subjects",t:"과목 네 개 나란히"},{v:"동아리",t:"동아리별"},{v:"반",t:"반별"},{v:"성별",t:"성별"}]},
@@ -7335,7 +7535,7 @@ sns.boxplot(data=df, x=${pq(p.x)}, y=${pq(p.y)})
 plt.title(${pq(p.x + "별 " + p.y + " 분포")})
 plt.tight_layout()` },
 
-      { t:"산점도를 색으로 나누기", fn:"sns.scatterplot(hue=…)", ds:"s1",
+      { t:"산점도를 색으로 나누기", fn:"sns.scatterplot(hue=…)", ds:"s1", tb:[3, 3, 3, "군집 결과 시각화 (hue)"],
         d:"matplotlib 로는 무리마다 반복문을 돌려야 했던 걸, seaborn 은 hue 한 단어로 해요.",
         params:[{k:"x", label:"가로축", type:"col", cols:"num", def:"공부시간"},
                 {k:"y", label:"세로축", type:"col", cols:"num", def:"수학"},
@@ -7352,7 +7552,7 @@ sns.scatterplot(data=df, x=${pq(p.x)}, y=${pq(p.y)}, hue=${pq(p.hue)}, s=60)
 plt.title(${pq(p.x + " vs " + p.y)})
 plt.tight_layout()` },
 
-      { t:"상관관계 히트맵", fn:"sns.heatmap(df.corr())", ds:"s1",
+      { t:"상관관계 히트맵", fn:"sns.heatmap(df.corr())", ds:"s1", tb:[2, 3, 3, "관계 분석 ③ heatmap"],
         d:"숫자 열끼리 얼마나 같이 움직이는지 색으로 보여요. annot=True 면 숫자도 적어 줘요.",
         params:[{k:"annot", label:"숫자 표시", type:"chk", def:true},
                 {k:"cmap", label:"색 조합", type:"sel", def:"coolwarm",
@@ -7370,7 +7570,7 @@ sns.heatmap(상관, annot=${p.annot ? "True" : "False"}, fmt=".2f", cmap=${pq(p.
 plt.title("상관관계")
 plt.tight_layout()` },
 
-      { t:"개수 세어 막대로", fn:"sns.countplot", ds:"s1",
+      { t:"개수 세어 막대로", fn:"sns.countplot", ds:"s1", tb:[3, 2, 5, "countplot 으로 분포 확인"],
         d:"글자 열의 값이 몇 개씩인지 바로 막대로 그려요. value_counts + bar 를 한 줄로.",
         params:[{k:"x", label:"열", type:"col", cols:"cat", def:"동아리"},
                 {k:"hue", label:"색으로 나누기", type:"colopt", cols:"cat", def:"성별"}],
@@ -7386,7 +7586,7 @@ sns.countplot(data=df, x=${pq(p.x)}${p.hue !== "(안 나눔)" ? ", hue=" + pq(p.
 plt.title(${pq(p.x + "별 인원")})
 plt.tight_layout()` },
 
-      { t:"여러 열을 한꺼번에 — pairplot", fn:"sns.pairplot", ds:"s1",
+      { t:"여러 열을 한꺼번에 — pairplot", fn:"sns.pairplot", ds:"s1", tb:[2, 3, 3, "관계 분석 ① pairplot"],
         d:"고른 열들끼리 산점도를 전부 그려 줘요. 어떤 두 열이 관계가 있는지 훑어볼 때 좋아요. (조금 느려요)",
         params:[{k:"hue", label:"색으로 나누기", type:"colopt", cols:"cat", def:"동아리"}],
         code:(p)=> `import pandas as pd
@@ -7396,7 +7596,25 @@ import matplotlib.pyplot as plt
 df = pd.read_csv("data.csv")
 sns.set_theme(style="ticks", font="NanumGothic")
 plt.rcParams["axes.unicode_minus"] = False
-sns.pairplot(df, vars=["공부시간", "국어", "수학"]${p.hue !== "(안 나눔)" ? ", hue=" + pq(p.hue) : ""}, height=2.4)` }
+sns.pairplot(df, vars=["공부시간", "국어", "수학"]${p.hue !== "(안 나눔)" ? ", hue=" + pq(p.hue) : ""}, height=2.4)` },
+      { t:"평균 막대 — 오차선까지 한 번에", fn:"sns.barplot", ds:"s1", tb:[2,4,4,"이상치 처리 전/후 비교"],
+        d:"barplot 은 무리별 평균을 막대로, 그 위 검은 선은 평균이 흔들리는 범위(신뢰구간)예요. groupby 없이 열 이름만 주면 알아서 평균을 내요.",
+        params:[{k:"x", label:"가로축 (무리)", type:"col", cols:"cat", def:"동아리"},
+                {k:"y", label:"세로축 (평균)", type:"col", cols:"num", def:"수학"},
+                {k:"hue", label:"색으로 나누기", type:"colopt", cols:"cat", def:"성별"},
+                {k:"err", label:"오차선", type:"chk", def:true}],
+        code:(p)=> `import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("data.csv")
+sns.set_theme(style="whitegrid", font="NanumGothic")
+plt.rcParams["axes.unicode_minus"] = False
+plt.figure(figsize=(7, 4.2))
+sns.barplot(data=df, x=${pq(p.x)}, y=${pq(p.y)}${p.hue !== "(안 나눔)" ? ', hue=' + pq(p.hue) : ''}${p.err ? '' : ', errorbar=None'}, palette="Set2")
+plt.title(${pq(p.x + "별 " + p.y + " 평균")})
+plt.tight_layout()` },
+
     ]},
   /* ───────────────────────── scikit-learn ───────────────────────── */
   { id:"sklearn", icon:"🤖", name:"scikit-learn", tag:"머신러닝",
@@ -7406,7 +7624,7 @@ sns.pairplot(df, vars=["공부시간", "국어", "수학"]${p.hue !== "(안 나�
       + "<span class='fn'>DecisionTreeClassifier</span><span class='fn'>KNeighborsClassifier</span>"
       + "<span class='fn'>KMeans</span><span class='fn'>StandardScaler</span>",
     cards: [
-      { t:"배울 데이터와 시험 데이터 나누기", fn:"train_test_split", ds:"s1",
+      { t:"배울 데이터와 시험 데이터 나누기", fn:"train_test_split", ds:"s1", tb:[3, 1, 4, "훈련·테스트 분리"],
         d:"배울 때 본 문제로 시험을 보면 무조건 잘 맞히니까, 일부를 떼어 두고 나중에 시험을 봐요. test_size 가 시험 비율이에요.",
         params:[{k:"test", label:"시험 비율", type:"sel", def:"0.25", opts:["0.2","0.25","0.3","0.4"]}],
         code:(p)=> `import pandas as pd
@@ -7420,7 +7638,55 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=${p.test}, r
 print("전체:", len(df), "명")
 print("배우기용:", len(X_train), "명  /  시험용:", len(X_test), "명")` },
 
-      { t:"선형회귀 — 숫자 예측", fn:"LinearRegression", ds:"s1",
+      { t:"전처리 한 번에 — X/y 나누기 → 정규화 → 분리", fn:"drop · MinMaxScaler · train_test_split(stratify)", ds:"s1", tb:[3,1,4,"전처리 과정 익히기"],
+        d:"교과서 1-4 의 흐름 그대로예요. 맞힐 열(y)을 빼서 X 를 만들고, 크기를 맞추고, 훈련·시험으로 나눠요. stratify=y 는 나눌 때 정답 비율을 똑같이 유지해 줘요.",
+        params:[{k:"y", label:"맞힐 값 (y)", type:"sel", def:"동아리", opts:["동아리","성별"]},
+                {k:"test", label:"시험 비율", type:"sel", def:"0.3", opts:["0.2","0.25","0.3"]},
+                {k:"strat", label:"stratify 로 비율 유지", type:"chk", def:true}],
+        code:(p)=> `import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("data.csv")
+y = df[${pq(p.y)}]                                    # ① 종속 변수
+X = df.drop([${pq(p.y)}, "번호", "성별", "동아리"], axis=1, errors="ignore")   # 숫자 열만 남기기
+print("X:", X.shape, " y:", y.shape)
+
+scaler = MinMaxScaler()                             # ② 정규화
+scaler.fit(X)
+X = pd.DataFrame(scaler.transform(X), columns=X.columns)
+print(X.head(3).round(2))
+
+X_train, X_test, y_train, y_test = train_test_split(   # ③ 분리
+    X, y, test_size=${p.test}, random_state=1234${p.strat ? ', stratify=y' : ''})
+print("훈련:", X_train.shape, " 시험:", X_test.shape)
+print()
+print("정답 비율 (훈련):"); print(y_train.value_counts(normalize=True).round(2))
+print("정답 비율 (시험):"); print(y_test.value_counts(normalize=True).round(2))` },
+
+      { t:"인코딩 — 글자를 숫자로", fn:"LabelEncoder · OneHotEncoder", ds:"s1", tb:[3,1,4,"인코딩"],
+        d:"모델은 '독서'·'코딩' 같은 글자를 못 읽어요. 레이블 인코딩은 0,1,2… 번호를 붙이고, 원-핫 인코딩은 항목마다 열을 만들어 해당하는 곳만 1 로 표시해요.",
+        params:[{k:"col", label:"열", type:"col", cols:"cat", def:"동아리"},
+                {k:"how", label:"방식", type:"sel", def:"both", opts:[{v:"label",t:"레이블 인코딩"},{v:"onehot",t:"원-핫 인코딩"},{v:"both",t:"둘 다 비교"}]}],
+        code:(p)=> `import pandas as pd
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+
+df = pd.read_csv("data.csv")
+값 = df[${pq(p.col)}]
+print("원래 값:", list(값.head(6)))
+${p.how !== "onehot" ? `
+encoder = LabelEncoder()                                # 레이블 인코딩
+번호 = encoder.fit_transform(값)                        # fit + transform
+print("레이블:", list(번호[:6]))
+print("번호 → 이름:", dict(enumerate(encoder.classes_)))` : ''}
+${p.how !== "label" ? `
+onehot = OneHotEncoder(sparse_output=False)             # 원-핫 인코딩
+행렬 = onehot.fit_transform(값.to_frame())               # 입력은 2차원
+원핫 = pd.DataFrame(행렬, columns=onehot.categories_[0]).astype(int)
+print()
+print(pd.concat([값, 원핫], axis=1).head(6))` : ''}` },
+
+      { t:"선형회귀 — 숫자 예측", fn:"LinearRegression", ds:"s1", tb:[3, 2, 2, "회귀 모델 만들기 ② LinearRegression"],
         d:"입력이 1 커질 때 정답이 얼마나 변하는지(기울기)를 찾아요. R² 이 1 에 가까울수록 잘 맞힌 거예요.",
         params:[{k:"x", label:"입력 (특징)", type:"col", cols:"num", def:"공부시간"},
                 {k:"y", label:"맞힐 값", type:"col", cols:"num", def:"수학"}],
@@ -7448,6 +7714,64 @@ plt.scatter(X, y, alpha=.6, label="실제")
 plt.plot(X, model.predict(X), color="red", label="회귀선")
 plt.xlabel(${pq(p.x)}); plt.ylabel(${pq(p.y)}); plt.legend()
 plt.tight_layout()` },
+
+      { t:"새 값 예측하기", fn:"model.predict([[값]])", ds:"s1", tb:[3,2,2,"모델로 예측하기"],
+        d:"배운 모델에 새 입력을 넣으면 예측값이 나와요. predict 는 2차원 [[값]] 을 받아요. 그래프에 빨간 점으로 어디에 찍히는지 보세요.",
+        params:[{k:"x", label:"입력 (특징)", type:"col", cols:"num", def:"공부시간"},
+                {k:"y", label:"맞힐 값", type:"col", cols:"num", def:"수학"},
+                {k:"v", label:"넣어볼 입력값", type:"num", def:4.5, min:0, max:100, step:0.5}],
+        code:(p)=> `import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+df = pd.read_csv("data.csv")
+X = df[[${pq(p.x)}]]
+y = df[${pq(p.y)}]
+model = LinearRegression().fit(X, y)
+
+새입력 = pd.DataFrame({${pq(p.x)}: [${p.v}]})           # 2차원으로
+예측 = model.predict(새입력)[0]
+print(f"${p.x} = ${p.v} 일 때 예측 ${p.y}: {예측:.1f}")
+
+plt.figure(figsize=(6.5, 4.3))
+plt.scatter(X, y, alpha=.5, label="실제")
+plt.plot(X, model.predict(X), color="gray", label="회귀선")
+plt.scatter([${p.v}], [예측], color="tab:red", s=120, zorder=5, label="예측")
+plt.xlabel(${pq(p.x)}); plt.ylabel(${pq(p.y)})
+plt.legend(); plt.grid(alpha=.3)
+plt.tight_layout()` },
+
+      { t:"다중 선형 회귀 — 입력 여러 개", fn:"LinearRegression · MSE · R²", ds:"s1", tb:[3,2,3,"다중 선형 회귀와 평가"],
+        d:"입력을 여러 개 넣으면 열마다 가중치가 하나씩 생겨요. 평가는 오차의 제곱 평균(MSE, 작을수록 좋음)과 결정계수(R², 1에 가까울수록 좋음)로 해요. 훈련·시험 점수 차이가 크면 외운 거예요.",
+        params:[{k:"f1", label:"공부시간", type:"chk", def:true},
+                {k:"f2", label:"국어", type:"chk", def:true},
+                {k:"f3", label:"영어", type:"chk", def:false},
+                {k:"f4", label:"과학", type:"chk", def:false}],
+        code:(p)=>{
+          const f = [p.f1 && "공부시간", p.f2 && "국어", p.f3 && "영어", p.f4 && "과학"].filter(Boolean);
+          const list = f.length ? f : ["공부시간"];
+          return `import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+df = pd.read_csv("data.csv")
+특징 = [${list.map(pq).join(", ")}]
+X = df[특징]
+y = df["수학"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+
+model = LinearRegression()
+model.fit(X_train, y_train)
+for 이름, w in zip(특징, model.coef_):
+    print(f"{이름} 가중치: {w:.3f}")
+print(f"편향: {model.intercept_:.2f}")
+
+pred = model.predict(X_test)
+print()
+print("MSE (시험):", round(mean_squared_error(y_test, pred), 2))
+print("R²  (시험):", round(r2_score(y_test, pred), 3))
+print("R²  (훈련):", round(r2_score(y_train, model.predict(X_train)), 3))`; } },
 
       { t:"결정트리 — 규칙으로 분류", fn:"DecisionTreeClassifier", ds:"s1",
         d:"'수학이 70 넘으면 왼쪽, 아니면 오른쪽' 같은 규칙을 스스로 만들어 무리를 맞혀요. max_depth 는 규칙의 깊이예요.",
@@ -7496,7 +7820,67 @@ for k in [1, 3, ${p.k}, 11]:                              # k 를 바꿔가며 �
     표시 = "  ← 내가 고른 k" if k == ${p.k} else ""
     print(f"k={k:>2}  정확도 {acc*100:5.1f}%{표시}")` },
 
-      { t:"K-means — 정답 없이 묶기", fn:"KMeans", ds:"s1",
+      { t:"로지스틱 회귀 — 둘 중 하나 맞히기", fn:"LogisticRegression", ds:"s1", tb:[3,2,5,"로지스틱 회귀 (분류)"],
+        d:"이름은 회귀지만 분류 모델이에요. '합격/불합격' 처럼 두 갈래 정답의 확률을 계산해요. 여기서는 수학 점수가 기준 이상이면 1(합격)로 정답을 만들어 써요.",
+        params:[{k:"cut", label:"합격 기준 (수학)", type:"num", def:70, min:40, max:95, step:5},
+                {k:"test", label:"시험 비율", type:"sel", def:"0.3", opts:["0.2","0.25","0.3"]}],
+        code:(p)=> `import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+
+df = pd.read_csv("data.csv")
+df["합격"] = (df["수학"] >= ${p.cut}).astype(int)       # 정답 만들기: 1=합격, 0=불합격
+X = df[["공부시간", "국어", "영어", "과학"]]
+y = df["합격"]
+print("합격/불합격 인원:"); print(y.value_counts())
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=${p.test}, random_state=10)
+
+LR = LogisticRegression(max_iter=1000)
+LR.fit(X_train, y_train)
+첫학생 = X_test.iloc[[0]]
+print()
+print("첫 번째 시험 학생:", 첫학생.values.tolist()[0])
+print("예측:", LR.predict(첫학생)[0], " 확률(불합격, 합격):", LR.predict_proba(첫학생).round(2)[0])
+print("정확도:", round(LR.score(X_test, y_test), 3))` },
+
+      { t:"분류 모델 평가 — 오분류표와 4가지 점수", fn:"confusion_matrix · accuracy · precision · recall · F1", ds:"s1", tb:[3,2,6,"분류 모델의 평가"],
+        d:"정확도만 보면 속아요. 오분류표는 '맞다고 했는데 맞음/틀림' 을 네 칸으로 보여주고, 정밀도(맞다고 한 것 중 진짜)·재현율(진짜 중 잡아낸 비율)·F1(둘의 조화평균)을 함께 봐요.",
+        params:[{k:"model", label:"모델", type:"sel", def:"lr", opts:[{v:"lr",t:"LogisticRegression"},{v:"tree",t:"DecisionTree"},{v:"knn",t:"KNN"}]},
+                {k:"cut", label:"합격 기준 (수학)", type:"num", def:70, min:40, max:95, step:5}],
+        code:(p)=> `import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, classification_report
+${p.model === "lr" ? 'from sklearn.linear_model import LogisticRegression' : p.model === "tree" ? 'from sklearn.tree import DecisionTreeClassifier' : 'from sklearn.neighbors import KNeighborsClassifier'}
+
+df = pd.read_csv("data.csv")
+df["합격"] = (df["수학"] >= ${p.cut}).astype(int)
+X = df[["공부시간", "국어", "영어", "과학"]]
+y = df["합격"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=10)
+
+model = ${p.model === "lr" ? 'LogisticRegression(max_iter=1000)' : p.model === "tree" ? 'DecisionTreeClassifier(max_depth=3, random_state=0)' : 'KNeighborsClassifier(n_neighbors=5)'}
+model.fit(X_train, y_train)
+pred = model.predict(X_test)
+
+cm = confusion_matrix(y_test, pred)
+print("오분류표 [[TN FP] [FN TP]]:"); print(cm)
+print("정확도:", round(accuracy_score(y_test, pred), 3))
+print("정밀도:", round(precision_score(y_test, pred, zero_division=0), 3))
+print("재현율:", round(recall_score(y_test, pred, zero_division=0), 3))
+print("F1    :", round(f1_score(y_test, pred, zero_division=0), 3))
+print()
+print(classification_report(y_test, pred, target_names=["불합격", "합격"], zero_division=0))
+
+sns.set_theme(font="NanumGothic")
+plt.figure(figsize=(4, 3.4))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", cbar=False,
+            xticklabels=["불합격", "합격"], yticklabels=["불합격", "합격"])
+plt.xlabel("예측"); plt.ylabel("실제")
+plt.tight_layout()` },
+
+      { t:"K-means — 정답 없이 묶기", fn:"KMeans", ds:"s1", tb:[3, 3, 3, "KMeans 모델링"],
         d:"정답을 알려주지 않아도 비슷한 것끼리 k 개 무리로 묶어요. 어떤 학생들이 비슷한 유형인지 찾을 때 써요.",
         params:[{k:"k", label:"묶음 수 k", type:"num", def:3, min:2, max:6},
                 {k:"x", label:"열 1", type:"col", cols:"num", def:"공부시간"},
@@ -7521,7 +7905,46 @@ plt.xlabel(${pq(p.x)}); plt.ylabel(${pq(p.y)}); plt.legend()
 plt.title("${p.k}개 무리로 묶은 결과")
 plt.tight_layout()` },
 
-      { t:"크기 맞추기 — 표준화", fn:"StandardScaler", ds:"s1",
+      { t:"k 고르기 — 엘보우와 실루엣", fn:"inertia_ · silhouette_score · make_blobs", ds:"s1", tb:[3,3,4,"군집 개수와 군집 모델의 평가"],
+        d:"k 를 늘릴수록 inertia(중심까지 거리 합)는 줄지만 어느 순간부터 조금씩만 줄어요. 그 꺾이는 지점(팔꿈치)이 후보예요. 실루엣 계수는 1 에 가까울수록 잘 나뉜 거예요.",
+        params:[{k:"data", label:"데이터", type:"sel", def:"student", opts:[{v:"student",t:"학생 (공부시간·수학)"},{v:"blobs",t:"make_blobs 가상 데이터 (정답 3덩이)"}]},
+                {k:"kmax", label:"최대 k", type:"num", def:8, min:4, max:12},
+                {k:"kshow", label:"실루엣 그래프 k", type:"num", def:3, min:2, max:8}],
+        code:(p)=> `import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import silhouette_score, silhouette_samples
+${p.data === "blobs" ? 'from sklearn.datasets import make_blobs' : ''}
+${p.data === "student"
+  ? 'df = pd.read_csv("data.csv")\nX = StandardScaler().fit_transform(df[["공부시간", "수학"]])'
+  : 'X, _ = make_blobs(n_samples=200, centers=3, cluster_std=0.7, random_state=0)'}
+
+ks = range(2, ${p.kmax} + 1)
+inertia, sil = [], []
+for k in ks:
+    km = KMeans(n_clusters=k, n_init=10, random_state=0).fit(X)
+    inertia.append(km.inertia_)
+    sil.append(silhouette_score(X, km.labels_))
+    print(f"k={k}: inertia={km.inertia_:.1f}  실루엣={sil[-1]:.3f}")
+print("실루엣이 가장 높은 k:", list(ks)[int(np.argmax(sil))])
+
+fig, ax = plt.subplots(1, 3, figsize=(12, 3.8))
+ax[0].plot(list(ks), inertia, marker="o"); ax[0].set_title("엘보우 (inertia)"); ax[0].set_xlabel("k")
+ax[1].plot(list(ks), sil, marker="o", color="tab:green"); ax[1].set_title("평균 실루엣 계수"); ax[1].set_xlabel("k")
+
+k = ${p.kshow}                                            # 실루엣 그래프
+labels = KMeans(n_clusters=k, n_init=10, random_state=0).fit_predict(X)
+s = silhouette_samples(X, labels); y0 = 10
+for i in range(k):
+    v = np.sort(s[labels == i]); y1 = y0 + len(v)
+    ax[2].fill_betweenx(np.arange(y0, y1), 0, v, alpha=.7); ax[2].text(-0.05, y0 + len(v)/2, str(i)); y0 = y1 + 10
+ax[2].axvline(silhouette_score(X, labels), color="red", linestyle="--")
+ax[2].set_title(f"실루엣 그래프 (k={k})"); ax[2].set_xlabel("실루엣 계수"); ax[2].set_yticks([])
+plt.tight_layout()` },
+
+      { t:"크기 맞추기 — 표준화", fn:"StandardScaler", ds:"s1", tb:[3, 1, 4, "정규화 (StandardScaler)"],
         d:"공부시간(0~8)과 점수(0~100)처럼 단위가 다르면 큰 숫자가 결과를 좌우해요. 평균 0, 표준편차 1 로 맞춰요. KNN·K-means 전에 꼭 해요.",
         params:[{k:"a", label:"열 1", type:"col", cols:"num", def:"공부시간"},
                 {k:"b", label:"열 2", type:"col", cols:"num", def:"수학"}],
@@ -7539,7 +7962,41 @@ print("[ 전 ]  평균 / 표준편차")
 print(X.agg(["mean", "std"]).round(2))
 print()
 print("[ 후 ]  평균 / 표준편차   ← 둘 다 0 / 1 근처")
-print(표준화.agg(["mean", "std"]).round(2))` }
+print(표준화.agg(["mean", "std"]).round(2))` },
+      { t:"연관 분석 — 같이 사는 물건 찾기", fn:"apriori · association_rules", ds:null, tb:[3,4,3,"거래 데이터로 연관 규칙 찾기"],
+        d:"장바구니 기록에서 '삼겹살을 사면 쌈채소도 산다' 같은 규칙을 찾아요. 지지도(얼마나 자주), 신뢰도(A 산 사람 중 B 도 산 비율), 향상도(1보다 크면 진짜 관련)를 봐요. mlxtend 는 처음 한 번 설치돼요.",
+        params:[{k:"sup", label:"최소 지지도", type:"num", def:0.2, min:0.1, max:0.6, step:0.1},
+                {k:"conf", label:"최소 신뢰도", type:"num", def:0.6, min:0.3, max:1, step:0.1},
+                {k:"sort", label:"정렬 기준", type:"sel", def:"lift", opts:[{v:"lift",t:"향상도 lift"},{v:"confidence",t:"신뢰도 confidence"},{v:"support",t:"지지도 support"}]}],
+        code:(p)=> `import pandas as pd
+import matplotlib.pyplot as plt
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori, association_rules
+
+거래 = [["삼겹살", "쌈채소", "김치"], ["쌀"], ["쌀"],
+        ["삼겹살", "쌈채소", "쌀", "김치"], ["삼겹살", "쌈채소", "쌀", "김치"],
+        ["삼겹살", "쌈채소"], ["쌈채소", "김치"], ["삼겹살", "쌀"],
+        ["삼겹살", "쌈채소", "김치"], ["라면", "김치"]]
+
+te = TransactionEncoder()                                  # ① 거래 목록 → 표 (샀으면 True)
+행렬 = pd.DataFrame(te.fit(거래).transform(거래), columns=te.columns_)
+print(행렬.astype(int).head())
+
+빈발 = apriori(행렬, min_support=${p.sup}, use_colnames=True)   # ② 자주 같이 나오는 묶음
+print(); print("빈발 항목 집합:", len(빈발), "개")
+
+규칙 = association_rules(빈발, metric="confidence", min_threshold=${p.conf})   # ③ 규칙
+규칙 = 규칙.sort_values(${pq(p.sort)}, ascending=False)
+규칙["규칙"] = [", ".join(a) + " → " + ", ".join(c) for a, c in zip(규칙["antecedents"], 규칙["consequents"])]
+print(규칙[["규칙", "support", "confidence", "lift"]].round(2).head(8).to_string(index=False))
+
+top = 규칙.head(8)
+plt.figure(figsize=(7.5, 3.8))
+plt.barh(top["규칙"], top["lift"], color="tab:orange")
+plt.axvline(1, color="red", linestyle="--", label="향상도 1 (관련 없음)")
+plt.xlabel("향상도 (lift)"); plt.gca().invert_yaxis()
+plt.legend(); plt.tight_layout()` },
+
     ]}
   ];
 
@@ -7553,7 +8010,8 @@ print(표준화.agg(["mean", "std"]).round(2))` }
       const rows = parseCSV(LAB_SAMPLES[ds].csv), head = rows[0], body = rows.slice(1);
       const C = learnCols(ds), N = 5;
       const tr = body.slice(0, N).map((r, i)=> '<tr><td class="ix">' + i + '</td>'
-        + head.map((h, j)=> '<td' + (C.num.includes(h) ? '' : ' class="s"') + '>' + esc(r[j] || "") + '</td>').join("") + '</tr>').join("");
+        + head.map((h, j)=>{ const v = (r[j] || "").trim();
+            return !v ? '<td class="nan">NaN</td>' : '<td' + (C.num.includes(h) ? '' : ' class="s"') + '>' + esc(v) + '</td>'; }).join("") + '</tr>').join("");
       return '<div class="ld-box"><div class="ld-h"><b>📄 ' + esc(LAB_SAMPLES[ds].name) + '</b>'
         + '<code>df.head()</code><span class="lab-sub">' + body.length + '행 × ' + head.length + '열 중 앞 ' + N + '줄</span></div>'
         + '<div class="ld-tbl"><table><thead><tr><th class="ix"></th>'
@@ -7634,14 +8092,36 @@ print(표준화.agg(["mean", "std"]).round(2))` }
     return out;
   }
 
+  // 교과서(『데이터 과학』) 차례 — tb:[대단원, 중단원, 소단원, 이름] 으로 카드를 묶어 보여줍니다
+  const TB_UNIT = { 2: "Ⅱ. 데이터 준비와 분석", 3: "Ⅲ. 데이터 모델링과 평가" };
+  const TB_SEC  = { "2-1": "데이터 수집 및 특성 분석", "2-2": "데이터 전처리", "2-3": "데이터 속성 간의 관계 파악",
+                    "2-4": "동일한 데이터의 다양한 분석·비교",
+                    "3-1": "데이터 모델과 모델링", "3-2": "회귀 분석", "3-3": "군집 분석", "3-4": "연관 분석" };
+  const TB_ROMAN = { 2: "Ⅱ", 3: "Ⅲ" };
+  const tbChip = (c)=> c.tb ? '<span class="lc-tb">📖 ' + TB_ROMAN[c.tb[0]] + ' ' + c.tb[1] + '-' + c.tb[2] + ' ' + esc(c.tb[3]) + '</span>' : '';
+  function learnTextbookLib(){
+    const cards = [];
+    LEARN.forEach(l=> l.cards.forEach(c=>{ if (c.tb) cards.push(c); }));
+    cards.sort((a, b)=> (a.tb[0] - b.tb[0]) || (a.tb[1] - b.tb[1]) || (a.tb[2] - b.tb[2]));   // 안정 정렬: 같은 소단원은 원래 순서
+    return { id: "textbook", cards,
+      intro: "<b>교과서 『데이터 과학』 차례대로</b> 카드를 늘어놓았어요. 각 카드의 노란 표시가 교과서의 단원이에요. "
+        + "<b>Ⅱ 단원</b>은 데이터를 살펴보고(shape·info·describe) → 빈 칸·이상치를 정리하고 → 그래프로 보고 → 관계를 찾는 순서, "
+        + "<b>Ⅲ 단원</b>은 전처리 → 회귀 → 분류 → 군집 → 연관 분석 순서예요. 수업 진도에 맞춰 위에서부터 눌러보세요." };
+  }
+
   function learnRender(){
-    const lib = LEARN.find(l=> l.id === learnLib) || LEARN[0];
+    const lib = learnLib === "textbook" ? learnTextbookLib() : (LEARN.find(l=> l.id === learnLib) || LEARN[0]);
     document.querySelectorAll("#learnLibs button").forEach(b=> b.classList.toggle("on", b.dataset.lib === lib.id));
     $("learnIntro").innerHTML = lib.intro;
     $("learnData").innerHTML = learnDataHtml(lib);
+    let lastSec = "";
     $("learnCards").innerHTML = lib.cards.map((c, i)=>
-      '<div class="learn-card" data-i="' + i + '">'
-      + '<div class="lc-h"><b>' + esc(c.t) + '</b><code>' + esc(c.fn) + '</code>'
+      (lib.id === "textbook" && c.tb && (c.tb[0] + "-" + c.tb[1]) !== lastSec
+        ? (()=>{ lastSec = c.tb[0] + "-" + c.tb[1];
+                 return '<h4 class="learn-sec">' + esc(TB_UNIT[c.tb[0]]) + '<small>' + c.tb[1] + '. ' + esc(TB_SEC[lastSec] || "") + '</small></h4>'; })()
+        : '')
+      + '<div class="learn-card" data-i="' + i + '">'
+      + '<div class="lc-h"><b>' + esc(c.t) + '</b><code>' + esc(c.fn) + '</code>' + tbChip(c)
       +   (c.ds ? '<span class="lab-sub">데이터: ' + esc(LAB_SAMPLES[c.ds].name) + '</span>' : '') + '</div>'
       + '<p class="lc-d">' + c.d + '</p>'
       + (c.params.length ? '<div class="lc-p">' + c.params.map(p=> learnParamHtml(c, p, i)).join("") + '</div>' : '')
@@ -7704,7 +8184,8 @@ print(표준화.agg(["mean", "std"]).round(2))` }
     learnInited = true;
     $("learnLibs").innerHTML = LEARN.map(l=>
       '<button data-lib="' + l.id + '"><i>' + l.icon + '</i>' + esc(l.name)
-      + ' <span style="opacity:.75;font-weight:400">· ' + esc(l.tag) + '</span></button>').join("");
+      + ' <span style="opacity:.75;font-weight:400">· ' + esc(l.tag) + '</span></button>').join("")
+      + '<button data-lib="textbook"><i>📚</i>교과서 순서 <span style="opacity:.75;font-weight:400">· Ⅱ·Ⅲ 단원 차례대로</span></button>';
     document.querySelectorAll("#learnLibs button").forEach(b=> b.onclick = ()=>{ learnLib = b.dataset.lib; learnRender(); });
     learnRender();
   }

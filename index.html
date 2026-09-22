@@ -1022,6 +1022,13 @@
   }
   .time-sub{margin-top:10px; font-size:13px; color:var(--ink-faint); letter-spacing:-.2px; min-height:18px}
   .wake-note{margin-top:6px; font-size:11.5px; color:var(--ink-faint)}
+  .net-note{margin:8px auto 0; max-width:340px; padding:8px 12px; border-radius:10px; font-size:12px; line-height:1.55;
+            background:#fff4cc; border:1px solid #f1dc94; color:#6b4f00}
+  .net-note.long{background:#ffe1c2; border-color:#e58a2a; color:#7a3d00}
+  .net-note.back{background:#cdeedd; border-color:#3fa66a; color:#1d5c38}
+  :root[data-theme="dark"] .net-note{background:#3a2f0c; border-color:#6b5514; color:#ffd766}
+  :root[data-theme="dark"] .net-note.long{background:#3d260c; border-color:#7a4a14; color:#ffb366}
+  :root[data-theme="dark"] .net-note.back{background:#12321f; border-color:#2f8a55; color:#8fe0b0}
   .wake-note button{background:none; border:0; padding:0 2px; font:inherit; color:var(--blue-dark); text-decoration:underline; cursor:pointer}
 
   /* 휴식 모드 */
@@ -1332,7 +1339,8 @@
   }
   .sync-dot i{width:6px;height:6px;border-radius:50%;background:#cbd7e6; display:inline-block}
   .sync-dot.ok i{background:#4fa89e}
-  .sync-dot.err i{background:#d98080}
+  .sync-dot.err i{background:#d98080; animation:pulse 1.2s ease-in-out infinite}
+  .sync-dot.err{color:#c0504a; font-weight:700}
 
   /* ---------- Modal ---------- */
   .modal-back{
@@ -1833,6 +1841,7 @@
             <div class="time" id="timeText">00:00:00</div>
             <div class="time-sub" id="timeSub">버튼을 눌러 공부를 시작하세요</div>
             <div class="wake-note" id="wakeNote" hidden></div>
+            <div class="net-note" id="netNote" hidden></div>
           </div>
         </div>
 
@@ -2574,6 +2583,7 @@
         elapsed: Math.floor(state.elapsed),
         startedAt: state.startedAt ? state.startedAt.toISOString() : null,
         checkRun: Math.floor(checkRun),   // 새로고침으로 자리 비움 확인을 피하지 못하게
+        running: !!state.running,         // 돌던 중이었으면 복구할 때 이어서 돌립니다
         at: Date.now()
       }));
       // 과목별 누적도 남겨둡니다. 예전에는 메모리에만 있어서 새로고침하면 0이 되고,
@@ -2936,7 +2946,9 @@
     $("checkBar").style.width = p + "%";
     $("checkBar").classList.toggle("warn", left <= 60);
     $("checkLeft").textContent = Math.floor(left/60) + ":" + pad(left % 60) + " 남음";
-    if (left <= 0) failCheck();
+    // 다른 탭·앱에 가 있는 동안엔 코드를 볼 수 없으니 그 사이 유예가 끝나도 멈추지 않습니다.
+    // (코드가 떠 있는 동안 시간은 어차피 안 세므로 인정 시간이 늘어나진 않아요 — 돌아오면 5분을 새로 줍니다)
+    if (left <= 0){ if (document.hidden) return; failCheck(); }
   }
 
   function closeCheck(){
@@ -3205,9 +3217,9 @@
   /* 커뮤니티 화면에 떠 있는 작은 타이머 */
   function renderMiniTimer(){
     const box = $("miniTimer");
-    const onBoard = !$("boardView").hidden;
+    const away = $("timerView").hidden;               // 타이머 화면이 아닌 모든 탭 (커뮤니티·시뮬레이터·시각화·자료구조)
     const alive = state.running || state.elapsed >= 1;
-    box.hidden = !(onBoard && alive);
+    box.hidden = !(away && alive);
     if (box.hidden) return;
 
     const countDown = state.target > 0;
@@ -3864,15 +3876,16 @@
     if (!me || !dirty.size) return;
     const keys = [...dirty]; dirty.clear();
     setSync("");
-    let failed = false;
+    let failed = false, netFail = false;
     for (const k of keys){
       if (!syncableDay(k)) continue;      // 서버가 안 받는 옛 날짜는 조용히 버립니다
       const { data, error } = await sb.rpc("upsert_day",
         { p_day: k, p_seconds: Math.floor(records[k] || 0) });
       if (error){
         failed = true;
+        if (isNetErr(error)) netFail = true;
         flushFails++;
-        if (flushFails === 3) showError(error, "공부시간 저장");   // 세 번 연속 실패하면 알림
+        if (flushFails === 3 && !isNetErr(error)) showError(error, "공부시간 저장");   // 서버 오류가 세 번 연속이면 알림 (네트워크는 띠로)
         dirty.add(k);
         continue;                          // 한 날짜가 실패해도 나머지는 계속 보냅니다
       }
@@ -3883,7 +3896,43 @@
     }
     await flushSubjects();
     setSync(failed ? "err" : "ok");
+    if (netFail) netOffline(); else if (!failed) netOnline();
   }
+
+  /* ---------- 인터넷 연결 안내 ----------
+     타이머는 기기 안에서 세므로 인터넷이 끊겨도 멈추지 않습니다. 이 띠는 "지금 서버에 저장되고 있나"만 알려줍니다.
+     · 끊김 판단: 브라우저의 offline 이벤트 + 저장(flush)이 네트워크 오류로 실패
+     · 다시 붙으면 바로 저장을 시도하고 "저장했어요"를 잠깐 보여줍니다
+     · 10분 넘게 끊겨 있으면 한 번만 소리와 함께 안내 (앱을 닫지 말라고). 서버 요청은 하나도 늘지 않습니다. */
+  let netDown = false, netSince = 0, netLongTold = false, netBackTimer = null, netTick = null;
+  function netNoteEl(){ return $("netNote"); }
+  function netOffline(){
+    if (!me) return;                                   // 게스트는 저장할 곳이 없으니 안내 안 함
+    if (!netDown){ netDown = true; netSince = Date.now(); netLongTold = false; }
+    clearTimeout(netBackTimer);
+    netRender();
+    if (!netTick) netTick = setInterval(netRender, 15000);
+  }
+  function netOnline(){
+    if (!netDown) return;
+    netDown = false; clearInterval(netTick); netTick = null;
+    const el = netNoteEl(); if (!el) return;
+    el.hidden = false; el.className = "net-note back";
+    el.textContent = "✅ 다시 연결됐어요 · 밀린 기록을 저장했어요.";
+    clearTimeout(netBackTimer); netBackTimer = setTimeout(()=>{ el.hidden = true; }, 5000);
+  }
+  function netRender(){
+    const el = netNoteEl(); if (!el || !netDown) return;
+    const mins = Math.floor((Date.now() - netSince) / 60000);
+    const long = mins >= 10;
+    el.hidden = false; el.className = "net-note" + (long ? " long" : "");
+    el.innerHTML = long
+      ? "📡 인터넷이 <b>" + mins + "분째</b> 끊겨 있어요. 타이머는 계속 재고 있고 기록은 기기에 남아 있어요.<br>앱을 닫지 말고 와이파이·데이터를 확인해 주세요. 연결되면 자동으로 저장돼요."
+      : "📡 인터넷이 끊겼어요 — 타이머는 계속 재고 있어요. 연결되면 자동으로 저장돼요.";
+    if (long && !netLongTold){ netLongTold = true; chime("rest"); toast("인터넷이 10분째 끊겨 있어요. 앱을 닫지 말고 연결을 확인해 주세요."); }
+  }
+  window.addEventListener("offline", ()=>{ if (state.running || dirty.size) netOffline(); });
+  window.addEventListener("online", ()=>{ if (netDown){ dirty.add(keyOf(now())); flush(); } });
 
   async function pushSession(s){
     if (!me) return;
@@ -6251,6 +6300,7 @@ _imgs
   // 화면이 꺼져 있는 동안 브라우저가 타이머 계산을 멈춰둡니다.
   // 돌아오자마자 한 번 돌려서 자리 비움 확인·인정 한도를 바로 맞춥니다.
   function onResume(){
+    if (checkCode && Date.now() > checkDeadline) checkDeadline = Date.now() + CHECK_GRACE * 1000;   // 안 보이는 사이 끝난 유예는 새로
     if (state.running) step();
     else if (checkCode) tickCheck();
     wakeSync();                       // 다른 앱 갔다 오면 브라우저가 풀어둔 화면 켜두기를 다시 잡습니다
@@ -6296,6 +6346,30 @@ _imgs
         b.classList.toggle("active", Number(b.dataset.min) * 60 === state.pomoTarget));
       modeText.textContent = state.phase === "break"
         ? breakMin + "분 휴식" : Math.round(state.pomoTarget/60) + "분 포모도로";
+    }
+    // 돌던 중에 브라우저가 앱을 내려버린 경우(백그라운드에서 인강 등):
+    // 마지막 저장부터 지금까지 비어 있던 시간을 인정하고 자동으로 이어서 돌립니다.
+    // 인정 규칙은 step() 과 똑같이 — 자유 모드는 마지막 확인 이후 CHECK_EVERY 까지만, 포모도로는 목표까지만.
+    if (t.running){
+      let gap = age / 1000; if (!(gap > 0)) gap = 0;
+      let hit = false;
+      if (state.phase === "study" && state.mode === "free"){
+        const room = Math.max(0, CHECK_EVERY - checkRun);
+        if (gap >= room){ gap = room; hit = true; }
+        checkRun += gap;
+      } else if (state.target > 0){
+        gap = Math.min(gap, Math.max(0, state.target - state.elapsed));
+      }
+      state.elapsed += gap;
+      if (state.phase === "study" && gap > 0){ addStudy(gap); addSubjectTime(gap); }
+      setTimeout(()=>{
+        start();
+        if (hit){ render(); openCheck(); }
+        toast(gap >= 60
+          ? "화면을 벗어나 있던 " + humanKo(gap) + "을 인정하고 이어서 재요." + (hit ? " (자리 비움 확인이 필요해요)" : "")
+          : "진행 중이던 " + humanKo(state.elapsed) + " 세션을 이어서 재요.");
+      }, 300);
+      return;
     }
     setTimeout(()=> toast("진행 중이던 " + humanKo(state.elapsed) + " 세션을 불러왔어요."), 600);
   }

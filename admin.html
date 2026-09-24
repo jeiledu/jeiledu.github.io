@@ -111,6 +111,29 @@
   .tag.student{background:#eef2f8; color:var(--ink-soft)}
   .tag.ban{background:var(--red-soft); color:var(--red)}
   .tag.hid{background:#f4f0e6; color:#96762e}
+  /* 게시판 색 고르기 */
+  .cpick{display:flex; flex-wrap:wrap; gap:6px}
+  .cpick button{
+    display:flex; align-items:center; gap:6px; padding:6px 11px; border:2px solid transparent;
+    border-radius:9px; font:inherit; font-size:12px; font-weight:700; cursor:pointer;
+  }
+  .cpick button.on{border-color:var(--ink); box-shadow:0 0 0 2px #fff inset}
+  .cpick button i{width:11px; height:11px; border-radius:50%; background:currentColor; font-style:normal; display:inline-block}
+  .cdot{display:inline-block; width:11px; height:11px; border-radius:50%; vertical-align:-1px; margin-right:5px}
+  .sw-none{background:#eef2f8; color:#5b7091}
+  .sw-slate{background:#eef1f5; color:#4a5a70}
+  .sw-blue{background:#e5eefc; color:#245bad}
+  .sw-cyan{background:#ddeef8; color:#1a6183}
+  .sw-teal{background:#dcf1ef; color:#1b6e66}
+  .sw-green{background:#e3f3e7; color:#2a6e3e}
+  .sw-lime{background:#eef5da; color:#536812}
+  .sw-amber{background:#fbf1d4; color:#7d5c07}
+  .sw-orange{background:#fdeedd; color:#9c5214}
+  .sw-rose{background:#fce8e8; color:#a33530}
+  .sw-pink{background:#fce9f2; color:#a13566}
+  .sw-purple{background:#f0e9fb; color:#6b41b0}
+  .sw-indigo{background:#e8e9fb; color:#4348b8}
+  .sw-brown{background:#f2ebe4; color:#7a5c3e}
   .muted{color:var(--ink-faint)}
   .empty{padding:26px 4px; text-align:center; color:var(--ink-faint); font-size:13px}
 
@@ -832,6 +855,12 @@
   /* ===================== 게시판(과목) 설정 ===================== */
   let allCats = [];
 
+  // 학생 화면과 똑같은 프리셋. 밝은 화면·어두운 화면 모두에서 글자가 또렷하도록 미리 맞춘 색입니다.
+  // (실제 색값은 index.html 의 .cc-* 규칙이 가지고 있고, 여기서는 고르기만 합니다)
+  const CC_LIST = [{ k:"", n:"기본 (색 없음)" }, { k:"slate", n:"회색" }, { k:"blue", n:"파랑" }, { k:"cyan", n:"하늘" }, { k:"teal", n:"청록" }, { k:"green", n:"초록" }, { k:"lime", n:"연두" }, { k:"amber", n:"노랑" }, { k:"orange", n:"주황" }, { k:"rose", n:"빨강" }, { k:"pink", n:"분홍" }, { k:"purple", n:"보라" }, { k:"indigo", n:"남색" }, { k:"brown", n:"갈색" }];
+  const ccName = (k)=> (CC_LIST.find(x=> x.k === (k||"")) || CC_LIST[0]).n;
+  const ccCls  = (k)=> "sw-" + (k || "none");
+
   async function pageCats(){
     allCats = await rpc("list_categories");
     const live = allCats.filter(c=> !c.archived);
@@ -843,7 +872,8 @@
       + '<td class="num">'+c.sort+'</td>'
       + '<td>'+(c.section ? '<span class="tag teacher">'+esc(c.section)+'</span>'
                           : '<span class="muted">-</span>')+'</td>'
-      + '<td><b>'+esc(c.name)+'</b>'+(c.archived?' <span class="tag hid">보관</span>':'')
+      + '<td><span class="cdot '+ccCls(c.color)+'" style="background:currentColor"></span>'
+      +   '<b>'+esc(c.name)+'</b>'+(c.archived?' <span class="tag hid">보관</span>':'')
       +   (c.secret_mode==='force' ? ' <span class="tag admin">비밀강제</span>'
           : c.secret_mode==='default' ? ' <span class="tag admin">비밀기본</span>' : '')
       +   (c.notify_admin ? ' <span class="tag teacher">알림</span>' : '')+'</td>'
@@ -881,6 +911,8 @@
       + '· <b>보관</b>하면 학생 화면 맨 아래 "지난 학기" 줄로 내려가고, 새 글은 못 쓰지만 '
       + '기존 글과 자료는 계속 볼 수 있습니다. 되돌리기도 한 번에 됩니다.<br>'
       + '· <b>↑ ↓</b> 로 같은 구분 안에서 순서를 바꿉니다.<br>'
+      + '· <b>색</b>은 수정 창에서 고릅니다. 학생 화면의 게시판 단추와 글 목록에 그대로 쓰이고, '
+      + '밝은 화면·어두운 화면 모두에서 잘 보이도록 미리 맞춘 색만 고를 수 있습니다.<br>'
       + '· 삭제는 글·댓글·첨부파일까지 영구히 사라집니다. 학기가 끝났을 뿐이라면 '
       + '<b>삭제 대신 보관</b>을 쓰세요.</p></div>';
 
@@ -944,6 +976,13 @@
       +   '<option value="false"'+(!c||!c.notify_admin?" selected":"")+'>안 받음</option>'
       +   '<option value="true"' +(c&&c.notify_admin?" selected":"")+'>관리자에게 알림</option>'
       + '</select></div></div>'
+      + '<div class="f"><label>게시판 색 <span class="muted" style="font-weight:400">'
+      +   '— 학생 화면의 게시판 단추·글 목록에 이 색이 쓰입니다</span></label>'
+      + '<div class="cpick" id="kColor">'
+      +   CC_LIST.map(x=> '<button type="button" class="'+ccCls(x.k)
+      +     ((c ? (c.color||"") : "") === x.k ? " on" : "")+'" data-cc="'+x.k+'">'
+      +     (x.k ? '<i></i>' : '')+esc(x.n)+'</button>').join("")
+      + '</div></div>'
       + '<div class="f"><label>게시판 종류</label><select id="kKind">'
       +   '<option value="board"'+(!c||c.kind!=="assign"?" selected":"")+'>일반 게시판</option>'
       +   '<option value="assign"'+(c&&c.kind==="assign"?" selected":"")+'>과제 제출형</option>'
@@ -965,6 +1004,11 @@
       + '<button class="b pri" id="kSave">저장</button></div>');
 
     $("kCancel").onclick = closeDlg;
+    let pickColor = c ? (c.color || "") : "";
+    $("kColor").querySelectorAll("[data-cc]").forEach(b=> b.onclick = ()=>{
+      pickColor = b.dataset.cc;
+      $("kColor").querySelectorAll("[data-cc]").forEach(x=> x.classList.toggle("on", x === b));
+    });
     if (c && c.posts){
       $("kMoveGo").onclick = async ()=>{
         const to = $("kMove").value;
@@ -986,6 +1030,8 @@
           p_secret_mode: $("kSec2").value, p_notify: $("kNoti").value === "true" });
         await rpc("admin_set_category_kind",
           { p_id: c ? c.id : savedId, p_kind: $("kKind").value }).catch(()=>{});
+        await rpc("admin_set_category_color",
+          { p_id: c ? c.id : savedId, p_color: pickColor }).catch(()=>{});
         closeDlg(); toast("저장했어요."); pageCats();
       }catch(e){ $("kErr").textContent = cleanErr(e); }
     };

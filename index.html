@@ -147,6 +147,16 @@
   :root[data-theme="dark"] .btn-danger:hover{background:#3a2626}
   :root[data-theme="dark"] .post-row.pinned:hover{background:#25344a}
   :root[data-theme="dark"] .dm-row.unread{background:#1f2c3d}
+  /* 야간 모드에서 밝은 배경이 그대로 남아 글씨가 안 보이던 곳들 (2026-09-24) */
+  :root[data-theme="dark"] .noti-item.new{background:#1f2c3d}
+  :root[data-theme="dark"] .noti-item:hover{background:#26344a}
+  :root[data-theme="dark"] #miniTimer{background:#22303f}
+  :root[data-theme="dark"] .opt.wide{background:#22303f}
+  :root[data-theme="dark"] .opt:hover{background:#26344a; border-color:#3d5878}
+  :root[data-theme="dark"] .preset:hover{background:#26344a; border-color:#3d5878}
+  :root[data-theme="dark"] .s-tag.free{background:#26313e; color:var(--ink-soft)}
+  :root[data-theme="dark"] .err-more pre{background:#161d27; border-color:#33455e}
+  :root[data-theme="dark"] *::-webkit-scrollbar-thumb{background:#3a4655}
   :root[data-theme="dark"] .cmt.secret .c-body{background:#2a2740}
   :root[data-theme="dark"] .assign-box{border-color:#33455e}
   :root[data-theme="dark"] .assign-box textarea{background:#161d27; color:var(--ink)}
@@ -662,6 +672,39 @@
     letter-spacing:.3px; margin-left:6px; white-space:nowrap;
   }
   .cat-sep{width:1px; height:16px; background:var(--line); margin:0 3px}
+  /* ---------- 게시판 색상 (백오피스에서 지정 · 밝은/어두운 화면 모두 대비를 확인한 값) ---------- */
+  .cc-slate{--cc-bg:#eef1f5; --cc-fg:#4a5a70; --cc-bd:#d8e0ea}
+  .cc-blue{--cc-bg:#e5eefc; --cc-fg:#245bad; --cc-bd:#c9dcf7}
+  .cc-cyan{--cc-bg:#ddeef8; --cc-fg:#1a6183; --cc-bd:#c2e1f2}
+  .cc-teal{--cc-bg:#dcf1ef; --cc-fg:#1b6e66; --cc-bd:#bee5e1}
+  .cc-green{--cc-bg:#e3f3e7; --cc-fg:#2a6e3e; --cc-bd:#c9e8d2}
+  .cc-lime{--cc-bg:#eef5da; --cc-fg:#536812; --cc-bd:#dfeabc}
+  .cc-amber{--cc-bg:#fbf1d4; --cc-fg:#7d5c07; --cc-bd:#f3e3b0}
+  .cc-orange{--cc-bg:#fdeedd; --cc-fg:#9c5214; --cc-bd:#f8dcc0}
+  .cc-rose{--cc-bg:#fce8e8; --cc-fg:#a33530; --cc-bd:#f7d2d0}
+  .cc-pink{--cc-bg:#fce9f2; --cc-fg:#a13566; --cc-bd:#f7d2e3}
+  .cc-purple{--cc-bg:#f0e9fb; --cc-fg:#6b41b0; --cc-bd:#dfd2f4}
+  .cc-indigo{--cc-bg:#e8e9fb; --cc-fg:#4348b8; --cc-bd:#d2d4f5}
+  .cc-brown{--cc-bg:#f2ebe4; --cc-fg:#7a5c3e; --cc-bd:#e5d9cb}
+  :root[data-theme="dark"] .cc-slate{--cc-bg:#28313d; --cc-fg:#b3c1d3; --cc-bd:#3a4655}
+  :root[data-theme="dark"] .cc-blue{--cc-bg:#1e3050; --cc-fg:#86b5f0; --cc-bd:#2d456b}
+  :root[data-theme="dark"] .cc-cyan{--cc-bg:#17364a; --cc-fg:#7cc3e8; --cc-bd:#254c66}
+  :root[data-theme="dark"] .cc-teal{--cc-bg:#163b38; --cc-fg:#72d0c6; --cc-bd:#245450}
+  :root[data-theme="dark"] .cc-green{--cc-bg:#1e3d2a; --cc-fg:#85d1a0; --cc-bd:#2e5540}
+  :root[data-theme="dark"] .cc-lime{--cc-bg:#2f3d19; --cc-fg:#b7d174; --cc-bd:#445427}
+  :root[data-theme="dark"] .cc-amber{--cc-bg:#413617; --cc-fg:#e2c66a; --cc-bd:#5a4c26}
+  :root[data-theme="dark"] .cc-orange{--cc-bg:#45301c; --cc-fg:#eab180; --cc-bd:#5e432a}
+  :root[data-theme="dark"] .cc-rose{--cc-bg:#4a2626; --cc-fg:#f0a09c; --cc-bd:#653838}
+  :root[data-theme="dark"] .cc-pink{--cc-bg:#47233a; --cc-fg:#f0a0c6; --cc-bd:#613352}
+  :root[data-theme="dark"] .cc-purple{--cc-bg:#33244f; --cc-fg:#bc9af0; --cc-bd:#47356b}
+  :root[data-theme="dark"] .cc-indigo{--cc-bg:#262a55; --cc-fg:#9ba0f0; --cc-bd:#373d73}
+  :root[data-theme="dark"] .cc-brown{--cc-bg:#3b3229; --cc-fg:#cbae8c; --cc-bd:#524638}
+  .cat-bar button.cc{background:var(--cc-bg); border-color:var(--cc-bd); color:var(--cc-fg)}
+  .cat-bar button.cc:hover{border-color:var(--cc-fg)}
+  .cat-bar button.cc.on{background:var(--cc-fg); border-color:var(--cc-fg); color:var(--card)}
+  .cat-bar button.cc.old{background:var(--card); color:var(--cc-fg); border-color:var(--cc-bd)}
+  .p-cat.cc{background:var(--cc-bg); color:var(--cc-fg)}
+  .post-row.cc{box-shadow:inset 3px 0 0 var(--cc-fg)}
   .cat-bar button.old{background:#fff; border-style:dashed; color:var(--ink-faint)}
   .cat-bar button.old:hover{color:var(--ink-soft)}
   .cat-bar button.old.on{background:var(--ink-soft); border-color:var(--ink-soft); color:#fff}
@@ -1293,6 +1336,15 @@
   .tabs button.on{background:#fff; color:var(--blue-dark); box-shadow:0 1px 3px rgba(31,58,102,.08)}
 
   .rank-list{list-style:none; margin:0; padding:0; min-height:150px}
+  /* 10명이 넘으면 목록 안에서만 스크롤 (막대를 항상 보이게 해서 더 있다는 걸 알립니다) */
+  .rank-list.scrolly{overflow-y:auto; padding-right:6px; scrollbar-width:thin; overscroll-behavior:contain}
+  .rank-list.scrolly::-webkit-scrollbar{width:7px}
+  .rank-list.scrolly::-webkit-scrollbar-track{background:transparent}
+  /* 아직 더 남았으면 아래쪽을 살짝 흐리게 — 넘길 수 있다는 표시 (맥은 스크롤 막대가 숨겨져 있어서) */
+  .rank-list.scrolly.more{
+    -webkit-mask-image:linear-gradient(to bottom, #000 calc(100% - 24px), transparent 100%);
+            mask-image:linear-gradient(to bottom, #000 calc(100% - 24px), transparent 100%);
+  }
   .rank-list li{
     display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:11px; font-size:13.5px;
   }
@@ -1645,7 +1697,7 @@
     .wrap{padding:20px 16px 48px}
     .board-actions{width:100%}
     .board-actions input{flex:1; width:auto}
-    .p-cat{display:none}
+    .p-cat{display:none}          /* 좁은 화면에서는 왼쪽 색 띠(.post-row.cc)로 구분합니다 */
     .card + .card{margin-top:16px}
   }
 
@@ -3953,6 +4005,8 @@
 
   /* ---------- 랭킹 ---------- */
   const PERIOD_KO = { today:"오늘", week:"이번 주", month:"이번 달", streak:"연속" };
+  const RANK_VISIBLE = 10;   // 한 번에 보이는 사람 수 (나머지는 목록 안에서 스크롤)
+  const RANK_MAX     = 50;   // 목록에 담는 최대 인원
 
   async function refreshRank(){
     if (!sb || !me || !me.nickname) return renderRank();
@@ -3966,6 +4020,8 @@
 
   function renderRank(rows, errText){
     const list = $("rankList"), foot = $("rankFoot");
+    const keepScroll = list.scrollTop;        // 45초마다 다시 그리므로 보던 위치를 기억해 둡니다
+    list.style.maxHeight = ""; list.classList.remove("scrolly", "more");   // (높이 제한을 풀면 scrollTop 이 0이 되므로 순서가 중요)
 
     if (!CAN_SERVER || !me || !me.nickname){
       list.innerHTML =
@@ -3984,7 +4040,7 @@
       list.innerHTML = '<div class="empty">아직 기록한 사람이 없어요. 1등을 노려보세요!</div>';
     } else {
       const val = (r) => period === "streak" ? r.days + "일" : humanKo(r.seconds);
-      list.innerHTML = rows.slice(0, 20).map(r=>{
+      list.innerHTML = rows.slice(0, RANK_MAX).map(r=>{
         const medal = r.rk <= 3 ? ["🥇","🥈","🥉"][r.rk-1] : r.rk;
         return '<li class="'+(r.is_me?"me ":"")+(r.rk<=3?"top"+r.rk:"")+'">'
              + '<span class="rk">'+medal+'</span>'
@@ -3992,6 +4048,30 @@
              + (r.is_me ? '' : '<button class="cheer" data-cheer="'+esc(r.nickname)+'" title="응원 보내기">👏</button>')
              + '<span class="vl">'+val(r)+'</span></li>';
       }).join("");
+
+      // 한 번에 10명까지만 보이고, 더 있으면 목록 안에서 스크롤합니다
+      const items = list.children;
+      if (items.length > RANK_VISIBLE){
+        const first = items[0], last = items[RANK_VISIBLE - 1];
+        list.style.maxHeight = (last.offsetTop + last.offsetHeight - first.offsetTop) + "px";
+        list.classList.add("scrolly");
+        const fade = ()=> list.classList.toggle("more",
+          list.scrollTop + list.clientHeight < list.scrollHeight - 2);
+        list.onscroll = fade;
+        if (keepScroll > 0) list.scrollTop = keepScroll;      // 보던 자리 그대로
+        else {                                                // 처음 열었을 때는 내 순위가 보이게
+          const mineLi = list.querySelector("li.me");
+          if (mineLi){
+            const rel = mineLi.offsetTop - first.offsetTop;
+            if (rel + mineLi.offsetHeight > list.clientHeight)
+              list.scrollTop = rel - (list.clientHeight - mineLi.offsetHeight) / 2;
+          }
+        }
+        fade();
+      } else {
+        list.style.maxHeight = "";
+        list.classList.remove("scrolly");
+      }
 
       list.querySelectorAll("[data-cheer]").forEach(b=> b.onclick = async (e)=>{
         e.stopPropagation();
@@ -4007,8 +4087,8 @@
       const mine = rows.find(r=>r.is_me);
       const total = rows.length;
       const where = mine
-        ? (mine.rk <= 20 ? PERIOD_KO[period]+" "+mine.rk+"위 / "+total+"명"
-                         : "내 순위 "+mine.rk+"위 / "+total+"명")
+        ? (mine.rk <= RANK_MAX ? PERIOD_KO[period]+" "+mine.rk+"위 / "+total+"명"
+                               : "내 순위 "+mine.rk+"위 / "+total+"명")
         : (me.show_rank ? "오늘 기록이 쌓이면 순위에 올라가요" : "랭킹 표시를 꺼둔 상태예요");
       foot.innerHTML = '<span>'+where+'</span>'
                      + '<span><span id="cheerGot"></span> <span class="sync-dot ok"><i></i> 저장됨</span></span>';
@@ -4175,6 +4255,11 @@
      ===================================================================== */
   const PAGE_SIZE = 15;
   let cats = [], catId = null, tagFilter = "", page = 0, query = "", authorFilter = null;
+
+  // 게시판 색: 백오피스에서 정한 프리셋 이름 → CSS 클래스 (색을 안 정했으면 빈 문자열)
+  const CC_OK = ["slate","blue","cyan","teal","green","lime","amber","orange","rose","pink","purple","indigo","brown"];
+  const ccOf   = (c)=> (c && CC_OK.includes(c.color)) ? " cc cc-" + c.color : "";
+  const ccById = (id)=> ccOf(cats.find(x=> String(x.id) === String(id)));
   let canFilterAuthor = true;   // DB에 작성자 필터가 아직 없으면 자동으로 꺼집니다
   let curPost = null, editingId = null, boardLoaded = false;
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
@@ -4266,7 +4351,7 @@
     });
 
     const chip = (c) => '<button data-c="'+c.id+'" class="'+(catId===c.id?"on":"")
-      + (c.archived?" old":"")+'">'
+      + (c.archived?" old":"") + ccOf(c)+'">'
       + esc(c.archived && c.section ? c.section + " " + c.name : c.name)
       + (c.posts ? '<span class="cnt">'+c.posts+'</span>' : '') + '</button>';
 
@@ -4340,8 +4425,8 @@
       return;
     }
     $("posts").innerHTML = rows.map(p=>
-      '<div class="post-row'+(p.pinned?" pinned":"")+'" data-id="'+p.id+'">'
-      + '<span class="p-cat">'+esc(p.category_name)+'</span>'
+      '<div class="post-row'+(p.pinned?" pinned":"")+ccById(p.category_id)+'" data-id="'+p.id+'">'
+      + '<span class="p-cat'+ccById(p.category_id)+'">'+esc(p.category_name)+'</span>'
       + '<span class="p-main"><span class="p-title">'
       +   (p.pinned ? '<span class="pin">📌</span>' : '')
       +   (p.secret ? '<span class="lock">🔒</span>' : '')
@@ -4419,7 +4504,7 @@
 
     $("boardDetail").innerHTML =
       '<div class="post-head">'
-      + '<span class="p-cat">'+esc(p.category_name)+'</span>'
+      + '<span class="p-cat'+ccById(p.category_id)+'">'+esc(p.category_name)+'</span>'
       + '<h2>'+(p.pinned?'📌 ':'')+(p.secret?'🔒 ':'')+esc(p.title)+'</h2>'
       + '<div class="meta"><b>' + whoBtn(p.author, p.author_id) + '</b>'
       +   '<span>'+fmtDate(p.created_at, true)+(edited?' (수정됨)':'')+'</span>'

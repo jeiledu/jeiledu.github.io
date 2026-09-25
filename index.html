@@ -649,6 +649,104 @@
   :root[data-theme="dark"] .ds-f-active span, :root[data-theme="dark"] .ds-f-ret span{color:#3b4a60}
   :root[data-theme="dark"] .ds-bucket.ds-bcur{background:#3a2f0c}
 
+  /* ---------- 자동 진단 ---------- */
+  .lab-diag{margin-top:14px; border:1px solid var(--line); border-radius:14px; background:var(--blue-tint); padding:12px 14px}
+  .lab-diag[hidden]{display:none}
+  .diag-head{font-size:12.5px; font-weight:800; color:var(--ink); margin-bottom:10px; letter-spacing:-.2px}
+  .diag-sub{font-weight:400; font-size:11px; color:var(--ink-faint); margin-left:6px; letter-spacing:-.1px}
+  .diag-item{display:flex; gap:9px; padding:9px 0; border-top:1px solid var(--line)}
+  .diag-item:first-of-type{border-top:0; padding-top:2px}
+  .diag-item .ic{flex:none; font-size:14px; line-height:1.5}
+  .diag-item .tx{flex:1; min-width:0}
+  .diag-item .tx > b{font-size:13px; color:var(--ink); letter-spacing:-.2px}
+  .diag-item .bd{margin-top:3px; font-size:12px; line-height:1.75; color:var(--ink-soft); word-break:keep-all}
+  .diag-item .bd b{color:var(--ink)}
+  .diag-item .bd code{
+    font-family:var(--mono); font-size:11px; background:var(--card); border:1px solid var(--line);
+    border-radius:6px; padding:1px 5px; word-break:break-all;
+  }
+  .diag-item .acts{display:flex; gap:6px; flex-wrap:wrap; margin-top:7px}
+  .diag-item .acts button{
+    padding:5px 11px; border:1px solid var(--line); background:var(--card); border-radius:8px;
+    font:inherit; font-size:11.5px; font-weight:600; color:var(--blue-dark); cursor:pointer;
+  }
+  .diag-item .acts button:hover{border-color:var(--blue); background:var(--blue-soft)}
+  .diag-item.warn .ic{filter:none}
+  .lab-diag.pro{margin-top:10px; padding:10px 11px; max-height:230px; overflow:auto}
+  .lab-diag.pro .diag-item .bd{font-size:11.5px}
+  :root[data-theme="dark"] .lab-diag{background:#1b2531; border-color:#33455e}
+  :root[data-theme="dark"] .diag-item .acts button,
+  :root[data-theme="dark"] .diag-item .bd code{background:#161d27; border-color:#33455e}
+
+  /* ---------- 시뮬레이터 고급 작업창 ---------- */
+  .modal-back.pro{padding:14px}
+  .pro-win{
+    width:100%; max-width:1180px; height:min(92vh, 900px); background:var(--card);
+    border-radius:18px; box-shadow:0 24px 70px rgba(31,58,102,.28); display:flex; flex-direction:column;
+    overflow:hidden; transform:translateY(10px); transition:transform .18s;
+  }
+  .modal-back.on .pro-win{transform:none}
+  .pro-head{
+    display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--line);
+    flex-wrap:wrap; flex:none;
+  }
+  .pro-head b{font-size:15px; letter-spacing:-.3px; color:var(--ink)}
+  .pro-sub{font-size:12px; color:var(--ink-faint)}
+  .pro-head .grow{flex:1}
+  .pro-head .btn-ghost{padding:7px 13px; font-size:13px}
+  .pro-head .pro-x{border-color:var(--line)}
+  .pro-body{flex:1; display:grid; grid-template-columns:minmax(300px, 380px) minmax(0, 1fr); min-height:0}
+  .pro-left{overflow:auto; padding:14px 16px; border-right:1px solid var(--line); -webkit-overflow-scrolling:touch}
+  .pro-right{display:flex; flex-direction:column; min-width:0; min-height:0}
+  .pro-sec{margin-bottom:16px}
+  .pro-sec h4{
+    margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.3px; color:var(--ink-faint);
+    display:flex; align-items:center; gap:8px;
+  }
+  .pro-hint{font-weight:400; letter-spacing:-.2px; color:var(--ink-faint); opacity:.8}
+  .pro-left .lab-pick{gap:6px; margin-bottom:8px}
+  .btn-ghost.sm{padding:6px 10px; font-size:12px}
+  .pro-cols{font-size:11.5px; color:var(--ink-faint); line-height:1.7; word-break:keep-all}
+  .pro-cols b{color:var(--ink-soft)}
+  .pro-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px}
+  .pro-left label, .pro-wide{display:block; font-size:11.5px; font-weight:700; color:var(--ink-faint); margin-bottom:8px}
+  .pro-left label input[type=text], .pro-left label input[type=number], .pro-left label select{
+    width:100%; margin-top:4px; padding:7px 9px; border:1px solid var(--line); border-radius:9px;
+    font:inherit; font-size:13px; background:var(--blue-tint); color:var(--ink);
+  }
+  .pro-left label input:focus, .pro-left label select:focus{outline:0; border-color:var(--blue); background:var(--card)}
+  .pro-two{display:grid; grid-template-columns:1fr 1.4fr; gap:6px}
+  .pro-two input{margin-top:4px}
+  .pro-left .lab-kinds{margin-bottom:10px}
+  .pro-left .lab-opts{grid-template-columns:1fr; gap:8px}
+  .pro-left .lab-f label{margin-bottom:0}
+  .pro-tabs{display:flex; gap:4px; padding:10px 14px 0; flex:none}
+  .pro-tabs button{
+    padding:7px 14px; border:1px solid var(--line); border-bottom:0; background:var(--blue-tint);
+    border-radius:10px 10px 0 0; font:inherit; font-size:12.5px; color:var(--ink-soft); cursor:pointer;
+  }
+  .pro-tabs button.on{background:var(--card); color:var(--blue-dark); font-weight:700}
+  .pro-pane{flex:1; min-height:0; display:flex; flex-direction:column; padding:10px 14px 14px; border-top:1px solid var(--line)}
+  .pro-pane[hidden]{display:none}
+  #labProOut{flex:1; overflow:auto; padding:4px}
+  #labProOut img{max-width:100%; border:1px solid var(--line); border-radius:12px; background:#fff; margin-bottom:10px}
+  .pro-codebar{display:flex; align-items:center; gap:6px; padding:0 0 8px}
+  .pro-codebar .lang{font-size:10.5px; font-weight:800; letter-spacing:.5px; color:var(--ink-faint)}
+  .pro-codebar .grow{flex:1}
+  #labProCode{flex:1; min-height:220px; resize:none; border-radius:12px}
+  .pro-params{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+  @media (max-width:860px){
+    .modal-back.pro{padding:0}
+    .pro-win{max-width:none; height:100%; border-radius:0}
+    .pro-body{grid-template-columns:minmax(0, 1fr); grid-template-rows:auto 1fr}
+    .pro-left{border-right:0; border-bottom:1px solid var(--line); max-height:46vh}
+    .pro-head .pro-sub{width:100%; order:9}
+  }
+  :root[data-theme="dark"] .pro-win{background:#1c2430}
+  :root[data-theme="dark"] .pro-left label input, :root[data-theme="dark"] .pro-left label select{background:#161d27}
+  :root[data-theme="dark"] .pro-tabs button{background:#161d27; border-color:#33455e}
+  :root[data-theme="dark"] .pro-tabs button.on{background:#1c2430}
+  :root[data-theme="dark"] #labProOut img{background:#e9eef5}
   /* ---------- 게시판 ---------- */
   #boardView[hidden], #timerView[hidden], #labView[hidden], #learnView[hidden], #dsView[hidden]{display:none}
   .board-card{padding:22px 24px 24px}
@@ -1065,6 +1163,19 @@
   }
   .time-sub{margin-top:10px; font-size:13px; color:var(--ink-faint); letter-spacing:-.2px; min-height:18px}
   .wake-note{margin-top:6px; font-size:11.5px; color:var(--ink-faint)}
+  .dual-note{
+    position:relative; margin:14px 0 0; padding:11px 34px 11px 13px; border-radius:12px;
+    background:var(--blue-tint); border:1px solid var(--line); text-align:left;
+    font-size:12px; line-height:1.7; color:var(--ink-soft);
+  }
+  .dual-note b{color:var(--ink)}
+  .dual-note > b{display:block; margin-bottom:3px; font-size:12.5px}
+  .dual-note button{
+    position:absolute; top:7px; right:8px; background:none; border:0; padding:3px 5px;
+    font:inherit; font-size:12px; color:var(--ink-faint); cursor:pointer; line-height:1;
+  }
+  .dual-note button:hover{color:var(--ink)}
+  .dual-note[hidden]{display:none}
   .net-note{margin:8px auto 0; max-width:340px; padding:8px 12px; border-radius:10px; font-size:12px; line-height:1.55;
             background:#fff4cc; border:1px solid #f1dc94; color:#6b4f00}
   .net-note.long{background:#ffe1c2; border-color:#e58a2a; color:#7a3d00}
@@ -1914,6 +2025,14 @@
           <button class="btn btn-finish" id="finishBtn" disabled>Finish</button>
         </div>
 
+        <div class="dual-note" id="dualNote" hidden>
+          <b>⏱ 열품타 같은 다른 타이머 앱과 같이 쓰나요?</b>
+          <span>이 화면을 떠나 있어도 시간은 쌓여요. 다만 <b>1시간 15분에 한 번</b>은 돌아와
+          확인 코드를 넣어야 계속 인정돼요. 그보다 오래 집중할 땐 <b>포모도로 모드</b>(50·60분)가 편해요.<br>
+          열품타 쪽이 멈춘다면 그건 열품타의 '다른 앱 쓰면 멈춤' 기능이라 여기서는 못 바꿔요.</span>
+          <button type="button" id="dualNoteX" title="다시 안 보기">✕</button>
+        </div>
+
         <div class="goal-wrap" id="goalWrap" hidden>
           <div class="goal-bar" id="goalBarWrap"><i id="goalBar" style="width:0%"></i></div>
           <div class="goal-txt"><span id="goalTxt"></span><button id="goalEdit">목표 변경</button></div>
@@ -2127,6 +2246,7 @@
   <section id="labView" hidden>
     <div class="card lab-card">
       <h3 class="lab-title">데이터 시뮬레이터
+        <button class="lab-help" id="labProBtn">🔬 고급</button>
         <button class="lab-help" id="labHelpBtn">? 사용법</button>
       </h3>
       <p class="lab-lead">
@@ -2149,6 +2269,7 @@
         <div class="lab-tablewrap" id="labTableWrap" hidden>
           <table class="lab-table" id="labTable"></table>
         </div>
+        <div class="lab-diag" id="labDiag" hidden></div>
       </div>
 
       <!-- 2단계 -->
@@ -2365,6 +2486,87 @@
 </div>
 
 <!-- 시뮬레이터 사용법 -->
+<!-- 시뮬레이터 고급 작업창 (바깥을 눌러도 닫히지 않습니다) -->
+<div class="modal-back pro" id="labProModal">
+  <div class="pro-win" role="dialog" aria-modal="true">
+    <div class="pro-head">
+      <b>🔬 고급 작업창</b>
+      <span class="pro-sub" id="labProData">데이터 없음</span>
+      <span class="grow"></span>
+      <button class="btn-ghost" id="labProRun">▶ 실행</button>
+      <button class="btn-ghost" id="labProStop" hidden>■ 중단</button>
+      <span class="lab-status" id="labProStatus"></span>
+      <button class="btn-ghost pro-x" id="labProClose">닫기</button>
+    </div>
+
+    <div class="pro-body">
+      <!-- 왼쪽: 설정 -->
+      <div class="pro-left">
+        <div class="pro-sec">
+          <h4>데이터</h4>
+          <div class="lab-pick">
+            <button class="btn-ghost sm" data-pds="s1">📊 학생 성적</button>
+            <button class="btn-ghost sm" data-pds="s2">☕ 카페 판매</button>
+            <button class="btn-ghost sm" data-pds="s3">🍅 토마토 재배</button>
+            <button class="btn-ghost sm" id="labProUpBtn">📄 내 CSV</button>
+          </div>
+          <div class="pro-cols" id="labProCols"></div>
+          <div class="lab-diag pro" id="labProDiag" hidden></div>
+        </div>
+
+        <div class="pro-sec">
+          <h4>손질 <span class="pro-hint">값을 직접 넣습니다</span></h4>
+          <div class="pro-grid">
+            <label>빈 칸<select id="pP1">
+              <option value="keep">그대로</option><option value="drop">행 빼기</option>
+              <option value="mean">평균으로 채우기</option></select></label>
+            <label>이상치 IQR 배수<input type="text" id="pP2" placeholder="예: 1.5 · 비우면 안 함"></label>
+            <label>똑같은 행<select id="pP3">
+              <option value="keep">그대로</option><option value="on">한 번만 남기기</option></select></label>
+          </div>
+          <label class="pro-wide">새 열 만들기
+            <span class="pro-two"><input type="text" id="pD1" placeholder="열 이름 (예: 총점)">
+            <input type="text" id="pD2" placeholder='식 (예: df["국어"] + df["영어"])'></span></label>
+          <label class="pro-wide">조건으로 걸러내기
+            <input type="text" id="pF1" placeholder='예: 공부시간 > 3 and 반 == 1'></label>
+        </div>
+
+        <div class="pro-sec">
+          <h4>무엇을 할까요</h4>
+          <div class="lab-kinds" id="labProKinds">
+            <button data-k="stat" class="on">기초 통계</button>
+            <button data-k="chart">시각화</button>
+            <button data-k="ml">머신러닝</button>
+          </div>
+          <div id="labProOpts"></div>
+        </div>
+      </div>
+
+      <!-- 오른쪽: 결과 · 코드 -->
+      <div class="pro-right">
+        <div class="pro-tabs" id="labProTabs">
+          <button data-t="out" class="on">결과</button>
+          <button data-t="code">코드 (직접 고치기)</button>
+        </div>
+        <div class="pro-pane" id="labProOutWrap">
+          <div class="lab-out" id="labProOut">
+            <div class="lab-status">왼쪽에서 값을 정하고 <b>▶ 실행</b>을 눌러보세요.</div>
+          </div>
+        </div>
+        <div class="pro-pane" id="labProCodeWrap" hidden>
+          <div class="pro-codebar">
+            <span class="lang">PYTHON</span><span class="grow"></span>
+            <button class="cbtn" id="labProCopy">복사</button>
+            <button class="cbtn" id="labProReset">설정대로 되돌리기</button>
+            <button class="cbtn run" id="labProRunCode">▶ 이 코드 실행</button>
+          </div>
+          <textarea id="labProCode" class="code-area plain" spellcheck="false"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-back" id="labHelpModal">
   <div class="modal help-modal" role="dialog" aria-modal="true">
     <h3>데이터 시뮬레이터 사용법</h3>
@@ -2372,7 +2574,8 @@
       <button data-h="0" class="on">시작하기</button>
       <button data-h="1">그래프 고르기</button>
       <button data-h="2">머신러닝</button>
-      <button data-h="3">알아두기</button>
+      <button data-h="3">고급 작업창</button>
+      <button data-h="4">알아두기</button>
     </div>
     <div class="help-body" id="helpBody"></div>
     <div class="modal-btns">
@@ -2777,6 +2980,19 @@
     if (off) off.onclick = ()=>{ try { store.setItem(WAKE_KEY, "0"); } catch(e){} wakeSync(); };
     if (on)  on.onclick  = ()=>{ try { store.setItem(WAKE_KEY, "1"); } catch(e){} wakeSync(); };
   }
+
+  /* 다른 타이머 앱(열품타 등)과 같이 쓸 때 안내. 자유 모드에서만 보이고, 닫으면 다시 안 나옵니다 */
+  const DUAL_KEY = "sungong.dualnote.v1";
+  function renderDualNote(){
+    const el = $("dualNote"); if (!el) return;
+    let hid = false;
+    try { hid = store.getItem(DUAL_KEY) === "1"; } catch(e){}
+    el.hidden = hid || state.mode !== "free";
+  }
+  if ($("dualNoteX")) $("dualNoteX").onclick = ()=>{
+    try { store.setItem(DUAL_KEY, "1"); } catch(e){}
+    $("dualNote").hidden = true;
+  };
 
   function start(){
     if (state.running) return;
@@ -3264,6 +3480,7 @@
     renderMiniTimer();
     renderGoal();
     renderStats();
+    renderDualNote();
   }
 
   /* 커뮤니티 화면에 떠 있는 작은 타이머 */
@@ -6045,6 +6262,40 @@ _imgs
   }
   function closeDM(){ $("dmModal").classList.remove("on"); }
 
+  /* ---------- 쓰던 쪽지 지키기 ----------
+     · 바깥을 눌러도 바로 닫히지 않고 한 번 물어봅니다.
+     · 그래도 닫히면 쓰던 내용은 기기에 남겨 두었다가 다음에 되살립니다. */
+  const DM_DRAFT = "sungong.dm.draft.v1";
+  const dmHasDraft = ()=> !$("dmWriteView").hidden &&
+    (($("dmSubject").value || "").trim() || ($("dmBody").value || "").trim() || dmFiles.length);
+  function dmSaveDraft(){
+    if (!dmHasDraft()){ try { store.removeItem(DM_DRAFT); } catch(e){} return; }
+    try {
+      store.setItem(DM_DRAFT, JSON.stringify({
+        to: dmTo ? { id: dmTo.id, nick: dmTo.nick } : null,
+        subject: $("dmSubject").value, body: $("dmBody").value, at: Date.now()
+      }));
+    } catch(e){}
+  }
+  function dmLoadDraft(){
+    try {
+      const d = JSON.parse(store.getItem(DM_DRAFT) || "null");
+      if (!d || Date.now() - (d.at || 0) > 7 * 86400000) return null;
+      return d;
+    } catch(e){ return null; }
+  }
+  const dmClearDraft = ()=>{ try { store.removeItem(DM_DRAFT); } catch(e){} };
+
+  async function dmTryClose(){
+    if (dmHasDraft()){
+      const ok = await ask("쓰던 쪽지가 있어요. 닫으면 지금 화면에서는 사라져요.\n(다시 열면 되살려 드려요)",
+                           { title:"쪽지 닫기", yes:"닫기", danger:true });
+      if (!ok) return;
+      dmSaveDraft();
+    }
+    closeDM();
+  }
+
   function dmShow(view){
     $("dmListView").hidden  = view !== "list";
     $("dmReadView").hidden  = view !== "read";
@@ -6161,6 +6412,15 @@ _imgs
     $("dmSubject").value = title || "";
     $("dmBody").value = "";
     $("dmErr").textContent = "";
+    // 지난번에 쓰다 만 쪽지가 있으면 되살립니다
+    const draft = dmLoadDraft();
+    if (draft && !to && !title){
+      if (draft.to){ dmTo = draft.to; $("dmTo").value = draft.to.nick;
+                     $("dmToPick").innerHTML = '받는 사람: <b>' + esc(draft.to.nick) + '</b>'; }
+      $("dmSubject").value = draft.subject || "";
+      $("dmBody").value = draft.body || "";
+      if ((draft.subject || draft.body)) toast("쓰다 만 쪽지를 되살렸어요.");
+    }
     $("dmSug").hidden = true;
     renderDmFiles();
     setTimeout(()=> (to ? $("dmSubject") : $("dmTo")).focus(), 80);
@@ -6270,6 +6530,7 @@ _imgs
     }
     $("dmSend").disabled = false; $("dmSend").textContent = "보내기";
     dmFiles = [];
+    dmClearDraft();
     toast(dmTo.nick + "님에게 쪽지를 보냈어요.");
     dmBox = "out"; dmPage = 0;
     document.querySelectorAll("#dmTabs button").forEach(b=> b.classList.toggle("on", b.dataset.b === "out"));
@@ -6283,9 +6544,18 @@ _imgs
     document.querySelectorAll("#dmTabs button").forEach(x=> x.classList.toggle("on", x === b));
     dmLoad();
   };
-  $("dmClose").onclick  = closeDM;
-  $("dmCancel").onclick = ()=>{ dmBox = "in"; openDM("in"); };
-  $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") closeDM(); };
+  $("dmClose").onclick  = dmTryClose;
+  $("dmCancel").onclick = async ()=>{
+    if (dmHasDraft()){
+      const ok = await ask("쓰던 내용을 버릴까요?", { title:"쪽지 취소", yes:"버리기", danger:true });
+      if (!ok) return;
+      dmClearDraft();
+    }
+    dmBox = "in"; openDM("in");
+  };
+  // 바깥을 눌러도 쓰던 게 있으면 바로 닫지 않습니다
+  $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") dmTryClose(); };
+  ["dmSubject", "dmBody"].forEach(id=>{ $(id).oninput = dmSaveDraft; });
   $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; openDM("in"); };
 
   const updateUnread = updateBadges;
@@ -6360,6 +6630,8 @@ _imgs
         // (닫혀도 코드는 살아 있어서 타이머가 멈춘 채 입력할 방법이 사라졌었음)
         if (m.id === "checkModal") return;
         if (m.id === "nickModal" && nickFirst) return;
+        if (m.id === "labProModal"){ labProClose(); return; }   // 쓰던 코드가 있으면 물어봅니다
+        if (m.id === "dmModal"){ dmTryClose(); return; }        // 쓰던 쪽지가 있으면 물어봅니다
         m.classList.remove("on");
       });
       else if (pickerOpen) togglePicker(false);
@@ -6582,7 +6854,9 @@ _imgs
             + '위 표에서 한글이 깨져 보이면 알려주세요.'
           : '')
       + '<br>이 파일은 <b>기기 안에서만</b> 쓰이고 서버로 올라가지 않아요.';
+    labExcl.clear();
     labRenderTable();
+    labRenderDiag();
     $("labStep2").hidden = false;
     $("labStep3").hidden = true;
     $("labStep4").hidden = true;
@@ -6606,8 +6880,264 @@ _imgs
       + '</tbody>';
   }
 
+  /* =====================================================================
+     자동 진단 — 올린 데이터에서 눈에 띄는 점을 브라우저가 직접 찾아 알려줍니다
+     · AI 가 아니라 정해진 규칙으로 찾습니다. 데이터는 기기 밖으로 나가지 않습니다.
+     · 고칠 수 있는 것은 [바로 적용] 단추로 손질 설정을 대신 눌러 줍니다.
+     ===================================================================== */
+  const labExcl = new Set();     // 진단이 "입력에서 빼라"고 한 열
+
+  // 받침 여부에 따라 조사를 골라 줍니다 (‘번호’는 / ‘수학’은)
+  function josa(w, withJong, noJong){
+    const c = String(w).trim().slice(-1).charCodeAt(0);
+    const has = (c >= 0xAC00 && c <= 0xD7A3) ? ((c - 0xAC00) % 28 !== 0)
+              : /[0-9a-zA-Z]$/.test(String(w).trim()) ? true : false;
+    return w + (has ? withJong : noJong);
+  }
+  const eunNeun = (w)=> josa(w, "은", "는");
+  const eulReul = (w)=> josa(w, "을", "를");
+  // 따옴표 밖에 조사를 붙입니다: ‘수집일’은 / ‘번호’는
+  const qEun = (w)=> "‘" + w + "’" + josa(w, "은", "는").slice(-1);
+  const qEul = (w)=> "‘" + w + "’" + josa(w, "을", "를").slice(-1);
+
+  const DATE_RE = /^\d{4}[-/.]\s?\d{1,2}[-/.]\s?\d{1,2}/;
+  const NUMISH_RE = /^[\s$₩￦]?-?[\d,]+(\.\d+)?\s*(원|점|개|명|회|건|%|kg|cm|m)?$/i;
+
+  function labStats(){
+    const d = labData, n = d.rows.length;
+    return d.cols.map((c, i)=>{
+      const raw = d.rows.map(r=> r[i] === undefined ? "" : String(r[i]).trim());
+      const filled = raw.filter(v=> v !== "");
+      const miss = n - filled.length;
+      const uniq = new Set(filled);
+      const o = { name:c.name, num:c.num, i, miss, missPct: n ? miss / n * 100 : 0,
+                  uniq: uniq.size, filled: filled.length, vals: filled };
+      if (c.num){
+        const xs = filled.map(Number).filter(v=> isFinite(v)).sort((a, b)=> a - b);
+        o.xs = xs;
+        if (xs.length){
+          const q = (p)=> xs[Math.min(xs.length - 1, Math.floor(p * (xs.length - 1)))];
+          o.q1 = q(.25); o.q3 = q(.75); o.iqr = o.q3 - o.q1;
+          o.lo = o.q1 - 1.5 * o.iqr; o.hi = o.q3 + 1.5 * o.iqr;
+          o.out = xs.filter(v=> v < o.lo || v > o.hi).length;
+          o.mean = xs.reduce((a, b)=> a + b, 0) / xs.length;
+          o.median = q(.5);
+        }
+      } else {
+        o.dateLike = filled.length && filled.filter(v=> DATE_RE.test(v)).length / filled.length >= 0.8;
+        o.numLike  = filled.length && filled.filter(v=> NUMISH_RE.test(v)).length / filled.length >= 0.8;
+        const cnt = {}; filled.forEach(v=>{ cnt[v] = (cnt[v] || 0) + 1; });
+        o.counts = Object.entries(cnt).sort((a, b)=> b[1] - a[1]);
+      }
+      return o;
+    });
+  }
+
+  function labDiagnose(){
+    if (!labData) return [];
+    const S = labStats(), n = labData.rows.length, out = [];
+    const nums = S.filter(c=> c.num), cats = S.filter(c=> !c.num);
+
+    // 1) 빈 칸
+    const missCols = S.filter(c=> c.miss > 0).sort((a, b)=> b.miss - a.miss);
+    if (missCols.length){
+      const worst = missCols[0];
+      out.push({ lv:"warn", t:"빈 칸이 있어요",
+        b: missCols.map(c=> "<b>" + esc(c.name) + "</b> " + c.miss + "개(" + c.missPct.toFixed(1) + "%)").join(" · ")
+           + "<br>빈 칸이 있으면 평균·그래프 계산에서 그 값이 빠져요. 머신러닝은 아예 오류가 날 수 있어요."
+           + (worst.missPct > 40
+               ? "<br><b>" + esc(worst.name) + "</b>" + josa(worst.name, "은", "는").slice(-1)
+                 + " 절반 가까이 비어 있어서 <b>그 열을 빼는 것</b>도 방법이에요."
+               : ""),
+        acts:[{ label:"숫자는 평균으로 채우기", fn:()=> labApplyPrep({ na:"mean" }) },
+              { label:"빈 칸 있는 행 빼기",     fn:()=> labApplyPrep({ na:"drop" }) }] });
+    }
+
+    // 2) 이상치
+    const outCols = nums.filter(c=> c.out > 0).sort((a, b)=> b.out - a.out);
+    if (outCols.length){
+      out.push({ lv:"warn", t:"유난히 동떨어진 값이 있어요",
+        b: outCols.slice(0, 4).map(c=>
+             "<b>" + esc(c.name) + "</b> " + c.out + "개 (정상 범위 " + c.lo.toFixed(1) + " ~ " + c.hi.toFixed(1) + ")").join(" · ")
+           + "<br>입력 실수일 수도, 진짜 특이한 값일 수도 있어요. <b>상자그림</b>으로 먼저 눈으로 확인해 보세요."
+           + " 평균이 크게 흔들리면 빼고 다시 해보는 게 좋아요.",
+        acts:[{ label:"이상치 빼고 보기", fn:()=> labApplyPrep({ outlier:"1.5" }) },
+              { label:"상자그림으로 확인", fn:()=> labJumpChart("box", outCols[0].name) }] });
+    }
+
+    // 3) 중복 행
+    const seen = new Set(); let dup = 0;
+    labData.rows.forEach(r=>{ const k = r.join("\u0001"); if (seen.has(k)) dup++; else seen.add(k); });
+    if (dup > 0)
+      out.push({ lv:"warn", t:"똑같은 행이 " + dup + "개 있어요",
+        b:"실수로 두 번 들어간 자료일 수 있어요. 그대로 두면 그 값이 두 번 세어져 평균이 치우쳐요.",
+        acts:[{ label:"중복 행 빼기", fn:()=> labApplyPrep({ dedup:"on" }) }] });
+
+    // 4) 번호처럼 값이 전부 다른 숫자 열
+    nums.forEach(c=>{
+      if (c.filled >= 10 && c.uniq === c.filled && (LAB_ID_LIKE.test(c.name) || c.uniq === n))
+        out.push({ lv:"tip", t:qEun(c.name) + " 이름표 같아요",
+          b:"값이 " + c.uniq + "개 모두 달라요. 번호·학번처럼 <b>뜻이 없는 숫자</b>는 예측에 쓰면 배우는 게 없어요."
+            + " 그래프의 축으로도 별 의미가 없어요.",
+          acts:[{ label:"머신러닝 입력에서 빼기", fn:()=> labExclude(c.name) }] });
+    });
+
+    // 5) 값이 하나뿐인 열
+    S.forEach(c=>{ if (c.filled && c.uniq === 1)
+      out.push({ lv:"tip", t:qEun(c.name) + " 값이 하나뿐이에요",
+        b:"모든 행이 <b>" + esc(c.vals[0]) + "</b> 여서 비교할 것이 없어요. 분석에서 빼도 돼요.",
+        acts:[{ label:"머신러닝 입력에서 빼기", fn:()=> labExclude(c.name) }] });
+    });
+
+    // 6) 날짜처럼 보이는 글자 열
+    cats.forEach(c=>{ if (c.dateLike)
+      out.push({ lv:"idea", t:qEun(c.name) + " 날짜 같아요",
+        b:"날짜 그대로는 무리별로 묶기 어려워요. <b>월</b>만 뽑아 새 열로 만들면 월별 비교가 됩니다."
+          + "<br>고급 작업창 → 새 열 만들기: 이름 <b>월</b>, 식 <code>df[" + pq(c.name) + "].str[5:7]</code>",
+        acts:[{ label:"고급에서 만들기", fn:()=> labOpenDerive("월", 'df["' + c.name + '"].str[5:7]') }] });
+    });
+
+    // 7) 숫자인데 글자로 저장된 열
+    cats.forEach(c=>{ if (c.numLike && !c.dateLike)
+      out.push({ lv:"idea", t:qEun(c.name) + " 숫자인데 글자로 들어 있어요",
+        b:"예) <b>" + esc(c.vals[0]) + "</b> 처럼 기호·단위가 붙어 있으면 계산이 안 돼요. 숫자만 남기면 평균·그래프에 쓸 수 있어요."
+          + "<br>고급 작업창 → 새 열 만들기: 이름 <b>" + esc(c.name) + "_숫자</b>, "
+          + "식 <code>pd.to_numeric(df[" + pq(c.name) + "].str.replace(r\"[^0-9.-]\", \"\", regex=True))</code>",
+        acts:[{ label:"고급에서 만들기",
+                fn:()=> labOpenDerive(c.name + "_숫자",
+                  'pd.to_numeric(df["' + c.name + '"].str.replace(r"[^0-9.-]", "", regex=True))') }] });
+    });
+
+    // 8) 항목이 너무 많은 글자 열
+    cats.forEach(c=>{ if (c.uniq > 20 && c.uniq < c.filled)
+      out.push({ lv:"tip", t:qEun(c.name) + " 항목이 " + c.uniq + "가지나 돼요",
+        b:"막대그래프로 그리면 너무 빽빽해져요. <b>상위 몇 개만</b> 보거나 다른 열로 묶어 보세요.",
+        acts:[{ label:"상위 10개만 세어보기", fn:()=> labJumpChart("count", c.name, { extra:"10" }) }] });
+    });
+
+    // 9) 무리가 심하게 치우친 글자 열 (분류에 쓰기 어려움)
+    cats.forEach(c=>{
+      if (c.uniq < 2 || c.uniq > 10 || !c.counts) return;
+      const small = c.counts.filter(([, v])=> v < 5);
+      if (small.length)
+        out.push({ lv:"tip", t:qEun(c.name) + " 무리마다 수가 많이 달라요",
+          b: small.map(([k, v])=> "<b>" + esc(k) + "</b> " + v + "개").join(" · ")
+             + " — 이렇게 적은 무리는 분류가 잘 안 맞아요. 무리를 합치거나 자료를 더 모으면 좋아요." });
+    });
+
+    // 10) 전체 규모
+    if (n < 20)
+      out.push({ lv:"warn", t:"행이 " + n + "개뿐이에요",
+        b:"그래프는 괜찮지만 머신러닝은 배울 거리가 부족해요. 30개 이상을 권해요." });
+    if (nums.length < 2)
+      out.push({ lv:"tip", t:"숫자 열이 " + nums.length + "개예요",
+        b:"산점도·상관 히트맵처럼 <b>숫자 두 개</b>가 필요한 그래프는 쓸 수 없어요." });
+
+    // 11) 치우친 분포
+    nums.forEach(c=>{
+      if (!c.xs || c.xs.length < 15 || !isFinite(c.mean) || c.median === 0) return;
+      const r = c.mean / (c.median || 1);
+      if (r > 1.6 || r < 0.62)
+        out.push({ lv:"idea", t:qEun(c.name) + " 한쪽으로 치우쳐 있어요",
+          b:"평균 " + c.mean.toFixed(1) + " 과 중앙값 " + c.median.toFixed(1) + " 이 꽤 달라요. "
+            + "이런 자료는 <b>평균보다 중앙값</b>이 더 대표값에 가까워요. 히스토그램으로 모양을 확인해 보세요.",
+          acts:[{ label:"히스토그램 보기", fn:()=> labJumpChart("hist", c.name) }] });
+    });
+
+    if (!out.length)
+      out.push({ lv:"ok", t:"바로 분석해도 좋아요",
+        b:"빈 칸·이상치·중복 같은 눈에 띄는 문제가 없어요. 아래에서 하고 싶은 것을 골라보세요." });
+    return out;
+  }
+
+  /* ---------- 진단 결과의 [바로 적용] 동작 ---------- */
+  function labApplyPrep(o){
+    // 손질 칸이 숨어 있으면 펼쳐서 보여줍니다 (무엇이 바뀌었는지 보이도록)
+    const open = ()=> document.querySelectorAll("#labOpts details.lab-more").forEach(d=>{
+      if (/손질/.test(d.querySelector("summary").textContent)) d.open = true;
+    });
+    if (labKind === "stat"){
+      labKind = "chart";
+      document.querySelectorAll("#labKinds button").forEach(b=> b.classList.toggle("on", b.dataset.k === "chart"));
+      labRenderOpts();
+    }
+    if (o.na    && $("labP1")) $("labP1").value = o.na;
+    if (o.outlier && $("labP2")) $("labP2").value = o.outlier;
+    if (o.dedup && $("labP3")) $("labP3").value = o.dedup;
+    open();
+    const el = $("labP1") || $("labP2");
+    if (el) el.closest(".lab-opts").scrollIntoView({ behavior:"smooth", block:"center" });
+    toast("손질 설정을 바꿨어요. ▶ 실행을 눌러보세요.");
+  }
+
+  function labExclude(name){
+    labExcl.add(name);
+    if (labKind === "ml") labRenderOpts();
+    toast(qEul(name) + " 머신러닝 입력에서 뺐어요.");
+  }
+
+  function labJumpChart(type, col, extra){
+    labKind = "chart";
+    document.querySelectorAll("#labKinds button").forEach(b=> b.classList.toggle("on", b.dataset.k === "chart"));
+    labRenderOpts();
+    if ($("labC1")){ $("labC1").value = type; $("labC1").dispatchEvent(new Event("change")); }
+    setTimeout(()=>{
+      if ($("labC2")) $("labC2").value = col;
+      if (extra && extra.extra && $("labC6")) $("labC6").value = extra.extra;
+      $("labStep2").scrollIntoView({ behavior:"smooth", block:"start" });
+      toast("설정해 뒀어요. ▶ 실행을 눌러보세요.");
+    }, 60);
+  }
+
+  function labOpenDerive(name, expr){
+    labProOpen();
+    setTimeout(()=>{
+      if ($("pD1")) $("pD1").value = name;
+      if ($("pD2")) $("pD2").value = expr;
+      if ($("pD1")) $("pD1").scrollIntoView({ behavior:"smooth", block:"center" });
+      toast("새 열 식을 넣어 뒀어요. ▶ 실행을 눌러보세요.");
+    }, 120);
+  }
+
+  /* ---------- 진단 그리기 ---------- */
+  const DIAG_ICON = { warn:"⚠️", tip:"💡", idea:"✨", ok:"✅" };
+  function labDiagHtml(list, forPro){
+    return '<div class="diag-head">📋 이 데이터에서 눈에 띈 것 '
+      + '<span class="diag-sub">기기 안에서 찾아낸 거예요 · 데이터는 어디로도 보내지 않아요</span></div>'
+      + list.map((d, i)=>
+          '<div class="diag-item ' + d.lv + '"><span class="ic">' + DIAG_ICON[d.lv] + '</span>'
+          + '<div class="tx"><b>' + esc(d.t) + '</b><div class="bd">' + d.b + '</div>'
+          + ((d.acts && !forPro)
+              ? '<div class="acts">' + d.acts.map((a, j)=>
+                  '<button type="button" data-diag="' + i + '_' + j + '">' + esc(a.label) + '</button>').join("") + '</div>'
+              : "")
+          + '</div></div>').join("");
+  }
+
+  function labRenderDiag(){
+    const list = labDiagnose();
+    const box = $("labDiag");
+    if (box){
+      box.hidden = false;
+      box.innerHTML = labDiagHtml(list, false);
+      box.querySelectorAll("[data-diag]").forEach(b=> b.onclick = ()=>{
+        const [i, j] = b.dataset.diag.split("_").map(Number);
+        const a = list[i] && list[i].acts && list[i].acts[j];
+        if (a) a.fn();
+      });
+    }
+    const pbox = $("labProDiag");
+    if (pbox){ pbox.hidden = false; pbox.innerHTML = labDiagHtml(list, true); }
+  }
+
   /* ---------- 2단계 선택지 그리기 ---------- */
-  const labNumCols = ()=> labData.cols.filter(c=> c.num).map(c=> c.name);
+  const LAB_ID_LIKE = /(번호|순번|학번|번호$|^번$|^id$|^no$|index|아이디)/i;
+
+  // 숫자 열 목록. 학번·번호처럼 '이름표'일 뿐인 열은 뒤로 미뤄, 기본 선택으로 잡히지 않게 합니다
+  const labNumCols = ()=>{
+    const all = labData.cols.filter(c=> c.num).map(c=> c.name);
+    return all.filter(n=> !LAB_ID_LIKE.test(n)).concat(all.filter(n=> LAB_ID_LIKE.test(n)));
+  };
   const labCatCols = ()=> labData.cols.filter(c=> !c.num).map(c=> c.name);
   const labAllCols = ()=> labData.cols.map(c=> c.name);
 
@@ -6623,10 +7153,8 @@ _imgs
 
   // 학번·순번처럼 '이름표'일 뿐인 숫자 열은 기본 선택에서 빼줍니다.
   // (학번으로 성적을 예측하게 두면 배우는 게 없어요)
-  const LAB_ID_LIKE = /(번호|순번|학번|번호$|^번$|^id$|^no$|index|아이디)/i;
-
   function labDefaults(list, exclude){
-    const good = list.filter(n=> n !== exclude && !LAB_ID_LIKE.test(n));
+    const good = list.filter(n=> n !== exclude && !LAB_ID_LIKE.test(n) && !labExcl.has(n));
     return (good.length ? good : list.filter(n=> n !== exclude)).slice(0, 3);
   }
 
@@ -6642,124 +7170,274 @@ _imgs
   const labChecked = (id)=>
     [...document.querySelectorAll("#" + id + " input:checked")].map(b=> b.value);
 
+  /* =====================================================================
+     선택지 → 파이썬 코드
+     · 기본 화면과 고급 창이 **같은 생성기**(labGen)를 씁니다.
+       기본은 고르기만 하고, 고급은 숫자·식을 직접 넣습니다.
+     ===================================================================== */
+  const LAB_CHARTS = [
+    { v:"bar",      t:"막대 — 무리별로 비교",           need:["cat","num"] },
+    { v:"barh",     t:"가로 막대 — 이름이 길 때",        need:["cat","num"] },
+    { v:"groupbar", t:"무리 막대 — 두 기준으로 비교",     need:["cat","num","cat2"] },
+    { v:"stackbar", t:"쌓은 막대 — 합과 구성 함께",       need:["cat","num","cat2"] },
+    { v:"line",     t:"선 — 순서대로 변화",              need:["any","num"] },
+    { v:"area",     t:"영역 — 선 아래를 칠하기",          need:["any","num"] },
+    { v:"scatter",  t:"산점도 — 두 값의 관계",            need:["num","num"] },
+    { v:"bubble",   t:"버블 — 세 값을 한 번에",           need:["num","num","size"] },
+    { v:"hist",     t:"히스토그램 — 값이 퍼진 모양",       need:["num"] },
+    { v:"box",      t:"상자그림 — 분포와 이상치",          need:["num"] },
+    { v:"violin",   t:"바이올린 — 분포 모양까지",          need:["num"] },
+    { v:"pie",      t:"원그래프 — 비율",                 need:["cat"] },
+    { v:"count",    t:"개수 세기 — 항목별 몇 개",          need:["cat"] },
+    { v:"corr",     t:"상관 히트맵 — 숫자끼리 관계",       need:["nums2"] },
+    { v:"pair",     t:"여러 열 한꺼번에 보기",             need:["nums2"] },
+    { v:"dual",     t:"세로축 두 개 — 단위가 다를 때",      need:["any","num","num2"] },
+    { v:"reg",      t:"회귀선 산점도 (seaborn)",           need:["num","num"], sns:true },
+    { v:"kde",      t:"밀도 곡선 — 부드러운 분포 (seaborn)", need:["num"],       sns:true },
+    { v:"strip",    t:"점 분포 — 값 하나하나 (seaborn)",    need:["num"],       sns:true }
+  ];
+  const SNS_ONLY = LAB_CHARTS.filter(c=> c.sns).map(c=> c.v);
+  const LAB_AGG = [
+    { v:"mean", t:"평균" }, { v:"sum", t:"합계" },
+    { v:"count", t:"개수" }, { v:"median", t:"중앙값" }, { v:"max", t:"최댓값" }, { v:"min", t:"최솟값" }
+  ];
+  const AGG_KO = { mean:"평균", sum:"합계", count:"개수", median:"중앙값", max:"최댓값", min:"최솟값" };
+  const LAB_PAL = [
+    { v:"tab10",   t:"기본" },   { v:"Set2",    t:"부드럽게" },
+    { v:"Pastel1", t:"파스텔" }, { v:"Dark2",   t:"진하게" }, { v:"viridis", t:"보라→노랑" }
+  ];
+  const LAB_MODELS = {
+    reg:  [{ v:"linear", t:"선형회귀 — 직선으로" },
+           { v:"poly",   t:"다항회귀 — 휘어진 선" },
+           { v:"tree",   t:"결정트리 — 규칙으로" },
+           { v:"forest", t:"랜덤포레스트 — 트리 여러 개" },
+           { v:"knn",    t:"KNN — 가까운 이웃 평균" }],
+    clf:  [{ v:"logistic", t:"로지스틱 회귀" },
+           { v:"tree",     t:"결정트리" },
+           { v:"forest",   t:"랜덤포레스트" },
+           { v:"knn",      t:"KNN — 가까운 이웃" }],
+    clus: [{ v:"kmeans", t:"K-means — 중심 기준" },
+           { v:"agg",    t:"계층 군집 — 가까운 것끼리" }]
+  };
+
+  // 선택지를 다시 그릴 때, 이미 정해둔 값(손질·꾸미기 등)은 그대로 살려 둡니다
+  const LAB_KEEP = ["labP1", "labP2", "labP3", "labD1", "labD2", "labD3", "labD4", "labD5",
+                    "labM5", "labM6", "labM7"];
+  function labSnapshot(){
+    const o = {};
+    LAB_KEEP.forEach(id=>{ if ($(id)) o[id] = $(id).value; });
+    return o;
+  }
+  function labRestore(o){
+    Object.keys(o).forEach(id=>{
+      const el = $(id); if (!el) return;
+      if ([...el.options].some(x=> x.value === o[id])) el.value = o[id];
+    });
+  }
+
+  /* ---------- 기본 화면 선택지 ---------- */
   function labRenderOpts(){
     if (!labData) return;
+    const keep0 = labSnapshot();      // 종류를 바꿔도 손질·꾸미기 설정은 유지합니다
     const box = $("labOpts");
     const nums = labNumCols(), cats = labCatCols(), all = labAllCols();
 
     if (labKind === "stat"){
       box.innerHTML = '<div class="lab-f wide"><div class="hint">'
-        + '행·열 개수, 각 열의 평균·최소·최대, 빠진 값 개수를 한 번에 보여줘요. '
+        + '행·열 개수, 각 열의 평균·최소·최대, 빠진 값 개수를 <b>손질하지 않은 원본 그대로</b> 보여줘요. '
         + '고를 것은 없어요. <b>실행</b>을 눌러보세요.</div></div>';
-      return;
+      return;      // 기초 통계는 손질 칸이 없습니다
     }
 
+    // 모든 작업에 공통으로 붙는 '데이터 손질'
+    const prep = '<details class="lab-more"><summary>데이터 손질 (빈 칸·이상치)</summary><div class="lab-opts">'
+      + labSel("labP1", "빈 칸", [{ v:"keep", t:"그대로 두기" },
+                                  { v:"drop", t:"그 행 빼기" },
+                                  { v:"mean", t:"숫자는 평균으로 채우기" }])
+      + labSel("labP2", "이상치 (IQR 밖)", [{ v:"keep", t:"그대로 두기" },
+                                            { v:"1.5",  t:"1.5배 밖은 빼기 (보통)" },
+                                            { v:"3",    t:"3배 밖은 빼기 (느슨하게)" }])
+      + labSel("labP3", "똑같은 행", [{ v:"keep", t:"그대로 두기" }, { v:"on", t:"한 번만 남기기" }])
+      + '</div></details>';
+
     if (labKind === "chart"){
-      const kinds = [
-        { v:"bar",     t:"막대그래프 — 무리별로 비교" },
-        { v:"line",    t:"선그래프 — 순서대로 변화" },
-        { v:"scatter", t:"산점도 — 두 값의 관계" },
-        { v:"hist",    t:"히스토그램 — 값이 퍼진 모양" },
-        { v:"box",     t:"상자그림 — 무리별 분포 비교" },
-        { v:"corr",    t:"상관 히트맵 — 숫자 열끼리 관계" }
-      ];
-      box.innerHTML = labSel("labC1", "그래프 종류", kinds, "", " wide");
+      box.innerHTML = labSel("labC1", "그래프 종류", LAB_CHARTS, "", " wide");
       const draw = ()=>{
         const k = $("labC1").value;
         let h = "";
-        if (k === "bar")
-          h = labSel("labC2", "가로축 (무리)", cats.length ? cats : all, "예) 동아리, 메뉴, 요일")
-            + labSel("labC3", "세로축 (평균을 낼 숫자)", nums);
-        else if (k === "line")
+        if (k === "bar" || k === "barh")
+          h = labSel("labC2", "무리 (가로축)", cats.length ? cats : all, "예) 동아리, 메뉴, 요일")
+            + labSel("labC3", "값 (숫자)", nums)
+            + labSel("labC5", "계산 방식", LAB_AGG)
+            + labSel("labC6", "정렬", [{ v:"desc", t:"큰 순서" }, { v:"asc", t:"작은 순서" }, { v:"name", t:"이름 순서" }]);
+        else if (k === "groupbar" || k === "stackbar")
+          h = labSel("labC2", "가로축 (무리)", cats.length ? cats : all)
+            + labSel("labC3", "값 (숫자)", nums)
+            + labSel("labC4", "색으로 나눌 기준", cats.length > 1 ? cats.slice(1).concat(cats.slice(0, 1)) : cats)
+            + labSel("labC5", "계산 방식", LAB_AGG);
+        else if (k === "line" || k === "area")
           h = labSel("labC2", "가로축 (순서)", all, "예) 날짜, 번호")
             + labSel("labC3", "세로축 (숫자)", nums)
             + labSel("labC4", "여러 선으로 나누기 (선택)", ["(안 나눔)"].concat(cats));
         else if (k === "scatter")
           h = labSel("labC2", "가로축 (숫자)", nums)
-            + labSel("labC3", "세로축 (숫자)", nums.slice(1).concat(nums.slice(0,1)))
+            + labSel("labC3", "세로축 (숫자)", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("labC4", "색깔로 나누기 (선택)", ["(안 나눔)"].concat(cats))
+            + labSel("labC5", "추세선", [{ v:"off", t:"없음" }, { v:"on", t:"직선 그리기" }]);
+        else if (k === "bubble")
+          h = labSel("labC2", "가로축 (숫자)", nums)
+            + labSel("labC3", "세로축 (숫자)", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("labC6", "점 크기로 쓸 값", nums.slice(2).concat(nums.slice(0, 2)))
             + labSel("labC4", "색깔로 나누기 (선택)", ["(안 나눔)"].concat(cats));
         else if (k === "hist")
           h = labSel("labC2", "값 (숫자)", nums)
-            + labSel("labC3", "구간 개수", ["10","15","20","30"]);
-        else if (k === "box")
+            + labSel("labC3", "구간 개수", ["10", "15", "20", "30", "50"])
+            + labSel("labC4", "무리별로 겹쳐 보기 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "box" || k === "violin" || k === "strip")
           h = labSel("labC2", "값 (숫자)", nums)
-            + labSel("labC3", "무리 (선택)", ["(안 나눔)"].concat(cats));
+            + labSel("labC4", "무리 (선택)", ["(안 나눔)"].concat(cats))
+            + labSel("labC5", "세우기", [{ v:"v", t:"세로" }, { v:"h", t:"가로" }]);
+        else if (k === "reg")
+          h = labSel("labC2", "가로축 (숫자)", nums)
+            + labSel("labC3", "세로축 (숫자)", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("labC4", "색깔로 나누기 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "kde")
+          h = labSel("labC2", "값 (숫자)", nums)
+            + labSel("labC4", "무리별로 나누기 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "pie" || k === "count")
+          h = labSel("labC2", "항목 (글자 열)", cats.length ? cats : all)
+            + labSel("labC6", "상위 몇 개만", ["전체", "5", "8", "10"]);
+        else if (k === "dual")
+          h = labSel("labC2", "가로축 (순서)", all)
+            + labSel("labC3", "왼쪽 축 (숫자)", nums)
+            + labSel("labC6", "오른쪽 축 (숫자)", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("labC5", "오른쪽 모양", [{ v:"bar", t:"막대" }, { v:"line", t:"선" }]);
+        else if (k === "pair")
+          h = labChecks("labC7", "함께 볼 숫자 열 (2~5개)", nums, "많이 고르면 느려져요.")
+            + labSel("labC4", "색깔로 나누기 (선택)", ["(안 나눔)"].concat(cats));
         else
           h = '<div class="lab-f wide"><div class="hint">'
             + '숫자 열 ' + nums.length + '개끼리 얼마나 비슷하게 움직이는지 색으로 보여줘요. '
             + '1에 가까울수록 같이 오르고, -1에 가까울수록 반대로 움직여요.</div></div>';
-        [...box.querySelectorAll(".lab-f")].slice(1).forEach(el=> el.remove());
+
+        // 꾸미기 (모든 그래프 공통)
+        h += '<details class="lab-more"><summary>꾸미기 (제목·색·크기)</summary><div class="lab-opts">'
+          + labSel("labD5", "그리는 방법",
+                   [{ v:"mpl", t:"matplotlib — 빠름" }, { v:"sns", t:"seaborn — 보기 좋게" }],
+                   "seaborn 은 <b>처음 한 번만</b> 인터넷에서 받아와요 (몇 초).")
+          + labSel("labD1", "색 묶음", LAB_PAL)
+          + labSel("labD2", "그래프 크기", [{ v:"m", t:"보통" }, { v:"l", t:"크게" }, { v:"s", t:"작게" }])
+          + labSel("labD3", "격자", [{ v:"on", t:"보이기" }, { v:"off", t:"숨기기" }])
+          + labSel("labD4", "값 숫자 표시", [{ v:"off", t:"안 함" }, { v:"on", t:"막대 위에 숫자" }])
+          + '</div></details>' + prep;
+
+        const keep = labSnapshot();
+        [...box.querySelectorAll(".lab-f, .lab-more")].slice(1).forEach(el=> el.remove());
         box.insertAdjacentHTML("beforeend", h);
+        labRestore(keep);
       };
       $("labC1").onchange = draw;
       draw();
+      labRestore(keep0);
       return;
     }
 
-    // 머신러닝
+    // ---------- 머신러닝 ----------
     const kinds = [
-      { v:"reg",  t:"선형회귀 — 숫자를 예측" },
+      { v:"reg",  t:"회귀 — 숫자를 예측" },
       { v:"clf",  t:"분류 — 어느 무리에 속할지 맞히기" },
       { v:"clus", t:"군집화 — 비슷한 것끼리 묶기" }
     ];
     box.innerHTML = labSel("labM1", "종류", kinds, "", " wide");
 
-    // 회귀에서 '예측할 값' 은 입력 후보에서 빼야 하므로 따로 기억해 둡니다
-    let regTarget = labDefaults(nums, null)[0] || nums[0] || "";
-
-    const draw = ()=>{
+    const drawM = ()=>{
       const k = $("labM1").value;
-      if (k === "reg" && $("labM2") && nums.includes($("labM2").value))
-        regTarget = $("labM2").value;
-
+      const target = k === "reg" ? (labDefaults(nums)[0] || nums[0])
+                   : k === "clf" ? (cats[0] || "") : "";
       let h = "";
       if (k === "reg")
-        h = labSel("labM2", "예측할 값 (숫자)", nums, "예) 수학 점수, 판매량")
-          + labChecks("labM3", "예측에 쓸 값 (여러 개 고르기)", nums,
-                      "예측할 값은 빼주세요. 학번처럼 뜻 없는 숫자를 넣으면 결과가 나빠져요.",
-                      regTarget);
+        h = labSel("labM2", "예측할 값 (숫자)", nums)
+          + labSel("labM4", "모델", LAB_MODELS.reg);
       else if (k === "clf")
-        h = labSel("labM2", "맞힐 무리 (글자 열)", cats.length ? cats : all, "예) 동아리, 메뉴")
-          + labSel("labM4", "방법", [{v:"tree",t:"결정트리 — 규칙을 눈으로 볼 수 있어요"},
-                                     {v:"knn", t:"KNN — 가까운 이웃을 따라가요"}])
-          + labChecks("labM3", "판단에 쓸 값 (숫자, 여러 개)", nums,
-                      "무리를 가르는 데 도움이 될 만한 값을 골라보세요.");
+        h = labSel("labM2", "맞힐 무리 (글자 열)", cats.length ? cats : all)
+          + labSel("labM4", "모델", LAB_MODELS.clf);
       else
-        h = labSel("labM2", "묶음 개수", ["2","3","4","5"], "몇 무리로 나눌지 정해요.")
-          + labChecks("labM3", "묶을 때 쓸 값 (숫자, 여러 개)", nums,
-                      "2개를 고르면 결과를 점 그래프로 볼 수 있어요.");
+        h = labSel("labM4", "모델", LAB_MODELS.clus)
+          + labSel("labM2", "묶음 개수 k", ["2", "3", "4", "5", "6"]);
 
-      [...box.querySelectorAll(".lab-f")].slice(1).forEach(el=> el.remove());
+      h += labChecks("labM3", "쓸 숫자 열 (입력)", nums, "", target);
+
+      h += '<details class="lab-more"><summary>모델 설정</summary><div class="lab-opts">'
+        + (k === "clus" ? "" : labSel("labM5", "시험용 비율", [{ v:"0.2", t:"20%" }, { v:"0.25", t:"25%" }, { v:"0.3", t:"30%" }, { v:"0.4", t:"40%" }]))
+        + labSel("labM6", "크기 맞추기", [{ v:"none", t:"안 함" }, { v:"minmax", t:"0~1로 (MinMax)" }, { v:"std", t:"표준화 (평균0·표준편차1)" }])
+        + labSel("labM7", "세부 값", [{ v:"auto", t:"자동 (기본값)" }, { v:"p1", t:"단순하게" }, { v:"p2", t:"복잡하게" }],
+                 "트리 깊이·이웃 수 같은 값을 알아서 정해요. 직접 넣으려면 <b>고급</b>을 쓰세요.")
+        + '</div></details>' + prep;
+
+      const keep = labSnapshot();
+      [...box.querySelectorAll(".lab-f, .lab-more")].slice(1).forEach(el=> el.remove());
       box.insertAdjacentHTML("beforeend", h);
-
-      if (k === "reg" && $("labM2")){
-        $("labM2").value = regTarget;
-        // 예측할 값을 바꾸면 그 열이 입력에서 빠지도록 다시 그립니다
-        $("labM2").onchange = draw;
-      }
+      labRestore(keep);
+      // 회귀에서 예측할 값은 입력 후보에서 빼둡니다
+      if (k !== "clus" && $("labM2")) $("labM2").onchange = ()=>{
+        const t = $("labM2").value;
+        document.querySelectorAll("#labM3 input").forEach(b=>{
+          b.closest("label").style.display = (b.value === t ? "none" : "");
+          if (b.value === t) b.checked = false;
+        });
+      };
+      if ($("labM2") && $("labM2").onchange) $("labM2").onchange();
     };
-    $("labM1").onchange = draw;
-    draw();
+    $("labM1").onchange = drawM;
+    drawM();
+    labRestore(keep0);
   }
 
-  /* ---------- 고른 내용을 파이썬 코드로 ---------- */
+  /* ---------- 화면 → 설정값 ---------- */
+  const labV = (id, d)=> $(id) ? $(id).value : (d === undefined ? "" : d);
+
+  function labReadBasic(){
+    const o = { kind: labKind, adv:false,
+      prep: { na: labV("labP1", "keep"), outlier: labV("labP2", "keep"),
+              dedup: labV("labP3", "keep") === "on", filter:"", derive:[] },
+      deco: { style: labV("labD5", "mpl"), sstyle:"whitegrid",
+              pal: labV("labD1", "tab10"), size: labV("labD2", "m"),
+              grid: labV("labD3", "on") === "on", labels: labV("labD4", "off") === "on",
+              title: "", rot: 30, alpha: 0.85 } };
+    if (labKind === "chart"){
+      o.chart = { type: labV("labC1"), x: labV("labC2"), y: labV("labC3"), g: labV("labC4"),
+                  agg: labV("labC5", "mean"), extra: labV("labC6"), cols: labChecked("labC7"),
+                  bins: Number(labV("labC3")) || 20, sort: labV("labC6", "desc"),
+                  trend: labV("labC5") === "on", orient: labV("labC5", "v") };
+    } else if (labKind === "ml"){
+      const preset = labV("labM7", "auto");
+      o.ml = { task: labV("labM1", "reg"), model: labV("labM4"), target: labV("labM2"),
+               feats: labChecked("labM3"), test: Number(labV("labM5", "0.25")),
+               scale: labV("labM6", "none"), seed: 42, k: Number(labV("labM2")) || 3,
+               p: preset };
+    }
+    return o;
+  }
+
+  /* ---------- 파이썬 코드 만들기 (기본·고급 공용) ---------- */
+  // 파이썬 문자열·리스트로 안전하게 바꿔 주는 도우미
   const pq = (v)=> '"' + String(v)
     .replace(/\\/g, "\\\\").replace(/"/g, '\\"')
     .replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t") + '"';
 
-  // 그래프 제목의 조사를 자연스럽게 (받침이 있으면 '과', 없으면 '와')
   function labJong(w){
     const c = String(w).trim().slice(-1).charCodeAt(0);
     return (c >= 0xAC00 && c <= 0xD7A3) ? ((c - 0xAC00) % 28 !== 0) : false;
   }
   const gwa = (w)=> w + (labJong(w) ? "과" : "와");
-  const pl = (a)=> "[" + a.map(pq).join(", ") + "]";
+  const pl  = (a)=> "[" + a.map(pq).join(", ") + "]";
 
   const LAB_HEAD =
     "import warnings\n" +
     "warnings.filterwarnings(\"ignore\")   # 공부에 방해되는 잔소리 경고는 숨깁니다\n" +
     "\n" +
     "import pandas as pd\n" +
+    "import numpy as np\n" +
     "import matplotlib\n" +
     "import matplotlib.pyplot as plt\n" +
     "from matplotlib import font_manager\n" +
@@ -6773,208 +7451,488 @@ _imgs
     "except Exception:\n" +
     "    pass\n" +
     "\n" +
-    "df = pd.read_csv(\"data.csv\")\n\n";
+    "df = pd.read_csv(\"data.csv\")\n";
 
-  function labBuildCode(){
-    const v = (id)=> ($(id) ? $(id).value : "");
+  // seaborn 을 쓸 때만 붙는 줄. set_theme 가 글꼴 설정을 덮어쓰므로 font 를 꼭 같이 넘깁니다
+  function labSnsHead(o){
+    return "import seaborn as sns\n"
+      + "sns.set_theme(style=" + pq(o.deco.sstyle || "whitegrid") + ", font=\"NanumGothic\")\n"
+      + "plt.rcParams[\"axes.unicode_minus\"] = False\n";
+  }
+  const useSns = (o, k)=> o.deco.style === "sns" || SNS_ONLY.includes(k);
+
+  const FIG = { s:"(5.6, 3.4)", m:"(7.2, 4.3)", l:"(9.2, 5.4)" };
+  const figOf = (o)=> FIG[o.deco.size] || FIG.m;
+
+  // 데이터 손질 (빈 칸 · 이상치 · 필터 · 파생 열)
+  function labPrepCode(o){
     let c = "";
+    (o.prep.derive || []).forEach(d=>{
+      if (d.name && d.expr) c += "df[" + pq(d.name) + "] = " + d.expr + "\n";
+    });
+    if (o.prep.filter) c += "df = df.query(" + pq(o.prep.filter) + ")\n";
+    if (o.prep.dedup) c += "df = df.drop_duplicates()                # 똑같은 행은 한 번만 남깁니다\n";
+    if (o.prep.na === "drop") c += "df = df.dropna()                       # 빈 칸이 있는 행은 뺍니다\n";
+    else if (o.prep.na === "mean")
+      c += "df = df.fillna(df.select_dtypes(include=\"number\").mean())   # 숫자 빈 칸은 그 열 평균으로\n";
+    if (o.prep.outlier && o.prep.outlier !== "keep"){
+      const m = Number(o.prep.outlier) || 1.5;
+      c += "# 이상치 빼기: 사분위수로 정상 범위를 정하고 그 밖은 제외합니다\n"
+        + "_n = df.select_dtypes(include=\"number\")\n"
+        + "_q1, _q3 = _n.quantile(.25), _n.quantile(.75)\n"
+        + "_iqr = _q3 - _q1\n"
+        + "df = df[~((_n < _q1 - " + m + " * _iqr) | (_n > _q3 + " + m + " * _iqr)).any(axis=1)]\n";
+    }
+    if (c) c = "\n# ── 데이터 손질 ──\n" + c + "print(\"손질 뒤 행 개수:\", len(df))\n";
+    return c;
+  }
 
-    if (labKind === "stat"){
-      c = "# 데이터가 어떻게 생겼는지 살펴봅니다\n"
+  const decoTail = (o, axis)=>
+    (o.deco.grid ? "plt.grid(" + (axis ? "axis=" + pq(axis) + ", " : "") + "alpha=.3)\n" : "")
+    + "plt.tight_layout()\n";
+
+  function labGen(o){
+    if (o.kind === "stat"){
+      return LAB_HEAD + labPrepCode(o)
+        + "\n# 데이터가 어떻게 생겼는지 살펴봅니다\n"
         + "print(\"행 개수:\", len(df), \"  열 개수:\", df.shape[1])\n"
-        + "print()\n"
-        + "print(\"[ 각 열 요약 ]\")\n"
+        + "print()\nprint(\"[ 각 열 요약 ]\")\n"
         + "print(df.describe(include=\"all\").round(2).to_string())\n"
-        + "print()\n"
-        + "print(\"[ 빠진 값 개수 ]\")\n"
+        + "print()\nprint(\"[ 빠진 값 개수 ]\")\n"
         + "print(df.isna().sum().to_string())\n";
-      return LAB_HEAD + c;
+    }
+    if (o.kind === "chart") return LAB_HEAD + labPrepCode(o) + "\n" + labChartCode(o);
+    return LAB_HEAD + labPrepCode(o) + "\n" + labMlCode(o);
+  }
+
+  function labChartCode(o){
+    const c0 = o.chart, k = c0.type, x = c0.x, y = c0.y, g = c0.g;
+    const grouped = g && g !== "(안 나눔)";
+    const fig = figOf(o), pal = o.deco.pal, agg = c0.agg || "mean";
+    const T = (s)=> "plt.title(" + pq(o.deco.title || s) + ")\n";
+    let c = "";
+    const sns = useSns(o, k);
+    const hue = grouped ? ", hue=" + pq(g) : "";
+    if (sns){
+      const S = labSnsCode(o, k, { x, y, g, grouped, fig, pal, agg, hue, T });
+      if (S) return labSnsHead(o) + S;
+      c = labSnsHead(o);        // 전용 그림이 없는 종류는 seaborn 색·배경만 입히고 아래로
     }
 
-    if (labKind === "chart"){
-      const k = v("labC1"), x = v("labC2"), y = v("labC3"), g = v("labC4");
-      const grouped = g && g !== "(안 나눔)";
+    const sortLine = c0.sort === "name" ? ".sort_index()"
+                   : c0.sort === "asc"  ? ".sort_values()" : ".sort_values(ascending=False)";
 
-      if (k === "bar"){
-        c = "# " + x + " 별로 " + y + " 의 평균을 구해 막대로 그립니다\n"
-          + "g = df.groupby(" + pq(x) + ")[" + pq(y) + "].mean().sort_values()\n"
-          + "plt.figure(figsize=(7, 4.2))\n"
-          + "plt.bar(g.index.astype(str), g.values)\n"
-          + "plt.title(" + pq(x + "별 " + y + " 평균") + ")\n"
-          + "plt.xlabel(" + pq(x) + "); plt.ylabel(" + pq(y + " (평균)") + ")\n"
-          + "plt.xticks(rotation=30, ha=\"right\")\n"
-          + "plt.grid(axis=\"y\", alpha=.3)\n"
-          + "plt.tight_layout()\n"
-          + "print(g.round(2).to_string())\n";
-      } else if (k === "line"){
-        c = "plt.figure(figsize=(7.4, 4.2))\n";
-        if (grouped)
-          c += "# " + g + " 별로 선을 따로 그립니다\n"
-             + "for name, sub in df.groupby(" + pq(g) + "):\n"
-             + "    d = sub.groupby(" + pq(x) + ")[" + pq(y) + "].mean()\n"
-             + "    plt.plot(d.index.astype(str), d.values, marker=\"o\", label=str(name))\n"
-             + "plt.legend()\n";
-        else
-          c += "d = df.groupby(" + pq(x) + ")[" + pq(y) + "].mean()\n"
-             + "plt.plot(d.index.astype(str), d.values, marker=\"o\")\n"
-             + "print(d.round(2).to_string())\n";
-        c += "plt.title(" + pq(x + "에 따른 " + y) + ")\n"
-           + "plt.xlabel(" + pq(x) + "); plt.ylabel(" + pq(y) + ")\n"
-           + "plt.xticks(rotation=45, ha=\"right\")\n"
-           + "plt.grid(alpha=.3)\n"
-           + "plt.tight_layout()\n";
-      } else if (k === "scatter"){
-        c = "plt.figure(figsize=(6.6, 4.8))\n";
-        if (grouped)
-          c += "for name, sub in df.groupby(" + pq(g) + "):\n"
-             + "    plt.scatter(sub[" + pq(x) + "], sub[" + pq(y) + "], alpha=.75, label=str(name))\n"
-             + "plt.legend()\n";
-        else
-          c += "plt.scatter(df[" + pq(x) + "], df[" + pq(y) + "], alpha=.75)\n";
-        c += "plt.title(" + pq(gwa(x) + " " + y + "의 관계") + ")\n"
-           + "plt.xlabel(" + pq(x) + "); plt.ylabel(" + pq(y) + ")\n"
-           + "plt.grid(alpha=.3)\n"
-           + "plt.tight_layout()\n"
-           + "\n# 두 값이 얼마나 같이 움직이는지 (1에 가까울수록 강한 관계)\n"
-           + "print(\"상관계수:\", round(df[" + pq(x) + "].corr(df[" + pq(y) + "]), 3))\n";
-      } else if (k === "hist"){
-        c = "plt.figure(figsize=(6.6, 4.2))\n"
-          + "plt.hist(df[" + pq(x) + "].dropna(), bins=" + (Number(y) || 20) + ", edgecolor=\"white\")\n"
-          + "plt.title(" + pq(x + " 값이 퍼진 모양") + ")\n"
-          + "plt.xlabel(" + pq(x) + "); plt.ylabel(\"개수\")\n"
-          + "plt.grid(axis=\"y\", alpha=.3)\n"
-          + "plt.tight_layout()\n"
-          + "print(df[" + pq(x) + "].describe().round(2).to_string())\n";
-      } else if (k === "box"){
-        c = "plt.figure(figsize=(7, 4.4))\n";
-        if (y && y !== "(안 나눔)")
-          c += "names = [str(n) for n, _ in df.groupby(" + pq(y) + ")]\n"
-             + "vals  = [s[" + pq(x) + "].dropna().values for _, s in df.groupby(" + pq(y) + ")]\n"
-             + "plt.boxplot(vals)\n"
-             + "plt.xticks(range(1, len(names) + 1), names, rotation=30, ha=\"right\")\n"
-             + "plt.title(" + pq(y + "별 " + x + " 분포") + ")\n";
-        else
-          c += "plt.boxplot([df[" + pq(x) + "].dropna().values])\n"
-             + "plt.xticks([1], [" + pq(x) + "])\n"
-             + "plt.title(" + pq(x + " 분포") + ")\n";
-        c += "plt.ylabel(" + pq(x) + ")\n"
-           + "plt.grid(axis=\"y\", alpha=.3)\n"
-           + "plt.tight_layout()\n";
-      } else {
-        c = "# 숫자 열끼리 얼마나 비슷하게 움직이는지 봅니다\n"
-          + "c = df.select_dtypes(\"number\").corr()\n"
-          + "plt.figure(figsize=(6.6, 5.4))\n"
-          + "plt.imshow(c, cmap=\"RdBu_r\", vmin=-1, vmax=1)\n"
-          + "plt.colorbar()\n"
-          + "plt.xticks(range(len(c)), c.columns, rotation=45, ha=\"right\")\n"
-          + "plt.yticks(range(len(c)), c.columns)\n"
-          + "for i in range(len(c)):\n"
-          + "    for j in range(len(c)):\n"
-          + "        plt.text(j, i, format(c.iloc[i, j], \".2f\"), ha=\"center\", va=\"center\", fontsize=9)\n"
-          + "plt.title(\"숫자 열끼리의 상관관계\")\n"
-          + "plt.tight_layout()\n"
-          + "print(c.round(2).to_string())\n";
-      }
-      return LAB_HEAD + c;
-    }
+    if (k === "bar" || k === "barh"){
+      c += "# " + x + " 별로 " + y + " 의 " + AGG_KO[agg] + " 을 구합니다\n"
+        + "g = df.groupby(" + pq(x) + ")[" + pq(y) + "]." + agg + "()" + sortLine + "\n"
+        + "plt.figure(figsize=" + fig + ")\n"
+        + "_c = plt.get_cmap(" + pq(pal) + ")(np.linspace(0, .85, len(g)))\n"
+        + (k === "bar"
+            ? "plt.bar(g.index.astype(str), g.values, color=_c)\nplt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n"
+            : "plt.barh(g.index.astype(str), g.values, color=_c)\n")
+        + (o.deco.labels
+            ? (k === "bar"
+                ? "for i, v in enumerate(g.values): plt.text(i, v, f\"{v:,.1f}\", ha=\"center\", va=\"bottom\", fontsize=9)\n"
+                : "for i, v in enumerate(g.values): plt.text(v, i, f\" {v:,.1f}\", va=\"center\", fontsize=9)\n")
+            : "")
+        + T(x + "별 " + y + " " + AGG_KO[agg])
+        + (k === "bar" ? "plt.ylabel(" + pq(y) + ")\n" : "plt.xlabel(" + pq(y) + ")\n")
+        + decoTail(o, k === "bar" ? "y" : "x")
+        + "print(g.round(2).to_string())\n";
 
-    /* 머신러닝 */
-    const k = v("labM1"), feats = labChecked("labM3");
+    } else if (k === "groupbar" || k === "stackbar"){
+      c += "# " + x + " 와 " + g + " 를 기준으로 " + y + " 의 " + AGG_KO[agg] + " 을 구합니다\n"
+        + "t = df.pivot_table(index=" + pq(x) + ", columns=" + pq(g) + ", values=" + pq(y) + ", aggfunc=" + pq(agg) + ")\n"
+        + "plt.figure(figsize=" + fig + ")\n"
+        + "_cm = plt.get_cmap(" + pq(pal) + ")\n";
+      if (k === "groupbar")
+        c += "xs = np.arange(len(t.index))\n"
+          + "w = 0.8 / max(1, len(t.columns))\n"
+          + "for i, col in enumerate(t.columns):\n"
+          + "    plt.bar(xs + i * w - 0.4 + w / 2, t[col].values, width=w, label=str(col), color=_cm(i))\n"
+          + "plt.xticks(xs, t.index.astype(str), rotation=" + o.deco.rot + ", ha=\"right\")\n";
+      else
+        c += "bottom = np.zeros(len(t))\n"
+          + "for i, col in enumerate(t.columns):\n"
+          + "    vals = t[col].fillna(0).values\n"
+          + "    plt.bar(t.index.astype(str), vals, bottom=bottom, label=str(col), color=_cm(i))\n"
+          + "    bottom = bottom + vals\n"
+          + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n";
+      c += "plt.legend(title=" + pq(g) + ")\n" + T(x + "·" + g + "별 " + y + " " + AGG_KO[agg])
+        + "plt.ylabel(" + pq(y) + ")\n" + decoTail(o, "y")
+        + "print(t.round(2).to_string())\n";
 
-    if (k === "reg"){
-      const target = v("labM2");
-      c = "from sklearn.linear_model import LinearRegression\n"
-        + "from sklearn.model_selection import train_test_split\n"
-        + "from sklearn.metrics import r2_score, mean_absolute_error\n\n"
-        + "# 쓸 열만 남기고 빈칸이 있는 행은 뺍니다\n"
-        + "use = df[" + pl(feats.concat([target])) + "].dropna()\n"
-        + "X = use[" + pl(feats) + "]\n"
-        + "y = use[" + pq(target) + "]\n\n"
-        + "# 75% 로 배우고, 나머지 25% 로 시험을 봅니다\n"
-        + "Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=0)\n"
-        + "model = LinearRegression().fit(Xtr, ytr)\n"
-        + "pred = model.predict(Xte)\n\n"
-        + "print(\"R2 (1에 가까울수록 잘 맞힘):\", round(r2_score(yte, pred), 3))\n"
-        + "print(\"평균적으로\", round(mean_absolute_error(yte, pred), 2), \"만큼 빗나갔어요\")\n"
-        + "print()\n"
-        + "print(\"[ 어떤 값이 얼마나 영향을 줬나 ]\")\n"
-        + "for name, w in zip(X.columns, model.coef_):\n"
-        + "    print(\" \", name, \":\", round(float(w), 3))\n\n"
-        + "plt.figure(figsize=(5.6, 5.2))\n"
-        + "plt.scatter(yte, pred, alpha=.75)\n"
-        + "lo = float(min(yte.min(), pred.min())); hi = float(max(yte.max(), pred.max()))\n"
-        + "plt.plot([lo, hi], [lo, hi], \"--\", color=\"gray\")\n"
-        + "plt.xlabel(" + pq("실제 " + target) + "); plt.ylabel(" + pq("예측 " + target) + ")\n"
-        + "plt.title(\"점이 회색 선에 가까울수록 잘 맞힌 거예요\")\n"
-        + "plt.grid(alpha=.3)\n"
+    } else if (k === "line" || k === "area"){
+      c += "plt.figure(figsize=" + fig + ")\n_cm = plt.get_cmap(" + pq(pal) + ")\n";
+      if (grouped)
+        c += "# " + g + " 별로 선을 따로 그립니다\n"
+          + "for i, (name, sub) in enumerate(df.groupby(" + pq(g) + ")):\n"
+          + "    d = sub.groupby(" + pq(x) + ")[" + pq(y) + "].mean()\n"
+          + (k === "line"
+              ? "    plt.plot(d.index.astype(str), d.values, marker=\"o\", label=str(name), color=_cm(i))\n"
+              : "    plt.plot(d.index.astype(str), d.values, label=str(name), color=_cm(i))\n"
+                + "    plt.fill_between(d.index.astype(str), d.values, alpha=.25, color=_cm(i))\n")
+          + "plt.legend(title=" + pq(g) + ")\n";
+      else
+        c += "d = df.groupby(" + pq(x) + ")[" + pq(y) + "].mean()\n"
+          + (k === "line"
+              ? "plt.plot(d.index.astype(str), d.values, marker=\"o\", color=_cm(0))\n"
+              : "plt.plot(d.index.astype(str), d.values, color=_cm(0))\n"
+                + "plt.fill_between(d.index.astype(str), d.values, alpha=.3, color=_cm(0))\n");
+      c += T(x + "에 따른 " + y) + "plt.xlabel(" + pq(x) + "); plt.ylabel(" + pq(y) + ")\n"
+        + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n" + decoTail(o);
+
+    } else if (k === "scatter" || k === "bubble"){
+      const sizeCol = c0.extra;
+      c += "plt.figure(figsize=" + fig + ")\n_cm = plt.get_cmap(" + pq(pal) + ")\n";
+      const sArg = k === "bubble"
+        ? "s=(df[" + pq(sizeCol) + "] - df[" + pq(sizeCol) + "].min()) / (df[" + pq(sizeCol) + "].max() - df[" + pq(sizeCol) + "].min() + 1e-9) * 260 + 20"
+        : "s=" + (o.deco.dot || 55);
+      if (grouped)
+        c += "for i, (name, sub) in enumerate(df.groupby(" + pq(g) + ")):\n"
+          + "    plt.scatter(sub[" + pq(x) + "], sub[" + pq(y) + "], label=str(name), alpha=" + o.deco.alpha + ", color=_cm(i),\n"
+          + "                " + sArg.replace(/df\[/g, "sub[") + ")\n"
+          + "plt.legend(title=" + pq(g) + ")\n";
+      else
+        c += "plt.scatter(df[" + pq(x) + "], df[" + pq(y) + "], alpha=" + o.deco.alpha + ", color=_cm(0), " + sArg + ")\n";
+      if (c0.trend)
+        c += "# 추세선: 점들을 가장 잘 지나는 직선\n"
+          + "_d = df[[" + pq(x) + ", " + pq(y) + "]].dropna()\n"
+          + "_p = np.polyfit(_d[" + pq(x) + "], _d[" + pq(y) + "], 1)\n"
+          + "_xs = np.linspace(_d[" + pq(x) + "].min(), _d[" + pq(x) + "].max(), 50)\n"
+          + "plt.plot(_xs, np.poly1d(_p)(_xs), color=\"tab:red\", linewidth=2, label=f\"추세선 y={_p[0]:.2f}x+{_p[1]:.1f}\")\n"
+          + "plt.legend()\n"
+          + "print(\"상관계수:\", round(float(_d[" + pq(x) + "].corr(_d[" + pq(y) + "])), 3))\n";
+      c += T(gwa(x) + " " + y + (k === "bubble" ? " (크기: " + sizeCol + ")" : ""))
+        + "plt.xlabel(" + pq(x) + "); plt.ylabel(" + pq(y) + ")\n" + decoTail(o);
+
+    } else if (k === "hist"){
+      const bins = c0.bins || 20;
+      c += "plt.figure(figsize=" + fig + ")\n_cm = plt.get_cmap(" + pq(pal) + ")\n";
+      if (grouped)
+        c += "for i, (name, sub) in enumerate(df.groupby(" + pq(g) + ")):\n"
+          + "    plt.hist(sub[" + pq(x) + "].dropna(), bins=" + bins + ", alpha=.55, label=str(name), color=_cm(i))\n"
+          + "plt.legend(title=" + pq(g) + ")\n";
+      else
+        c += "plt.hist(df[" + pq(x) + "].dropna(), bins=" + bins + ", color=_cm(0), edgecolor=\"white\")\n";
+      c += T(x + " 분포") + "plt.xlabel(" + pq(x) + "); plt.ylabel(\"개수\")\n" + decoTail(o, "y")
+        + "print(df[" + pq(x) + "].describe().round(2).to_string())\n";
+
+    } else if (k === "box" || k === "violin"){
+      const vert = c0.orient !== "h";
+      c += "plt.figure(figsize=" + fig + ")\n";
+      if (grouped)
+        c += "groups = df.groupby(" + pq(g) + ")[" + pq(x) + "]\n"
+          + "data = [v.dropna().values for _, v in groups]\n"
+          + "names = [str(k) for k in groups.groups.keys()]\n";
+      else
+        c += "data = [df[" + pq(x) + "].dropna().values]\nnames = [" + pq(x) + "]\n";
+      c += (k === "box"
+            ? "plt.boxplot(data, labels=names, vert=" + (vert ? "True" : "False") + ", patch_artist=True,\n"
+              + "            boxprops={\"facecolor\": \"#cfe0f7\"}, medianprops={\"color\": \"tab:red\"})\n"
+            : "vp = plt.violinplot(data, vert=" + (vert ? "True" : "False") + ", showmedians=True)\n"
+              + (vert ? "plt.xticks(range(1, len(names) + 1), names)\n"
+                      : "plt.yticks(range(1, len(names) + 1), names)\n"))
+        + T(grouped ? g + "별 " + x + " 분포" : x + " 분포")
+        + decoTail(o, vert ? "y" : "x");
+
+    } else if (k === "pie" || k === "count"){
+      const topn = c0.extra && c0.extra !== "전체" ? Number(c0.extra) : 0;
+      c += "n = df[" + pq(x) + "].value_counts()" + (topn ? ".head(" + topn + ")" : "") + "\n"
+        + "plt.figure(figsize=" + (k === "pie" ? "(5.6, 5.6)" : fig) + ")\n"
+        + "_c = plt.get_cmap(" + pq(pal) + ")(np.linspace(0, .85, len(n)))\n"
+        + (k === "pie"
+            ? "plt.pie(n.values, labels=n.index.astype(str), autopct=\"%1.1f%%\", startangle=90,\n"
+              + "        colors=_c, wedgeprops={\"edgecolor\": \"white\"})\n"
+            : "plt.bar(n.index.astype(str), n.values, color=_c)\n"
+              + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\nplt.ylabel(\"개수\")\n"
+              + (o.deco.labels ? "for i, v in enumerate(n.values): plt.text(i, v, str(v), ha=\"center\", va=\"bottom\", fontsize=9)\n" : ""))
+        + T(x + (k === "pie" ? " 비율" : " 개수"))
+        + (k === "pie" ? "plt.tight_layout()\n" : decoTail(o, "y"))
+        + "print(n.to_string())\n";
+
+    } else if (k === "dual"){
+      const y2 = c0.extra;
+      c += "d = df.groupby(" + pq(x) + ").agg(a=(" + pq(y) + ", \"mean\"), b=(" + pq(y2) + ", \"mean\"))\n"
+        + "fig, ax1 = plt.subplots(figsize=" + fig + ")\n"
+        + "ax1.plot(d.index.astype(str), d[\"a\"], color=\"tab:red\", marker=\"o\")\n"
+        + "ax1.set_ylabel(" + pq(y) + ", color=\"tab:red\")\n"
+        + "ax2 = ax1.twinx()                      # 오른쪽에 축을 하나 더\n"
+        + "ax2." + (c0.orient === "line" ? "plot" : "bar") + "(d.index.astype(str), d[\"b\"], color=\"tab:blue\", alpha=.5)\n"
+        + "ax2.set_ylabel(" + pq(y2) + ", color=\"tab:blue\")\n"
+        + "ax1.set_title(" + pq(o.deco.title || (gwa(y) + " " + y2)) + ")\n"
+        + "ax1.tick_params(axis=\"x\", rotation=" + o.deco.rot + ")\n"
+        + "fig.tight_layout()\n"
+        + "print(d.round(2).to_string())\n";
+
+    } else if (k === "pair"){
+      const cols = (c0.cols && c0.cols.length >= 2) ? c0.cols.slice(0, 5) : [];
+      c += "cols = " + pl(cols) + "\n"
+        + "fig, axes = plt.subplots(len(cols), len(cols), figsize=(2.3 * len(cols), 2.3 * len(cols)))\n"
+        + "_cm = plt.get_cmap(" + pq(pal) + ")\n"
+        + (grouped ? "keys = list(df[" + pq(g) + "].astype(str).unique())\n" : "")
+        + "for i, a in enumerate(cols):\n"
+        + "    for j, b in enumerate(cols):\n"
+        + "        ax = axes[i][j]\n"
+        + "        if i == j:\n"
+        + "            ax.hist(df[a].dropna(), bins=15, color=_cm(0))\n"
+        + "        else:\n"
+        + (grouped
+            ? "            for n, (name, sub) in enumerate(df.groupby(" + pq(g) + ")):\n"
+              + "                ax.scatter(sub[b], sub[a], s=10, alpha=.7, color=_cm(n), label=str(name))\n"
+            : "            ax.scatter(df[b], df[a], s=10, alpha=.7, color=_cm(0))\n")
+        + "        if i == len(cols) - 1: ax.set_xlabel(b, fontsize=9)\n"
+        + "        if j == 0: ax.set_ylabel(a, fontsize=9)\n"
+        + "        ax.tick_params(labelsize=7)\n"
+        + (grouped ? "axes[0][1].legend(fontsize=8)\n" : "")
+        + "fig.suptitle(" + pq(o.deco.title || "여러 열 한꺼번에 보기") + ")\n"
         + "plt.tight_layout()\n";
-    } else if (k === "clf"){
-      const target = v("labM2"), how = v("labM4");
-      c = (how === "tree"
-            ? "from sklearn.tree import DecisionTreeClassifier, plot_tree\n"
-            : "from sklearn.neighbors import KNeighborsClassifier\n")
-        + "from sklearn.model_selection import train_test_split\n"
-        + "from sklearn.metrics import accuracy_score, confusion_matrix\n\n"
-        + "use = df[" + pl(feats.concat([target])) + "].dropna()\n"
-        + "X = use[" + pl(feats) + "]\n"
-        + "y = use[" + pq(target) + "].astype(str)\n\n"
-        + "Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.25, random_state=0)\n"
-        + (how === "tree"
-            ? "model = DecisionTreeClassifier(max_depth=3, random_state=0).fit(Xtr, ytr)\n"
-            : "model = KNeighborsClassifier(n_neighbors=5).fit(Xtr, ytr)\n")
-        + "pred = model.predict(Xte)\n\n"
-        + "print(\"정확도:\", round(accuracy_score(yte, pred) * 100, 1), \"%\")\n"
-        + "print(\"(시험 본\", len(yte), \"개 중\", int(accuracy_score(yte, pred) * len(yte)), \"개를 맞혔어요)\")\n\n"
-        + "labels = sorted(y.unique())\n"
-        + "cm = confusion_matrix(yte, pred, labels=labels)\n"
-        + "plt.figure(figsize=(5.6, 5.0))\n"
+
+    } else {   // corr
+      c += "num = df.select_dtypes(include=\"number\")\n"
+        + "m = num.corr().round(2)\n"
+        + "plt.figure(figsize=(max(5, .8 * len(m)), max(4, .7 * len(m))))\n"
+        + "plt.imshow(m, cmap=\"coolwarm\", vmin=-1, vmax=1)\n"
+        + "plt.colorbar(label=\"상관계수\")\n"
+        + "plt.xticks(range(len(m)), m.columns, rotation=45, ha=\"right\")\n"
+        + "plt.yticks(range(len(m)), m.index)\n"
+        + "for i in range(len(m)):\n"
+        + "    for j in range(len(m)):\n"
+        + "        plt.text(j, i, m.iloc[i, j], ha=\"center\", va=\"center\", fontsize=9)\n"
+        + T("숫자 열끼리의 상관관계") + "plt.tight_layout()\n"
+        + "print(m.to_string())\n";
+    }
+    return c;
+  }
+
+  /* ---------- seaborn 으로 그리기 ----------
+     · 종류에 따라 seaborn 함수가 더 잘 맞는 것만 여기서 만듭니다.
+     · 없는 종류는 null 을 돌려주고, 위에서 matplotlib 코드로 그리되 seaborn 색·배경만 입힙니다. */
+  function labSnsCode(o, k, p){
+    const { x, y, g, grouped, fig, pal, agg, hue, T } = p;
+    const P = ", palette=" + pq(pal);
+    const tail = (ax)=> (o.deco.grid ? "" : "plt.grid(False)\n") + "plt.tight_layout()\n";
+
+    if (k === "bar" || k === "barh"){
+      const sortLine = p.sortLine || "";
+      return "# " + x + " 별 " + y + " 의 " + AGG_KO[agg] + "\n"
+        + "g = df.groupby(" + pq(x) + ")[" + pq(y) + "]." + agg + "()"
+        + (o.chart.sort === "name" ? ".sort_index()" : o.chart.sort === "asc" ? ".sort_values()" : ".sort_values(ascending=False)") + "\n"
+        + "t = g.reset_index()\n"
+        + "plt.figure(figsize=" + fig + ")\n"
+        + (k === "bar"
+            ? "sns.barplot(data=t, x=" + pq(x) + ", y=" + pq(y) + ", hue=" + pq(x) + ", legend=False" + P + ")\n"
+              + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n"
+            : "sns.barplot(data=t, y=" + pq(x) + ", x=" + pq(y) + ", hue=" + pq(x) + ", legend=False" + P + ")\n")
+        + T(x + "별 " + y + " " + AGG_KO[agg]) + tail() + "print(g.round(2).to_string())\n";
+    }
+    if (k === "line")
+      return "plt.figure(figsize=" + fig + ")\n"
+        + "sns.lineplot(data=df, x=" + pq(x) + ", y=" + pq(y) + hue + ", marker=\"o\""
+        + (grouped ? P : "") + ")\n"
+        + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n" + T(x + "에 따른 " + y) + tail();
+    if (k === "scatter")
+      return "plt.figure(figsize=" + fig + ")\n"
+        + "sns.scatterplot(data=df, x=" + pq(x) + ", y=" + pq(y) + hue
+        + ", s=" + (o.deco.dot || 55) + ", alpha=" + o.deco.alpha + (grouped ? P : "") + ")\n"
+        + (o.chart.trend
+            ? "sns.regplot(data=df, x=" + pq(x) + ", y=" + pq(y) + ", scatter=False, color=\"tab:red\")\n"
+              + "print(\"상관계수:\", round(float(df[" + pq(x) + "].corr(df[" + pq(y) + "])), 3))\n"
+            : "")
+        + T(gwa(x) + " " + y) + tail();
+    if (k === "reg")
+      return (grouped ? "" : "plt.figure(figsize=" + fig + ")\n")
+        + (grouped
+            ? "sns.lmplot(data=df, x=" + pq(x) + ", y=" + pq(y) + hue + ", height=4.2, aspect=1.5" + P + ")\n"
+            : "sns.regplot(data=df, x=" + pq(x) + ", y=" + pq(y) + ", line_kws={\"color\": \"tab:red\"})\n")
+        + "print(\"상관계수:\", round(float(df[" + pq(x) + "].corr(df[" + pq(y) + "])), 3))\n"
+        + (grouped ? "" : T(gwa(x) + " " + y + " (회귀선)") + tail());
+    if (k === "hist")
+      return "plt.figure(figsize=" + fig + ")\n"
+        + "sns.histplot(data=df, x=" + pq(x) + ", bins=" + (o.chart.bins || 20) + hue
+        + ", kde=True" + (grouped ? P : "") + ")\n"
+        + T(x + " 분포") + tail() + "print(df[" + pq(x) + "].describe().round(2).to_string())\n";
+    if (k === "kde")
+      return "plt.figure(figsize=" + fig + ")\n"
+        + "sns.kdeplot(data=df, x=" + pq(x) + hue + ", fill=True, alpha=.45" + (grouped ? P : "") + ")\n"
+        + T(x + " 밀도 곡선") + tail();
+    if (k === "box" || k === "violin" || k === "strip"){
+      const fn = k === "box" ? "boxplot" : k === "violin" ? "violinplot" : "stripplot";
+      const vert = o.chart.orient !== "h";
+      const cat = grouped ? pq(g) : "None";
+      const ax = vert ? ("x=" + cat + ", y=" + pq(x)) : ("y=" + cat + ", x=" + pq(x));
+      return "plt.figure(figsize=" + fig + ")\n"
+        + "sns." + fn + "(data=df, " + ax
+        + (grouped ? ", hue=" + pq(g) + ", legend=False" + P : "")
+        + (k === "strip" ? ", jitter=True, alpha=.75" : "") + ")\n"
+        + T(grouped ? g + "별 " + x + " 분포" : x + " 분포") + tail();
+    }
+    if (k === "count")
+      return "n = df[" + pq(x) + "].value_counts()"
+        + (o.chart.extra && o.chart.extra !== "전체" ? ".head(" + Number(o.chart.extra) + ")" : "") + "\n"
+        + "plt.figure(figsize=" + fig + ")\n"
+        + "sns.countplot(data=df, x=" + pq(x) + ", order=n.index, hue=" + pq(x) + ", legend=False" + P + ")\n"
+        + "plt.xticks(rotation=" + o.deco.rot + ", ha=\"right\")\n"
+        + T(x + " 개수") + tail() + "print(n.to_string())\n";
+    if (k === "corr")
+      return "num = df.select_dtypes(include=\"number\")\n"
+        + "m = num.corr().round(2)\n"
+        + "plt.figure(figsize=(max(5, .8 * len(m)), max(4, .7 * len(m))))\n"
+        + "sns.heatmap(m, annot=True, fmt=\".2f\", cmap=\"coolwarm\", vmin=-1, vmax=1, linewidths=.5)\n"
+        + T("숫자 열끼리의 상관관계") + "plt.tight_layout()\n" + "print(m.to_string())\n";
+    if (k === "pair"){
+      const cols = (o.chart.cols && o.chart.cols.length >= 2) ? o.chart.cols.slice(0, 5) : [];
+      return "cols = " + pl(cols) + "\n"
+        + "sns.pairplot(df[cols" + (grouped ? " + [" + pq(g) + "]" : "") + "].dropna()"
+        + (grouped ? ", hue=" + pq(g) + P : "") + ", height=2.1)\n";
+    }
+    return null;   // area · pie · bubble · groupbar · stackbar · dual 은 matplotlib 으로
+  }
+
+  /* ---------- 머신러닝 코드 ---------- */
+  const MODEL_KO = { linear:"선형회귀", poly:"다항회귀", tree:"결정트리", forest:"랜덤포레스트",
+                     knn:"KNN", logistic:"로지스틱 회귀", kmeans:"K-means", agg:"계층 군집" };
+
+  function labMlCode(o){
+    const m = o.ml, feats = m.feats || [], t = m.target;
+    const P = m.params || {};
+    const num = (k, auto, p1, p2)=> P[k] !== undefined && P[k] !== "" ? P[k]
+              : (m.p === "p1" ? p1 : m.p === "p2" ? p2 : auto);
+    const seed = P.seed !== undefined && P.seed !== "" ? P.seed : (m.seed || 42);
+    const scale = m.scale === "minmax"
+      ? "from sklearn.preprocessing import MinMaxScaler\nX = pd.DataFrame(MinMaxScaler().fit_transform(X), columns=X.columns)\n"
+      : m.scale === "std"
+      ? "from sklearn.preprocessing import StandardScaler\nX = pd.DataFrame(StandardScaler().fit_transform(X), columns=X.columns)\n"
+      : "";
+
+    if (m.task === "clus"){
+      const k = num("k", m.k || 3, 2, 5);
+      let c = "use = df[" + pl(feats) + "].dropna().copy()\nX = use.copy()\n" + scale
+        + (m.model === "agg"
+            ? "from sklearn.cluster import AgglomerativeClustering\n"
+              + "model = AgglomerativeClustering(n_clusters=" + k + ")\n"
+            : "from sklearn.cluster import KMeans\n"
+              + "model = KMeans(n_clusters=" + k + ", n_init=10, random_state=" + seed + ")\n")
+        + "use[\"묶음\"] = model.fit_predict(X)\n"
+        + "from sklearn.metrics import silhouette_score\n"
+        + "print(\"실루엣 계수(1에 가까울수록 잘 나뉨):\", round(float(silhouette_score(X, use[\"묶음\"])), 3))\n"
+        + "print()\nprint(\"[ 묶음별 평균 ]\")\n"
+        + "print(use.groupby(\"묶음\").mean().round(2).to_string())\n"
+        + "print()\nprint(\"[ 묶음별 인원 ]\")\nprint(use[\"묶음\"].value_counts().sort_index().to_string())\n";
+      if (feats.length >= 2)
+        c += "plt.figure(figsize=" + figOf(o) + ")\n"
+          + "_cm = plt.get_cmap(" + pq(o.deco.pal) + ")\n"
+          + "for g in sorted(use[\"묶음\"].unique()):\n"
+          + "    s = use[use[\"묶음\"] == g]\n"
+          + "    plt.scatter(s[" + pq(feats[0]) + "], s[" + pq(feats[1]) + "], label=f\"묶음 {g}\", color=_cm(int(g)), alpha=.8)\n"
+          + (m.model === "kmeans" && m.scale === "none"
+              ? "plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], marker=\"X\", s=200, color=\"black\", label=\"중심\")\n"
+              : "")
+          + "plt.xlabel(" + pq(feats[0]) + "); plt.ylabel(" + pq(feats[1]) + ")\n"
+          + "plt.title(" + pq(MODEL_KO[m.model] + " 결과 (" + k + "묶음)") + ")\nplt.legend()\n" + decoTail(o);
+      return c;
+    }
+
+    const isReg = m.task === "reg";
+    let mk = "", imp = "";
+    if (isReg){
+      if (m.model === "linear"){
+        mk = "from sklearn.linear_model import LinearRegression\nmodel = LinearRegression()\n";
+        imp = "print()\nprint(\"[ 각 입력이 미치는 영향(가중치) ]\")\n"
+            + "for name, w in zip(X.columns, model.coef_):\n"
+            + "    print(f\"  {name}: {w:+.3f}\")\n"
+            + "print(f\"  (기본값) {model.intercept_:.2f}\")\n";
+      } else if (m.model === "poly"){
+        const deg = num("deg", 2, 2, 3);
+        mk = "from sklearn.preprocessing import PolynomialFeatures\n"
+           + "from sklearn.linear_model import LinearRegression\n"
+           + "from sklearn.pipeline import make_pipeline\n"
+           + "model = make_pipeline(PolynomialFeatures(" + deg + "), LinearRegression())\n";
+      } else if (m.model === "tree"){
+        mk = "from sklearn.tree import DecisionTreeRegressor\n"
+           + "model = DecisionTreeRegressor(max_depth=" + num("depth", 4, 2, 8) + ", random_state=" + seed + ")\n";
+      } else if (m.model === "forest"){
+        mk = "from sklearn.ensemble import RandomForestRegressor\n"
+           + "model = RandomForestRegressor(n_estimators=" + num("trees", 100, 30, 300)
+           + ", max_depth=" + num("depth", 6, 3, 12) + ", random_state=" + seed + ")\n";
+      } else {
+        mk = "from sklearn.neighbors import KNeighborsRegressor\n"
+           + "model = KNeighborsRegressor(n_neighbors=" + num("k", 5, 3, 11) + ")\n";
+      }
+    } else {
+      if (m.model === "logistic")
+        mk = "from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression(max_iter=1000)\n";
+      else if (m.model === "tree")
+        mk = "from sklearn.tree import DecisionTreeClassifier\n"
+           + "model = DecisionTreeClassifier(max_depth=" + num("depth", 4, 2, 8) + ", random_state=" + seed + ")\n";
+      else if (m.model === "forest")
+        mk = "from sklearn.ensemble import RandomForestClassifier\n"
+           + "model = RandomForestClassifier(n_estimators=" + num("trees", 100, 30, 300)
+           + ", max_depth=" + num("depth", 6, 3, 12) + ", random_state=" + seed + ")\n";
+      else
+        mk = "from sklearn.neighbors import KNeighborsClassifier\n"
+           + "model = KNeighborsClassifier(n_neighbors=" + num("k", 5, 3, 11) + ")\n";
+    }
+    if (m.model === "tree" || m.model === "forest")
+      imp = "print()\nprint(\"[ 어떤 입력이 중요했나 ]\")\n"
+          + "for name, v in sorted(zip(X.columns, model.feature_importances_), key=lambda z: -z[1]):\n"
+          + "    print(f\"  {name}: {v:.3f}\")\n";
+
+    let c = "# 쓸 열만 남기고 빈칸이 있는 행은 뺍니다\n"
+      + "use = df[" + pl(feats.concat([t])) + "].dropna()\n"
+      + "X = use[" + pl(feats) + "]\ny = use[" + pq(t) + "]\n"
+      + scale
+      + "from sklearn.model_selection import train_test_split\n"
+      + "X_train, X_test, y_train, y_test = train_test_split(\n"
+      + "    X, y, test_size=" + (m.test || 0.25) + ", random_state=" + seed
+      + (isReg ? "" : ", stratify=y") + ")\n"
+      + mk
+      + "model.fit(X_train, y_train)            # 배우기\n"
+      + "pred = model.predict(X_test)           # 맞혀보기\n\n";
+
+    if (isReg){
+      c += "from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error\n"
+        + "print(\"모델:\", " + pq(MODEL_KO[m.model]) + ", \" / 예측할 값:\", " + pq(t) + ")\n"
+        + "print(\"배운 데이터\", len(X_train), \"개 · 시험 데이터\", len(X_test), \"개\")\n"
+        + "print()\n"
+        + "print(f\"R² (1에 가까울수록 좋음) : {r2_score(y_test, pred):.3f}\")\n"
+        + "print(f\"평균 오차 (MAE)          : {mean_absolute_error(y_test, pred):.2f}\")\n"
+        + "print(f\"RMSE                     : {mean_squared_error(y_test, pred) ** .5:.2f}\")\n"
+        + "print(f\"(참고) 배운 데이터 R²    : {r2_score(y_train, model.predict(X_train)):.3f}\")\n"
+        + imp
+        + "\nplt.figure(figsize=" + figOf(o) + ")\n"
+        + "plt.scatter(y_test, pred, alpha=.75, color=plt.get_cmap(" + pq(o.deco.pal) + ")(0))\n"
+        + "lo, hi = min(y_test.min(), pred.min()), max(y_test.max(), pred.max())\n"
+        + "plt.plot([lo, hi], [lo, hi], \"--\", color=\"tab:red\", label=\"완벽하게 맞힌 선\")\n"
+        + "plt.xlabel(\"실제 " + t + "\"); plt.ylabel(\"예측한 " + t + "\")\n"
+        + "plt.title(" + pq(MODEL_KO[m.model] + " — 실제와 예측 비교") + ")\nplt.legend()\n" + decoTail(o);
+    } else {
+      c += "from sklearn.metrics import accuracy_score, confusion_matrix, classification_report\n"
+        + "print(\"모델:\", " + pq(MODEL_KO[m.model]) + ", \" / 맞힐 무리:\", " + pq(t) + ")\n"
+        + "print(\"배운 데이터\", len(X_train), \"개 · 시험 데이터\", len(X_test), \"개\")\n"
+        + "print()\n"
+        + "print(f\"정확도: {accuracy_score(y_test, pred):.3f}\")\n"
+        + "print()\nprint(classification_report(y_test, pred, zero_division=0))\n"
+        + imp
+        + "\nlabels = sorted(y.unique())\n"
+        + "cm = confusion_matrix(y_test, pred, labels=labels)\n"
+        + "plt.figure(figsize=(max(4, .9 * len(labels) + 2), max(3.4, .8 * len(labels) + 1.6)))\n"
         + "plt.imshow(cm, cmap=\"Blues\")\n"
         + "plt.colorbar()\n"
         + "plt.xticks(range(len(labels)), labels, rotation=30, ha=\"right\")\n"
         + "plt.yticks(range(len(labels)), labels)\n"
-        + "plt.xlabel(\"컴퓨터의 예측\"); plt.ylabel(\"실제\")\n"
         + "for i in range(len(labels)):\n"
         + "    for j in range(len(labels)):\n"
-        + "        plt.text(j, i, cm[i][j], ha=\"center\", va=\"center\")\n"
-        + "plt.title(\"무엇을 무엇으로 봤는지 (대각선이 정답)\")\n"
-        + "plt.tight_layout()\n"
-        + (how === "tree"
-            ? "\n# 어떤 규칙으로 나눴는지 그림으로 봅니다\n"
-              + "plt.figure(figsize=(10, 6))\n"
-              + "plot_tree(model, feature_names=list(X.columns), class_names=labels,\n"
-              + "          filled=True, fontsize=8, impurity=False)\n"
-              + "plt.tight_layout()\n"
-            : "");
-    } else {
-      const kk = Number(v("labM2")) || 3;
-      c = "from sklearn.cluster import KMeans\n"
-        + "from sklearn.preprocessing import StandardScaler\n\n"
-        + "use = df[" + pl(feats) + "].dropna().copy()\n"
-        + "# 단위가 달라도 공평하게 비교되도록 크기를 맞춥니다\n"
-        + "Z = StandardScaler().fit_transform(use)\n"
-        + "km = KMeans(n_clusters=" + kk + ", n_init=10, random_state=0).fit(Z)\n"
-        + "use[\"묶음\"] = km.labels_\n\n"
-        + "print(\"[ 묶음별 개수 ]\")\n"
-        + "print(use[\"묶음\"].value_counts().sort_index().to_string())\n"
-        + "print()\n"
-        + "print(\"[ 묶음별 평균 ]\")\n"
-        + "print(use.groupby(\"묶음\").mean().round(2).to_string())\n\n"
-        + "plt.figure(figsize=(6.6, 4.8))\n"
-        + (feats.length >= 2
-            ? "plt.scatter(use[" + pq(feats[0]) + "], use[" + pq(feats[1]) + "],\n"
-              + "            c=use[\"묶음\"], cmap=\"viridis\", alpha=.85)\n"
-              + "plt.xlabel(" + pq(feats[0]) + "); plt.ylabel(" + pq(feats[1]) + ")\n"
-            : "plt.scatter(range(len(use)), use[" + pq(feats[0] || "") + "],\n"
-              + "            c=use[\"묶음\"], cmap=\"viridis\", alpha=.85)\n"
-              + "plt.xlabel(\"순서\"); plt.ylabel(" + pq(feats[0] || "") + ")\n")
-        + "plt.title(" + pq(kk + "개 무리로 묶은 결과") + ")\n"
-        + "plt.grid(alpha=.3)\n"
-        + "plt.tight_layout()\n";
+        + "        plt.text(j, i, cm[i][j], ha=\"center\", va=\"center\",\n"
+        + "                 color=\"white\" if cm[i][j] > cm.max() / 2 else \"black\")\n"
+        + "plt.xlabel(\"예측\"); plt.ylabel(\"실제\")\n"
+        + "plt.title(" + pq(MODEL_KO[m.model] + " — 오분류표") + ")\nplt.tight_layout()\n";
     }
-    return LAB_HEAD + c;
+    return c;
   }
 
-  /* ---------- 사용법 팝업 ---------- */
+  function labBuildCode(){ return labGen(labReadBasic()); }
+
   const LAB_HELP = [
     // 0. 시작하기
     '<h4>세 번만 누르면 돼요</h4>'
@@ -6988,6 +7946,9 @@ _imgs
     + '</ul>'
     + '<div class="box">처음이라면 <b>학생 성적 → 기초 통계 → 실행</b> 순서로 한 번 눌러보세요. '
     + '데이터가 어떻게 생겼는지부터 보는 게 순서예요.</div>'
+    + '<div class="box">데이터를 고르면 표 아래에 <b>📋 이 데이터에서 눈에 띈 것</b> 이 뜹니다. '
+    + '빈 칸·이상치·중복처럼 먼저 손봐야 할 것을 찾아 알려주고, 단추 하나로 고쳐줘요. '
+    + '<b>내 컴퓨터가 직접 찾은 것</b>이라 데이터는 어디로도 보내지 않아요.</div>'
     + '<h4>열이 뭔가요?</h4>'
     + '<p>표의 세로줄이에요. 표 맨 윗줄에 <b>숫자</b>라고 붙은 열은 계산할 수 있는 열, '
     + '안 붙은 열은 글자 열이에요. 그래프나 머신러닝에서 고를 수 있는 게 서로 달라요.</p>',
@@ -7037,7 +7998,24 @@ _imgs
     + '75%로 배우고 나머지 25%로 시험을 봐요. 배울 때 본 문제로 시험을 보면 '
     + '무조건 잘 맞히니까, <b>처음 보는 문제</b>로 실력을 재는 거예요.</div>',
 
-    // 3. 알아두기
+    // 3. 고급 작업창
+    '<h4>🔬 고급 — 값을 직접 넣고 싶을 때</h4>'
+    + '<p>기본 화면은 <b>고르기만</b> 하면 되도록 만들어졌어요. '
+    + '더 세밀하게 해보고 싶으면 제목 옆 <b>🔬 고급</b>을 눌러 넓은 작업창을 여세요.</p>'
+    + '<ul>'
+    + '<li><span class="q">직접 입력</span>'
+    + '구간 개수, 그래프 크기, 트리 깊이, 이웃 수 k, 랜덤 시드처럼 <b>숫자를 직접</b> 넣어요.</li>'
+    + '<li><span class="q">새 열 만들기</span>'
+    + '이름과 식을 적으면 열이 생겨요. 예) 이름 <b>총점</b>, 식 <b>df["국어"] + df["영어"]</b></li>'
+    + '<li><span class="q">조건으로 걸러내기</span>'
+    + '예) <b>공부시간 > 3 and 반 == 1</b> 처럼 적으면 그 조건에 맞는 행만 써요.</li>'
+    + '<li><span class="q">코드 직접 고치기</span>'
+    + '오른쪽 <b>코드</b> 칸에서 파이썬을 고쳐 바로 실행할 수 있어요.</li>'
+    + '</ul>'
+    + '<div class="box">고급 창은 <b>바깥을 눌러도 닫히지 않아요.</b> '
+    + '실수로 작업이 날아가지 않도록 <b>닫기</b> 단추로만 닫히고, 고친 코드가 있으면 한 번 더 물어봐요.</div>',
+
+    // 4. 알아두기
     '<h4>처음 실행은 조금 오래 걸려요</h4>'
     + '<p>파이썬과 계산 도구를 내려받느라 <b>30초에서 1분</b> 정도 걸려요. '
     + '두 번째부터는 훨씬 빨라요. 수업 시작 전에 미리 한 번 실행해두면 좋아요.</p>'
@@ -7065,25 +8043,37 @@ _imgs
   }
 
   /* ---------- 고른 내용 확인 ---------- */
-  function labValidate(){
+  function labValidate(o){
     if (!labData) return "먼저 데이터를 골라주세요.";
-    if (labKind === "chart"){
-      const k = $("labC1").value;
-      if ((k === "bar" || k === "line" || k === "scatter")
-          && $("labC2").value === $("labC3").value)
+    const nums = labNumCols(), cats = labCatCols();
+    if (o.kind === "chart"){
+      const c = o.chart, k = c.type;
+      const two = ["scatter", "bubble", "dual"];
+      if (two.includes(k) && c.x === c.y)
         return "가로축과 세로축은 서로 다른 열로 골라주세요.";
-      if (k === "corr" && labNumCols().length < 2)
+      if (k === "dual" && c.y === c.extra)
+        return "왼쪽 축과 오른쪽 축은 서로 다른 열로 골라주세요.";
+      if ((k === "corr" || k === "pair") && nums.length < 2)
         return "숫자 열이 2개 이상 있어야 그릴 수 있어요.";
-      if (k !== "corr" && !labNumCols().length)
+      if (k === "pair" && (c.cols || []).length < 2)
+        return "함께 볼 숫자 열을 2개 이상 골라주세요.";
+      if ((k === "groupbar" || k === "stackbar") && c.x === c.g)
+        return "가로축과 색으로 나눌 기준은 서로 다른 열로 골라주세요.";
+      if (!["corr", "pair", "pie", "count"].includes(k) && !nums.length)
         return "숫자로 된 열이 없어서 그래프를 그릴 수 없어요.";
+      if ((k === "pie" || k === "count") && !c.x) return "항목으로 쓸 열을 골라주세요.";
+      if (k === "reg" && c.x === c.y) return "가로축과 세로축은 서로 다른 열로 골라주세요.";
     }
-    if (labKind === "ml"){
-      const k = $("labM1").value, feats = labChecked("labM3");
-      if (!feats.length) return "쓸 숫자 열을 하나 이상 골라주세요.";
-      if (k === "reg" && feats.includes($("labM2").value))
-        return "예측할 값(" + $("labM2").value + ")은 입력에서 빼주세요. 답을 보고 답을 맞히는 셈이 돼요.";
-      if (k === "clf" && !labCatCols().length)
+    if (o.kind === "ml"){
+      const m = o.ml;
+      if (!(m.feats || []).length) return "쓸 숫자 열을 하나 이상 골라주세요.";
+      if (m.task !== "clus" && !m.target) return "예측하거나 맞힐 열을 골라주세요.";
+      if (m.task === "reg" && m.feats.includes(m.target))
+        return "예측할 값(" + m.target + ")은 입력에서 빼주세요. 답을 보고 답을 맞히는 셈이 돼요.";
+      if (m.task === "clf" && !cats.length)
         return "무리를 나타내는 글자 열이 없어서 분류를 할 수 없어요.";
+      if (m.task === "clus" && m.feats.length < 2)
+        return "군집화는 숫자 열을 2개 이상 골라야 그림으로 볼 수 있어요.";
     }
     return "";
   }
@@ -7100,23 +8090,31 @@ _imgs
   }
 
   /* ---------- 실행 ---------- */
-  async function labExecute(code){
+  // ui 를 주면 고급 창에, 안 주면 기본 화면에 결과를 그립니다
+  async function labExecute(code, ui){
     if (labBusy || !labData) return;
     labBusy = true;
     labLastCode = code;
-    $("labRun").disabled = $("labRun2").disabled = true;
-    $("labStop").hidden = false;
-    $("labStep3").hidden = false;
-    $("labStep4").hidden = false;
-    $("labCode").value = code;
-    try { store.setItem("sungong.lab.code.v1", code); } catch(e){}
+    const OUT = ui ? ui.out : "labOut", ST = ui ? ui.status : "labStatus";
+    if (ui){
+      $(ui.run).disabled = true;
+      if ($(ui.stop)) $(ui.stop).hidden = false;
+      if ($(ui.code)) $(ui.code).value = code;
+    } else {
+      $("labRun").disabled = $("labRun2").disabled = true;
+      $("labStop").hidden = false;
+      $("labStep3").hidden = false;
+      $("labStep4").hidden = false;
+      $("labCode").value = code;
+      try { store.setItem("sungong.lab.code.v1", code); } catch(e){}
+    }
 
-    const say = (m)=>{ $("labOut").innerHTML = '<div class="lab-status">' + esc(m) + '</div>'; };
+    const say = (m)=>{ $(OUT).innerHTML = '<div class="lab-status">' + esc(m) + '</div>'; };
     say("준비 중…");
 
     const t0 = Date.now();
     const tick = setInterval(()=>{
-      $("labStatus").textContent = Math.round((Date.now() - t0) / 1000) + "초 지남";
+      $(ST).textContent = Math.round((Date.now() - t0) / 1000) + "초 지남";
     }, 500);
 
     const files = [{ name: "data.csv", text: labData.csv }];
@@ -7127,22 +8125,302 @@ _imgs
 
     clearInterval(tick);
     labBusy = false;
-    $("labRun").disabled = $("labRun2").disabled = false;
-    $("labStop").hidden = true;
-    $("labFirst").hidden = true;
-    $("labStatus").textContent = r.ok && r.ms ? (r.ms / 1000).toFixed(1) + "초 걸렸어요" : "";
+    if (ui){
+      $(ui.run).disabled = false;
+      if ($(ui.stop)) $(ui.stop).hidden = true;
+    } else {
+      $("labRun").disabled = $("labRun2").disabled = false;
+      $("labStop").hidden = true;
+      $("labFirst").hidden = true;
+    }
+    $(ST).textContent = r.ok && r.ms ? (r.ms / 1000).toFixed(1) + "초 걸렸어요" : "";
 
     if (!r.ok){
-      $("labOut").innerHTML = '<pre class="bad">' + esc(r.text) + '</pre>';
+      $(OUT).innerHTML = '<pre class="bad">' + esc(r.text) + '</pre>';
       return;
     }
     const out = (r.imgs || []).map(b=>
       '<img src="data:image/png;base64,' + b + '" alt="그래프">').join("");
     const txt = String(r.text || "").trim();
-    $("labOut").innerHTML = out
+    $(OUT).innerHTML = out
       + (txt && txt !== "(출력 없음)" ? '<pre>' + esc(txt) + '</pre>' : "")
       || '<div class="lab-status">보여줄 결과가 없어요.</div>';
-    $("labStep3").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    if (!ui) $("labStep3").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  /* =====================================================================
+     고급 작업창
+     · 기본 화면은 "고르기", 여기는 "직접 값을 넣기".
+     · 바깥을 눌러도 닫히지 않습니다. 닫기 단추로만 닫고, 쓰던 게 있으면 한 번 더 물어봅니다.
+     ===================================================================== */
+  let labProInited = false, labProKind = "stat", labProDirty = false;
+
+  const PRO_UI = { out:"labProOut", status:"labProStatus", run:"labProRun", stop:"labProStop", code:"labProCode" };
+  const pv = (id, d)=> $(id) ? $(id).value.trim() : (d === undefined ? "" : d);
+  const pnum = (id)=>{ const v = pv(id); return v === "" ? "" : (isNaN(Number(v)) ? "" : Number(v)); };
+
+  // 숫자·글자를 직접 넣는 칸
+  function proNum(id, label, ph, hint){
+    return '<label>' + label + '<input type="text" id="' + id + '" placeholder="' + esc(ph || "") + '">'
+      + (hint ? '<span class="hint">' + hint + '</span>' : '') + '</label>';
+  }
+
+  const PRO_KEEP = ["qPAL", "qSTYLE", "qSSTYLE", "qTITLE", "qROT", "qFW", "qFH", "qALPHA",
+                    "qSCALE", "qSEED", "qTEST"];
+  function proSnapshot(){
+    const o = {};
+    PRO_KEEP.forEach(id=>{ if ($(id)) o[id] = $(id).value; });
+    ["qGRID", "qLBL"].forEach(id=>{ if ($(id)) o["#" + id] = $(id).checked; });
+    return o;
+  }
+  function proRestore(o){
+    Object.keys(o).forEach(id=>{
+      if (id[0] === "#"){ const c = $(id.slice(1)); if (c) c.checked = o[id]; return; }
+      const el = $(id); if (!el) return;
+      if (el.tagName === "SELECT"){ if ([...el.options].some(x=> x.value === o[id])) el.value = o[id]; }
+      else el.value = o[id];
+    });
+  }
+
+  function labProOpts(){
+    if (!labData){ $("labProOpts").innerHTML = '<div class="hint">먼저 데이터를 고르세요.</div>'; return; }
+    const box = $("labProOpts");
+    const nums = labNumCols(), cats = labCatCols(), all = labAllCols();
+
+    if (labProKind === "stat"){
+      box.innerHTML = '<div class="hint">행·열 개수와 각 열의 요약을 보여줘요. '
+        + '위의 <b>손질</b>에 값을 넣으면 그 결과에 대한 요약이 나와요.</div>';
+      return;
+    }
+
+    if (labProKind === "chart"){
+      box.innerHTML = labSel("qC1", "그래프 종류", LAB_CHARTS, "", " wide");
+      const draw = ()=>{
+        const k = $("qC1").value;
+        let h = "";
+        if (k === "bar" || k === "barh")
+          h = labSel("qC2", "무리", cats.length ? cats : all) + labSel("qC3", "값", nums)
+            + labSel("qC5", "계산", LAB_AGG)
+            + labSel("qC6", "정렬", [{ v:"desc", t:"큰 순서" }, { v:"asc", t:"작은 순서" }, { v:"name", t:"이름 순서" }]);
+        else if (k === "groupbar" || k === "stackbar")
+          h = labSel("qC2", "가로축", cats.length ? cats : all) + labSel("qC3", "값", nums)
+            + labSel("qC4", "색 기준", cats) + labSel("qC5", "계산", LAB_AGG);
+        else if (k === "line" || k === "area")
+          h = labSel("qC2", "가로축", all) + labSel("qC3", "세로축", nums)
+            + labSel("qC4", "여러 선 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "scatter")
+          h = labSel("qC2", "가로축", nums) + labSel("qC3", "세로축", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("qC4", "색 (선택)", ["(안 나눔)"].concat(cats))
+            + labSel("qC5", "추세선", [{ v:"off", t:"없음" }, { v:"on", t:"직선" }])
+            + proNum("qDOT", "점 크기", "55");
+        else if (k === "bubble")
+          h = labSel("qC2", "가로축", nums) + labSel("qC3", "세로축", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("qC6", "크기로 쓸 값", nums.slice(2).concat(nums.slice(0, 2)))
+            + labSel("qC4", "색 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "hist")
+          h = labSel("qC2", "값", nums) + proNum("qBINS", "구간 개수", "20", "직접 숫자를 넣어보세요")
+            + labSel("qC4", "무리별 겹쳐 보기 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "box" || k === "violin" || k === "strip")
+          h = labSel("qC2", "값", nums) + labSel("qC4", "무리 (선택)", ["(안 나눔)"].concat(cats))
+            + labSel("qC5", "방향", [{ v:"v", t:"세로" }, { v:"h", t:"가로" }]);
+        else if (k === "reg")
+          h = labSel("qC2", "가로축", nums) + labSel("qC3", "세로축", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("qC4", "색 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "kde")
+          h = labSel("qC2", "값", nums) + labSel("qC4", "무리별 (선택)", ["(안 나눔)"].concat(cats));
+        else if (k === "pie" || k === "count")
+          h = labSel("qC2", "항목", cats.length ? cats : all) + proNum("qTOP", "상위 몇 개", "비우면 전체");
+        else if (k === "dual")
+          h = labSel("qC2", "가로축", all) + labSel("qC3", "왼쪽 축", nums)
+            + labSel("qC6", "오른쪽 축", nums.slice(1).concat(nums.slice(0, 1)))
+            + labSel("qC5", "오른쪽 모양", [{ v:"bar", t:"막대" }, { v:"line", t:"선" }]);
+        else if (k === "pair")
+          h = labChecks("qC7", "함께 볼 숫자 열", nums) + labSel("qC4", "색 (선택)", ["(안 나눔)"].concat(cats));
+        else
+          h = '<div class="hint">숫자 열끼리의 상관계수를 색으로 보여줘요.</div>';
+
+        h += '<div class="pro-sec" style="margin-top:12px"><h4>꾸미기 <span class="pro-hint">직접 입력</span></h4>'
+          + '<div class="pro-grid">'
+          + proNum("qTITLE", "제목", "비우면 자동")
+          + proNum("qROT", "가로 글씨 각도", "30")
+          + proNum("qFW", "가로 크기(인치)", "7.2")
+          + proNum("qFH", "세로 크기(인치)", "4.3")
+          + proNum("qALPHA", "투명도 0~1", "0.85")
+          + '<label>그리는 방법<select id="qSTYLE">'
+          + '<option value="mpl">matplotlib (빠름)</option><option value="sns">seaborn (보기 좋게)</option>'
+          + '</select></label>'
+          + '<label>seaborn 배경<select id="qSSTYLE">'
+          + '<option value="whitegrid">whitegrid</option><option value="white">white</option>'
+          + '<option value="darkgrid">darkgrid</option><option value="ticks">ticks</option>'
+          + '</select></label>'
+          + '<label>색 묶음<select id="qPAL">'
+          + LAB_PAL.map(p=> '<option value="' + p.v + '">' + esc(p.t) + '</option>').join("") + '</select></label>'
+          + '</div>'
+          + '<label class="pro-wide"><input type="checkbox" id="qGRID" checked> 격자 보이기</label>'
+          + '<label class="pro-wide"><input type="checkbox" id="qLBL"> 막대 위에 숫자</label>'
+          + '</div>';
+        const keep = proSnapshot();
+        box.querySelectorAll(".lab-f, .pro-sec").forEach((el, i)=>{ if (i > 0) el.remove(); });
+        box.insertAdjacentHTML("beforeend", h);
+        proRestore(keep);
+      };
+      $("qC1").onchange = draw;
+      draw();
+      return;
+    }
+
+    // 머신러닝
+    box.innerHTML = labSel("qM1", "종류", [{ v:"reg", t:"회귀" }, { v:"clf", t:"분류" }, { v:"clus", t:"군집화" }], "", " wide");
+    const drawM = ()=>{
+      const k = $("qM1").value;
+      const target = k === "reg" ? (labDefaults(nums)[0] || nums[0]) : k === "clf" ? (cats[0] || "") : "";
+      let h = "";
+      if (k === "reg") h = labSel("qM2", "예측할 값", nums) + labSel("qM4", "모델", LAB_MODELS.reg);
+      else if (k === "clf") h = labSel("qM2", "맞힐 무리", cats.length ? cats : all) + labSel("qM4", "모델", LAB_MODELS.clf);
+      else h = labSel("qM4", "모델", LAB_MODELS.clus);
+      h += labChecks("qM3", "쓸 숫자 열", nums, "", target);
+
+      h += '<div class="pro-sec" style="margin-top:12px"><h4>설정값 <span class="pro-hint">직접 입력</span></h4><div class="pro-grid">'
+        + (k === "clus" ? proNum("qK", "묶음 개수 k", "3")
+                        : proNum("qTEST", "시험용 비율", "0.25", "0 ~ 1 사이"))
+        + proNum("qSEED", "랜덤 시드", "42", "같은 값이면 결과가 같아요")
+        + '<label>크기 맞추기<select id="qSCALE">'
+        + '<option value="none">안 함</option><option value="minmax">0~1 (MinMax)</option>'
+        + '<option value="std">표준화</option></select></label>'
+        + '<div id="qExtra" style="display:contents"></div>'
+        + '</div></div>';
+      const keep = proSnapshot();
+      box.querySelectorAll(".lab-f, .pro-sec").forEach((el, i)=>{ if (i > 0) el.remove(); });
+      box.insertAdjacentHTML("beforeend", h);
+      proRestore(keep);
+
+      const extra = ()=>{
+        const mm = $("qM4").value, kk = $("qM1").value;
+        let e = "";
+        if (mm === "tree") e = proNum("qDEPTH", "트리 깊이 max_depth", "4");
+        else if (mm === "forest") e = proNum("qTREES", "나무 개수", "100") + proNum("qDEPTH", "트리 깊이", "6");
+        else if (mm === "knn") e = proNum("qKNN", "이웃 수 k", "5");
+        else if (mm === "poly") e = proNum("qDEG", "차수", "2");
+        if (kk === "clus" && mm === "kmeans") e += proNum("qNINIT", "초기화 횟수 n_init", "10");
+        $("qExtra").innerHTML = e;
+      };
+      $("qM4").onchange = extra; extra();
+      if (k !== "clus" && $("qM2")) $("qM2").onchange = ()=>{
+        const t = $("qM2").value;
+        document.querySelectorAll("#qM3 input").forEach(b=>{
+          b.closest("label").style.display = (b.value === t ? "none" : "");
+          if (b.value === t) b.checked = false;
+        });
+      };
+      if (k !== "clus" && $("qM2")) $("qM2").onchange();
+    };
+    $("qM1").onchange = drawM;
+    drawM();
+  }
+
+  function labProRead(){
+    const o = { kind: labProKind, adv:true,
+      prep: { na: pv("pP1", "keep"), dedup: pv("pP3", "keep") === "on",
+              outlier: pv("pP2") === "" ? "keep" : pv("pP2"),
+              filter: pv("pF1"),
+              derive: (pv("pD1") && pv("pD2")) ? [{ name: pv("pD1"), expr: pv("pD2") }] : [] },
+      deco: { style: pv("qSTYLE", "mpl"), sstyle: pv("qSSTYLE", "whitegrid"),
+              pal: pv("qPAL", "tab10"), size:"m",
+              grid: $("qGRID") ? $("qGRID").checked : true,
+              labels: $("qLBL") ? $("qLBL").checked : false,
+              title: pv("qTITLE"), rot: pnum("qROT") === "" ? 30 : pnum("qROT"),
+              alpha: pnum("qALPHA") === "" ? 0.85 : pnum("qALPHA"),
+              dot: pnum("qDOT") === "" ? 55 : pnum("qDOT"),
+              fw: pnum("qFW"), fh: pnum("qFH") } };
+    if (labProKind === "chart"){
+      o.chart = { type: pv("qC1"), x: pv("qC2"), y: pv("qC3"), g: pv("qC4"),
+                  agg: pv("qC5", "mean"), extra: pv("qC6"), cols: labChecked("qC7"),
+                  bins: pnum("qBINS") === "" ? 20 : pnum("qBINS"),
+                  sort: pv("qC6", "desc"), trend: pv("qC5") === "on", orient: pv("qC5", "v") };
+      if (o.chart.type === "pie" || o.chart.type === "count")
+        o.chart.extra = pnum("qTOP") === "" ? "전체" : String(pnum("qTOP"));
+    } else if (labProKind === "ml"){
+      o.ml = { task: pv("qM1", "reg"), model: pv("qM4"), target: pv("qM2"),
+               feats: labChecked("qM3"),
+               test: pnum("qTEST") === "" ? 0.25 : pnum("qTEST"),
+               scale: pv("qSCALE", "none"),
+               seed: pnum("qSEED") === "" ? 42 : pnum("qSEED"),
+               k: pnum("qK") === "" ? 3 : pnum("qK"), p:"auto",
+               params: { depth: pnum("qDEPTH"), trees: pnum("qTREES"), k: pnum("qKNN"),
+                         deg: pnum("qDEG"), seed: pnum("qSEED") } };
+      if (o.ml.task === "clus") o.ml.params.k = o.ml.k;
+    }
+    return o;
+  }
+
+  function labProCols(){
+    if (!labData){ $("labProData").textContent = "데이터 없음"; $("labProCols").innerHTML = ""; return; }
+    $("labProData").textContent = labData.name + " · " + labData.rows.length + "행 × " + labData.cols.length + "열";
+    $("labProCols").innerHTML = "열: " + labData.cols.map(c=>
+      '<b>' + esc(c.name) + '</b>' + (c.num ? "(숫자)" : "(글자)")).join(", ");
+  }
+
+  function labProRefresh(){ labProCols(); labProOpts(); labRenderDiag(); }
+
+  function labProOpen(){
+    if (!labProInited){ labProInited = true; labProWire(); }
+    labProRefresh();
+    $("labProModal").classList.add("on");
+  }
+  async function labProClose(){
+    if (labProDirty){
+      const ok = await ask("고친 코드가 있어요. 창을 닫으면 사라져요.\n닫을까요?",
+                           { title:"고급 작업창 닫기", yes:"닫기", danger:true });
+      if (!ok) return;
+    }
+    labProDirty = false;
+    $("labProModal").classList.remove("on");
+  }
+
+  function labProWire(){
+    document.querySelectorAll("#labProKinds button").forEach(b=> b.onclick = ()=>{
+      labProKind = b.dataset.k;
+      document.querySelectorAll("#labProKinds button").forEach(x=> x.classList.toggle("on", x === b));
+      labProOpts();
+    });
+    document.querySelectorAll("[data-pds]").forEach(b=> b.onclick = ()=>{
+      const s = LAB_SAMPLES[b.dataset.pds];
+      if (s){ labLoad(s.name, s.csv); labProRefresh(); }
+    });
+    $("labProUpBtn").onclick = ()=> $("labUp").click();
+
+    document.querySelectorAll("#labProTabs button").forEach(b=> b.onclick = ()=>{
+      document.querySelectorAll("#labProTabs button").forEach(x=> x.classList.toggle("on", x === b));
+      $("labProOutWrap").hidden  = b.dataset.t !== "out";
+      $("labProCodeWrap").hidden = b.dataset.t !== "code";
+    });
+
+    const runFromOpts = ()=>{
+      if (!labData){ toast("먼저 데이터를 고르세요."); return; }
+      const o = labProRead();
+      const bad = labValidate(o);
+      if (bad){ toast(bad); return; }
+      const code = labGen(o);
+      labProDirty = false;
+      labExecute(code, PRO_UI);
+    };
+    $("labProRun").onclick = runFromOpts;
+    $("labProReset").onclick = ()=>{
+      if (!labData) return;
+      $("labProCode").value = labGen(labProRead()); labProDirty = false;
+    };
+    $("labProRunCode").onclick = ()=>{
+      if (!labData){ toast("먼저 데이터를 고르세요."); return; }
+      labExecute($("labProCode").value, PRO_UI);
+    };
+    $("labProCode").oninput = ()=>{ labProDirty = true; };
+    $("labProCopy").onclick = async ()=>{
+      try { await navigator.clipboard.writeText($("labProCode").value); toast("코드를 복사했어요."); }
+      catch(e){ toast("복사가 안 되면 직접 선택해서 복사해주세요."); }
+    };
+    $("labProStop").onclick = ()=>{ if (runPython.cancel) runPython.cancel(); };
+    $("labProClose").onclick = labProClose;
+    // 바깥을 눌러도 닫지 않습니다 (실수로 작업이 날아가지 않도록)
   }
 
   /* ---------- 처음 한 번 연결 ---------- */
@@ -7184,9 +8462,10 @@ _imgs
     });
 
     $("labRun").onclick = ()=>{
-      const bad = labValidate();
+      const o = labReadBasic();
+      const bad = labValidate(o);
       if (bad){ toast(bad); return; }
-      labExecute(labBuildCode());
+      labExecute(labGen(o));
     };
     $("labRun2").onclick = ()=> labExecute($("labCode").value);
     $("labStop").onclick = ()=>{ if (runPython.cancel) runPython.cancel(); };
@@ -7199,6 +8478,7 @@ _imgs
     // 사용법 팝업
     const openHelp = ()=>{ labHelpShow(0); $("labHelpModal").classList.add("on"); };
     const closeHelp = ()=> $("labHelpModal").classList.remove("on");
+    $("labProBtn").onclick = labProOpen;
     $("labHelpBtn").onclick = openHelp;
     $("labHelpClose").onclick = closeHelp;
     $("labHelpModal").onclick = (e)=>{ if (e.target.id === "labHelpModal") closeHelp(); };

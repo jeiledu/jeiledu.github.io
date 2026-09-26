@@ -137,6 +137,13 @@
   .muted{color:var(--ink-faint)}
   .empty{padding:26px 4px; text-align:center; color:var(--ink-faint); font-size:13px}
 
+  /* 내보내기 도구 */
+  .anon{display:inline-flex; align-items:center; gap:5px; font-size:12.5px;
+        color:var(--ink-soft); margin-left:10px; cursor:pointer; user-select:none}
+  .anon input{margin:0; cursor:pointer}
+  .tools input[type="date"]{font:inherit; font-size:12.5px; padding:5px 7px;
+        border:1px solid var(--line); border-radius:8px; color:var(--ink); background:#fff}
+
   /* 지금 공부 중 */
   .now-n{font-size:12.5px; font-weight:700; color:#2b7355; background:#e6f4ee;
          border-radius:99px; padding:2px 9px; margin-left:6px; vertical-align:middle}
@@ -348,6 +355,16 @@
   };
   const ymd = (ts)=> ts ? String(ts).slice(0,10) : "-";
 
+  // 내보내기에서 과목 열 순서 — 앱의 과목 순서를 먼저, 모르는 건 뒤에 가나다순
+  const SUBJ_ORDER = ["국어","영어","수학","과학","사회","정보","예체능","기타"];
+  const bySubject = (a, b)=>{
+    const ia = SUBJ_ORDER.indexOf(a), ib = SUBJ_ORDER.indexOf(b);
+    if (ia >= 0 && ib >= 0) return ia - ib;
+    if (ia >= 0) return -1;
+    if (ib >= 0) return 1;
+    return a.localeCompare(b, "ko");
+  };
+
   async function rpc(fn, args){
     const { data, error } = await sb.rpc(fn, args || {});
     if (error) throw error;
@@ -538,7 +555,11 @@
       '<div class="card">'
       + '<div class="tools"><input id="uSearch" placeholder="닉네임·이메일 검색" value="'+esc(uQ)+'">'
       + '<button class="b" id="uGo">검색</button><span class="grow"></span>'
-      + '<button class="b" id="uCsv">공부기록 CSV</button>'
+      + '<button class="b" id="uCsv">공부기록 CSV</button> '
+      + '<button class="b" id="uSess">세션 CSV</button>'
+      + '<label class="anon"><input type="checkbox" id="uAnon"> 이름 가리기</label>'
+      + '<span class="grow"></span>'
+      + '<span class="muted">기간</span> <input type="date" id="uFrom"> ~ <input type="date" id="uTo">'
       + '<span class="muted" id="uCount"></span></div>'
       + '<div class="tbl-wrap"><table><thead><tr>'
       + '<th>닉네임</th><th>이메일</th><th>역할</th><th>오늘</th><th>누적</th>'
@@ -546,14 +567,77 @@
       + '<div class="pager" id="uPager"></div></div>';
 
     $("uGo").onclick = ()=>{ uQ = $("uSearch").value.trim(); uPage = 0; loadUsers(); };
+    // 기간 기본값: 최근 90일
+    const isoD = (d)=> new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    const d90 = new Date(); d90.setDate(d90.getDate() - 90);
+    $("uFrom").value = isoD(d90);
+    $("uTo").value   = isoD(new Date());
+    const range = ()=>{
+      const f = $("uFrom").value || isoD(d90), t = $("uTo").value || isoD(new Date());
+      return f <= t ? { p_from: f, p_to: t } : { p_from: t, p_to: f };
+    };
+
+    // 닉네임에 쉼표·따옴표가 있어도 칸이 밀리지 않게
+    const q = (v)=>{ v = (v === null || v === undefined) ? "" : String(v);
+                     return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    const mins = (sec)=> Math.round(Number(sec || 0) / 60);
+    const csv  = (head, body)=> "﻿" + head.map(q).join(",") + "\n"
+                              + body.map(r=> r.map(q).join(",")).join("\n");
+
+    // '이름 가리기' — 닉네임을 학생1·학생2… 로 바꾸고 이메일은 뺍니다.
+    // 학생들에게 나눠 줄 자료라면 켜 주세요.
+    function masker(rows){
+      if (!$("uAnon").checked) return { on:false, name:(n)=>n };
+      const names = [...new Set(rows.map(r=> r.nickname))].sort((a,b)=> a.localeCompare(b,"ko"));
+      const map = new Map(names.map((n,i)=> [n, "학생" + (i+1)]));
+      return { on:true, name:(n)=> map.get(n) || n };
+    }
+
     $("uCsv").onclick = async ()=>{
-      const to = new Date(), from = new Date(); from.setDate(from.getDate() - 90);
-      const iso = (d)=> d.toISOString().slice(0,10);
-      const rows = await rpc("admin_export", { p_from: iso(from), p_to: iso(to) });
-      const head = "닉네임,이메일,날짜,공부시간(분)";
-      const body = rows.map(r=> [r.nickname, r.email, r.day, r.minutes].join(",")).join("\n");
-      downloadText("공부기록_최근90일.csv", "\uFEFF"+head+"\n"+body);
-      toast(rows.length + "줄을 내려받았어요.");
+      const rows = await rpc("admin_export", range());
+      if (!rows.length){ toast("그 기간에는 기록이 없어요."); return; }
+      const m = masker(rows);
+
+      // schema22 를 아직 안 돌렸으면 과목 열 없이 예전처럼 내려받습니다
+      const hasSubj = Object.prototype.hasOwnProperty.call(rows[0], "subjects");
+
+      // 실제로 나온 과목만 열로 만듭니다 (앱의 과목 순서를 먼저, 모르는 건 뒤에 가나다순)
+      const seen = new Set();
+      if (hasSubj) rows.forEach(r=> Object.keys(r.subjects || {}).forEach(s=> seen.add(s)));
+      const subs = [...seen].sort(bySubject);
+
+      const head = ["학생"].concat(m.on ? [] : ["이메일"]).concat(["날짜","공부시간(분)"])
+        .concat(subs.map(s=> s + "(분)"))
+        .concat(hasSubj ? ["과목없음(분)"] : []);
+      const body = rows.map(r=>
+        [m.name(r.nickname)].concat(m.on ? [] : [r.email]).concat([r.day, r.minutes])
+          .concat(subs.map(s=> mins((r.subjects || {})[s])))
+          .concat(hasSubj ? [mins(r.untagged)] : []));
+
+      downloadText("공부기록_" + range().p_from + "_" + range().p_to + ".csv", csv(head, body));
+      toast(hasSubj
+        ? rows.length + "줄 · 과목 " + subs.length + "개를 내려받았어요."
+        : rows.length + "줄을 내려받았어요. (과목까지 받으려면 schema22.sql 을 실행해 주세요)");
+    };
+
+    $("uSess").onclick = async ()=>{
+      let rows;
+      try { rows = await rpc("admin_export_sessions", range()); }
+      catch(e){ toast("세션 내보내기는 schema23.sql 을 실행해야 써요."); return; }
+      if (!rows.length){ toast("그 기간에는 세션이 없어요."); return; }
+      const m = masker(rows);
+
+      const head = ["학생"].concat(m.on ? [] : ["이메일"])
+        .concat(["날짜","요일","시작시각","종료시각","시작시","공부시간(분)","과목","방식","목표(분)"]);
+      const body = rows.map(r=>
+        [m.name(r.nickname)].concat(m.on ? [] : [r.email])
+          .concat([r.day, r.dow, r.started, r.ended, r.start_hour,
+                   r.minutes, r.subject, r.mode, r.target_min]));
+
+      downloadText("공부세션_" + range().p_from + "_" + range().p_to + ".csv", csv(head, body));
+      const noSubj = rows.filter(r=> !r.subject).length;
+      toast(rows.length + "개 세션을 내려받았어요."
+        + (noSubj === rows.length ? " (과목은 schema23 이후 기록부터 남아요)" : ""));
     };
     $("uSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("uGo").click(); };
     await loadUsers();

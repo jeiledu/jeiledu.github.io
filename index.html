@@ -2980,9 +2980,15 @@
     segSec = 0;
     if (!segStart || sec < 5) return;
     const k = keyOf(segStart);
+    // 끝 시각이 '지금'보다 뒤면 서버가 세션을 통째로 거절합니다(2분 넘으면 '잘못된 시간입니다').
+    // 기기 시계가 빠른 학생은 이것 때문에 세션이 하나도 안 남았습니다. 여기서 한 번 더 막습니다.
+    let endMs = Number(endAt || now());
+    if (!(endMs > 0)) endMs = now().getTime();
+    endMs = Math.min(endMs, now().getTime());
+    endMs = Math.max(endMs, segStart.getTime());
     const row = {
       start: segStart.toISOString(),
-      end:   (endAt || now()).toISOString(),
+      end:   new Date(endMs).toISOString(),
       sec:   sec,
       target: state.mode === "pomo" ? state.pomoTarget : 0,
       subject: subject || null
@@ -3077,7 +3083,8 @@
     }
 
     state.running = true;
-    state.last = state.lastActive = Date.now();
+    state.last = Date.now();
+    state.lastActive = now().getTime();   // 세션 끝 시각은 서버 시계 기준으로 (기기 시계가 빠르면 서버가 거절합니다)
     if (!state.startedAt) state.startedAt = now();
     if (!segStart){ segStart = state.startedAt; segSec = 0; }
     document.body.classList.add("running");
@@ -3113,7 +3120,7 @@
     //    예전에는 다 더한 뒤 화면 숫자만 목표로 줄여서, 세션은 30분인데 하루 합계는 8시간이 되곤 했습니다.
     if (state.target > 0) d = Math.min(d, Math.max(0, state.target - state.elapsed));
 
-    state.lastActive = t;
+    state.lastActive = t + clock.offset;   // 서버 시계 기준
     state.elapsed += d;
     if (state.phase === "study"){ addStudy(d); addSubjectTime(d); rollSegment(d); }   // 휴식은 순공에 포함 안 함
 
@@ -4289,8 +4296,11 @@
     try { store.setItem(PQKEY, JSON.stringify(pushQ)); } catch(e){}
   }
 
+  let pushNoSubject = false;        // 서버가 아직 과목을 안 받는 경우(schema23 전)
+
   function pushSession(s){
-    pushQ.push({ start: s.start, end: s.end, sec: s.sec, target: s.target || 0, tried: 0 });
+    pushQ.push({ start: s.start, end: s.end, sec: s.sec, target: s.target || 0,
+                 subject: s.subject || null, tried: 0 });
     savePushQ();
     flushSessions();
   }
@@ -4309,9 +4319,20 @@
           if (qe){ if (isNetErr(qe)) netOffline(); break; }
           if (dup && dup.length){ pushQ.shift(); savePushQ(); continue; }
         }
-        const { error } = await sb.rpc("add_session", {
-          p_start: s.start, p_end: s.end, p_seconds: s.sec, p_target: s.target || 0
-        });
+        const args = { p_start: s.start, p_end: s.end, p_seconds: s.sec, p_target: s.target || 0 };
+        let error;
+        if (pushNoSubject){
+          ({ error } = await sb.rpc("add_session", args));
+        } else {
+          ({ error } = await sb.rpc("add_session",
+              Object.assign({ p_subject: s.subject || null }, args)));
+          // schema23 을 아직 안 돌린 서버는 "그런 함수 없다"고 합니다 → 과목 없이 다시 보냅니다
+          if (error && /PGRST202|could not find the function|does not exist/i.test(
+                String(error.message || error.code || ""))){
+            pushNoSubject = true;
+            ({ error } = await sb.rpc("add_session", args));
+          }
+        }
         if (error){
           s.tried++;
           if (isNetErr(error)){ savePushQ(); netOffline(); break; }   // 인터넷 문제면 절대 버리지 않습니다
@@ -4319,7 +4340,12 @@
           // 세 번까지만 해보고 대기줄에서 뺍니다 — 안 그러면 뒤에 밀린 세션까지 막힙니다.
           s.bad = (s.bad || 0) + 1;
           savePushQ();
-          if (s.bad >= 3){ pushQ.shift(); savePushQ(); continue; }
+          if (s.bad >= 3){
+            // 조용히 사라지면 선생님이 원인을 알 수 없습니다 → 백오피스 '오류 기록'에 남깁니다
+            logErrorQuiet("세션 저장", String(error.message || error)
+              + " · " + s.start + "~" + s.end + " (" + s.sec + "초)");
+            pushQ.shift(); savePushQ(); continue;
+          }
           break;
         }
         pushQ.shift();
@@ -6771,8 +6797,22 @@ _imgs
   });
   window.addEventListener("orientationchange", ()=> setTimeout(placeMonthLabels, 300));
 
+  /* ---------- 멈춰 둔 채 앱을 나가면 거기서 세션을 마감 ----------
+     세션은 Finish·포모도로 완료·자정·3시간50분에만 기록됩니다.
+     그래서 자유 모드로 켜놓고 Finish 를 안 누르는 학생은
+     하루 합계만 쌓이고 세션 목록에는 한 줄도 안 남았습니다.
+     멈춘(Stop) 상태로 앱을 벗어나는 것은 "여기까지"라는 뜻이니 그 시점으로 저장합니다. */
+  let idleSaved = 0;                       // 돌아왔을 때 알려주려고 기억해 둡니다
+  function closeIfIdle(){
+    if (state.running || state.phase === "break") return;
+    if (!segStart || segSec < 5) return;
+    idleSaved = Math.floor(segSec);
+    commit();                              // 조각 기록 + 타이머 초기화
+  }
+
   window.addEventListener("beforeunload", (e)=>{
     if (state.running) step();
+    closeIfIdle();
     save();
     if (writeHasContent()){ e.preventDefault(); e.returnValue = ""; }
   });
@@ -6782,10 +6822,14 @@ _imgs
     if (checkCode && Date.now() > checkDeadline) checkDeadline = Date.now() + CHECK_GRACE * 1000;   // 안 보이는 사이 끝난 유예는 새로
     if (state.running) step();
     else if (checkCode) tickCheck();
+    if (idleSaved){                   // 자리를 비운 사이에 저장해 둔 게 있으면 알려줍니다
+      toast("멈춰 둔 " + humanKo(idleSaved) + " 세션을 저장했어요.");
+      idleSaved = 0;
+    }
     wakeSync();                       // 다른 앱 갔다 오면 브라우저가 풀어둔 화면 켜두기를 다시 잡습니다
   }
   document.addEventListener("visibilitychange", ()=>{
-    if (document.hidden){ save(); flush(); }
+    if (document.hidden){ closeIfIdle(); save(); flush(); }
     else { onResume(); refreshRank(); }
   });
   // 홈 화면 앱(PWA)으로 쓰면 visibilitychange 대신 pageshow 만 오는 경우가 있습니다
@@ -6805,6 +6849,20 @@ _imgs
     const age = Date.now() - Number(t.at || 0);
     const day = keyOf(new Date(t.startedAt || t.at || Date.now()));
     if (!(age >= 0 && age < 12 * 3600 * 1000) || !syncableDay(day)){
+      // 버리기 전에 세션으로 남깁니다.
+      // 예전에는 Finish 를 안 누른 채 하루가 지나면 그 세션이 통째로 사라졌습니다
+      // (하루 합계에는 있는데 세션 목록에만 없던 이유 중 하나)
+      const ss = Number(t.segSec) || 0;
+      if (t.phase !== "break" && ss >= 5){
+        segStart = new Date(t.segStart || t.startedAt || t.at);
+        segSec   = ss;
+        state.mode       = t.mode || "free";          // closeSegment 가 목표 값을 읽습니다
+        state.pomoTarget = t.pomoTarget || 0;
+        closeSegment(new Date(Number(t.at || Date.now()) + clock.offset));
+        segStart = null; segSec = 0;
+        state.mode = "free"; state.pomoTarget = 0;
+        save();
+      }
       try { store.removeItem(TKEY); } catch(e){}
       return;
     }
@@ -6815,7 +6873,7 @@ _imgs
     state.target     = t.target || 0;
     state.elapsed    = t.elapsed;
     state.startedAt  = t.startedAt ? new Date(t.startedAt) : null;
-    state.lastActive = t.at || Date.now();
+    state.lastActive = Number(t.at || Date.now()) + clock.offset;
     checkRun         = Number(t.checkRun) || 0;
     segStart         = t.segStart ? new Date(t.segStart) : state.startedAt;
     segSec           = Number(t.segSec) || 0;

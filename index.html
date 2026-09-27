@@ -1798,6 +1798,83 @@
   }
   #toast.on{opacity:1; transform:translate(-50%,0)}
 
+  /* ---------- 새 알림 팝업 (화면 오른쪽 위) ---------- */
+  #notiToasts{
+    position:fixed; top:72px; right:16px; z-index:70;
+    display:flex; flex-direction:column; gap:8px;
+    width:min(340px, calc(100vw - 32px)); pointer-events:none;
+  }
+  .nt{
+    pointer-events:auto; display:flex; align-items:flex-start; gap:11px;
+    background:var(--card); color:var(--ink);
+    border:1px solid var(--line); border-left:4px solid var(--blue);
+    border-radius:14px; padding:12px 10px 12px 13px;
+    box-shadow:0 14px 34px rgba(31,58,102,.18);
+    cursor:pointer; opacity:0; transform:translateX(26px);
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  .nt.on{opacity:1; transform:none}
+  .nt:focus-visible{outline:2px solid var(--blue); outline-offset:2px}
+  .nt .ic{font-size:19px; line-height:1.25; flex:none}
+  .nt .tx{flex:1; min-width:0}
+  .nt .t1{display:block; font-size:13.5px; font-weight:700; letter-spacing:-.2px; line-height:1.35}
+  .nt .t2{display:block; font-size:12.5px; color:var(--ink-soft); margin-top:2px;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .nt .t3{display:block; font-size:11px; color:var(--ink-soft); margin-top:5px}
+  .nt .x, .nr .x{flex:none; border:0; background:none; color:var(--ink-soft); font-size:17px;
+         line-height:1; padding:3px 6px; margin:-2px -2px 0 0; border-radius:7px; cursor:pointer}
+  .nt .x:hover, .nr .x:hover{background:var(--blue-soft); color:var(--ink)}
+
+  /* 자리 비운 사이 온 알림 — 돌아왔을 때 한 장으로 모아서, 닫을 때까지 남습니다 */
+  .nr{
+    pointer-events:auto; order:-1;
+    background:var(--card); color:var(--ink);
+    border:1px solid var(--line); border-top:4px solid var(--blue);
+    border-radius:16px; padding:13px 14px 12px;
+    box-shadow:0 18px 44px rgba(31,58,102,.22);
+    opacity:0; transform:translateY(-10px); transition:opacity .25s ease, transform .25s ease;
+  }
+  .nr.on{opacity:1; transform:none}
+  .nr-h{display:flex; align-items:center; gap:8px}
+  .nr-h b{flex:1; font-size:14.5px; letter-spacing:-.2px}
+  .nr-sub{font-size:12px; color:var(--ink-soft); margin:3px 0 9px; line-height:1.5}
+  .nr-list{display:flex; flex-direction:column; gap:1px; margin:0 -6px;
+           max-height:min(46vh, 330px); overflow-y:auto; overscroll-behavior:contain}
+  .nr-i{display:flex; align-items:flex-start; gap:10px; width:100%; text-align:left;
+        border:0; background:none; color:inherit; font:inherit; padding:9px 8px; border-radius:10px; cursor:pointer}
+  .nr-i:hover, .nr-i:focus-visible{background:var(--blue-soft); outline:none}
+  .nr-i .ic{font-size:17px; line-height:1.3; flex:none}
+  .nr-i .tx{flex:1; min-width:0}
+  .nr-i .t1{display:block; font-size:13px; font-weight:700; line-height:1.35}
+  .nr-i .t2{display:block; font-size:12px; color:var(--ink-soft); margin-top:1px;
+            overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .nr-i .tm{flex:none; font-size:11px; color:var(--ink-soft); margin-top:2px; white-space:nowrap}
+  .nr-more{font-size:12px; color:var(--ink-soft); padding:5px 8px 0}
+  .nr-f{display:flex; gap:8px; margin-top:11px}
+  .nr-f button{flex:1; font:inherit; font-size:13px; font-weight:600; padding:9px 10px;
+               border-radius:10px; cursor:pointer}
+  .nr-f .b-ghost{background:none; border:1px solid var(--line); color:var(--ink-soft)}
+  .nr-f .b-ghost:hover{background:var(--blue-soft); color:var(--ink)}
+  .nr-f .b-main{background:var(--blue); border:1px solid var(--blue); color:#fff}
+  .nr-f .b-main:hover{background:var(--blue-dark); border-color:var(--blue-dark)}
+  :root[data-theme="dark"] .nr{box-shadow:0 18px 44px rgba(0,0,0,.5)}
+  /* 야간의 --blue 는 밝아서 흰 글씨가 3.05 밖에 안 됩니다 → Start 단추와 같은 진한 파랑으로 (4.88) */
+  :root[data-theme="dark"] .nr-f .b-main{background:#2f6fd0; border-color:#2f6fd0}
+  :root[data-theme="dark"] .nr-f .b-main:hover{background:#245bad; border-color:#245bad}
+  @media (prefers-reduced-motion: reduce){ .nr{transition:none} }
+
+  /* 자리 비움 확인 코드는 무엇보다 위 — 알림 팝업이 가리면 안 됩니다 */
+  #checkModal{z-index:80}
+  .nt.k-notice{border-left-color:#c77a1e}                       /* 공지 */
+  .nt.k-comment, .nt.k-reply{border-left-color:#3d8f73}         /* 댓글·답글 */
+  .nt.k-grade, .nt.k-score{border-left-color:#8a5cc7}           /* 과제 */
+  :root[data-theme="dark"] .nt{box-shadow:0 14px 34px rgba(0,0,0,.45)}
+  @media (max-width:640px){
+    #notiToasts{top:max(10px, env(safe-area-inset-top)); left:10px; right:10px; width:auto}   /* 아이폰 노치 아래로 */
+    .nt{transform:translateY(-18px)}
+  }
+  @media (prefers-reduced-motion: reduce){ .nt{transition:none} }
+
   /* ================= 반응형 ================= */
   html{-webkit-text-size-adjust:100%}
   body{-webkit-tap-highlight-color:transparent}
@@ -1848,10 +1925,23 @@
     .acc-btn .ava{width:26px;height:26px;border-radius:8px;font-size:12px}
     .clock-box .date{height:42px}
     #accName{max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+    /* 로그인하면 종 아이콘이 생기면서 375px 폰에서 머리글이 444px 까지 넘쳤습니다
+       (화면 전체가 살짝 축소되고 맨 오른쪽 계정 단추가 잘림).
+       · 날짜는 연도를 빼고, 그래도 좁으면 줄어들며 … 로 잘립니다 (시간은 바로 옆 시계에 있으니까요)
+       · 밝기·종은 42px 정사각형
+       · 로그인한 계정 단추는 동그라미만 — 닉네임은 누르면 나오는 메뉴 맨 위에 있습니다 */
+    .clock-box .date{min-width:0; overflow:hidden}
+    .clock-box .date > span{display:block; overflow:hidden; text-overflow:ellipsis}
+    .clock-box .date .yr{display:none}
+    .clock{flex:none}
+    .theme-btn, .noti-btn{width:42px; padding:0 !important; justify-content:center; flex:none}
+    .acc-btn:not(.guest){width:42px; padding:0; justify-content:center; flex:none}
+    .acc-btn:not(.guest) #accName{display:none}
     #dmLabel{display:none}
     .dm-btn{padding:0 10px 0 6px}
     .pc-only{display:none}
-    .noti-pop{width:min(320px, calc(100vw - 28px)); right:-60px}
+    .noti-pop{width:min(320px, calc(100vw - 28px)); right:-50px}   /* 계정 단추(42px)+간격 만큼 → 오른쪽 끝이 화면 여백에 맞게 */
     .acc-menu{width:200px}
 
     .main-tabs button{flex:1; padding:10px 0; font-size:14px}
@@ -1914,6 +2004,10 @@
   @media (max-width:360px){
     .stats{grid-template-columns:1fr 1fr}
     .brand h1{font-size:15px}
+    .clock-box{gap:6px}
+    .noti-pop{right:-48px}
+    .clock{font-size:17px; padding:0 8px}
+    .clock-box .date{font-size:11px}
     .preset{padding:8px 10px; font-size:12.5px}
   }
 
@@ -3752,8 +3846,9 @@
     const k = keyOf(d);
     if (k !== clockDay){                                   // 날짜가 바뀌면 갱신
       clockDay = k;
-      $("todayLabel").textContent =
-        d.getFullYear()+"년 "+(d.getMonth()+1)+"월 "+d.getDate()+"일 ("+WD_KO[d.getDay()]+")";
+      // 연도는 따로 감싸 둡니다 — 폰에서는 머리글이 넘치지 않게 연도를 숨깁니다
+      $("todayLabel").innerHTML = '<span class="yr">' + d.getFullYear() + '년 </span>'
+        + (d.getMonth()+1) + "월 " + d.getDate() + "일 (" + WD_KO[d.getDay()] + ")";
       renderGrid(); renderMini(); renderSessions(); renderStats();
     }
   }
@@ -4076,7 +4171,7 @@
 
     setInterval(flush, 20000);                                  // 20초마다 서버 저장
     setInterval(()=>{ if (!document.hidden) refreshRank(); }, 45000);
-    setInterval(()=>{ if (!document.hidden) updateBadges(); }, 60000);
+    setInterval(()=>{ if (!document.hidden) updateBadges(); }, 30000);   // 새 알림 팝업이 너무 늦지 않게 30초
   }
 
   // 공지 배너는 여러 개(JSON 배열)일 수 있고, 예전처럼 한 줄 문자열일 수도 있다
@@ -4103,6 +4198,7 @@
   }
 
   async function onSession(session){
+    ntReset();                          // 다른 계정으로 바뀌면 '이미 본 알림' 기준도 새로
     if (!session){ me = null; renderAccount(); renderRank(); return; }
 
     const email = session.user.email || "";
@@ -4477,12 +4573,15 @@
       btn.classList.remove("guest");
       $("accAva").textContent = me.nickname.slice(0,1);
       $("accName").textContent = me.nickname;
+      btn.title = me.nickname + " · 내 메뉴";               // 폰에서는 닉네임 글자가 숨으므로
+      btn.setAttribute("aria-label", me.nickname + " 내 메뉴");
       $("accRole").textContent = ROLE_KO[me.role] || "학생";
       $("accMail").textContent = me.email;
       $("rankSw").classList.toggle("on", me.show_rank);
       $("mAdmin").hidden = me.role !== "admin";
     } else {
       btn.classList.add("guest");
+      btn.removeAttribute("title"); btn.removeAttribute("aria-label");
       $("accAva").textContent = "?";
       $("accName").textContent = me ? "닉네임 설정" : "로그인";
     }
@@ -6355,16 +6454,213 @@ _imgs
       : '<div class="noti-empty">새로운 알림이 없어요.</div>';
 
     $("notiList").querySelectorAll("[data-n]").forEach(el=>{
-      el.onclick = async ()=>{
-        await sb.rpc("mark_notifications_read", { p_id: Number(el.dataset.n) });
-        $("notiPop").hidden = true;
-        updateBadges();
-        const t = el.dataset.lt, id = Number(el.dataset.li);
-        if (t === "message"){ openDM("in"); dmOpen(id); }
-        else if (t === "post"){ switchView("board"); setTimeout(()=> openPost(id), 120); }
-      };
+      el.onclick = ()=> notiGo(Number(el.dataset.n), el.dataset.lt, Number(el.dataset.li));
     });
     if (openPop) $("notiPop").hidden = false;
+  }
+
+  // 알림 하나를 읽음으로 하고 해당 쪽지·글로 이동 (알림 창과 팝업이 같이 씁니다)
+  async function notiGo(nid, linkType, linkId){
+    await sb.rpc("mark_notifications_read", { p_id: nid });
+    $("notiPop").hidden = true;
+    updateBadges();
+    if (linkType === "message"){ openDM("in"); dmOpen(linkId); }
+    else if (linkType === "post"){ switchView("board"); setTimeout(()=> openPost(linkId), 120); }
+  }
+
+  /* ---------- 새 알림 팝업 ----------
+     쪽지·댓글·공지가 와도 종 아이콘에 빨간 점만 떠서 학생들이 잘 못 봤습니다.
+     폰 알림은 켜 둔 학생만 받으니, 앱을 보고 있는 동안에는 화면 오른쪽 위에 잠깐 띄웁니다.
+     · 안 읽은 개수가 바뀌었을 때만 목록을 한 번 더 받아옵니다 (평소 서버 요청은 그대로)
+     · 한 번 띄운 알림은 기기에 기억해 두고 다시 띄우지 않습니다
+     · 이 기기에서 처음이면 옛 알림을 하나하나 띄우지 않고 "안 읽은 알림 N개"로 한 번만 */
+  const NT_MAX_SHOWN = 3, NT_LIFE = 9000;
+  const ntKey = ()=> "sungong.notiSeen.v1:" + ((me && me.id) || "");
+  let ntSeen = null, ntLastUnread = -1, ntFirst = false;
+
+  /* ---------- 자리 비웠다 돌아왔을 때 ----------
+     잠깐 다른 앱을 본 게 아니라 3분 넘게 비웠다 돌아오면(앱을 껐다 켠 것 포함)
+     그 사이 온 알림을 카드 여러 장 대신 한 장에 모아서, 닫을 때까지 남겨 둡니다.
+     떠난 시각은 기기에 적어 두므로 앱이 완전히 꺼졌다 켜져도 압니다. */
+  const AWAY_KEY = "sungong.awayAt.v1", AWAY_MIN = 3 * 60 * 1000;
+  function ntMarkAway(){ try { store.setItem(AWAY_KEY, String(Date.now())); } catch(e){} }
+  function ntTakeAway(){                        // 얼마나 비웠는지(ms). 3분 안 됐으면 0. 한 번 읽으면 지웁니다
+    let t = 0;
+    try { t = Number(store.getItem(AWAY_KEY)) || 0; store.removeItem(AWAY_KEY); } catch(e){}
+    const ms = t ? Date.now() - t : 0;
+    return ms >= AWAY_MIN ? ms : 0;
+  }
+  let ntAway = ntTakeAway();                    // 앱을 새로 열었을 때
+  // 폰을 돌리거나 창 크기를 바꾸면 자리를 다시 잡습니다 (넓을 때 잡은 위치가 좁아진 화면에 남지 않게)
+  window.addEventListener("resize", ()=>{ const b = document.getElementById("notiToasts"); if (b) ntPlace(b); });
+
+  function ntReset(){
+    ntSeen = null; ntLastUnread = -1; ntFirst = false;
+    const box = document.getElementById("notiToasts"); if (box) box.innerHTML = "";
+  }
+  function ntBox(){
+    let box = document.getElementById("notiToasts");
+    if (!box){
+      box = document.createElement("div");
+      box.id = "notiToasts";
+      box.setAttribute("aria-live", "polite");
+      document.body.appendChild(box);
+    }
+    return box;
+  }
+
+  async function ntCheck(unread){
+    if (!sb || !me || !me.nickname) return;
+    if (ntSeen === null){
+      try { ntSeen = Number(store.getItem(ntKey())) || 0; } catch(e){ ntSeen = 0; }
+      ntFirst = ntSeen === 0;          // 이 기기에서 처음이면 쌓여 있던 옛 알림은 요약 하나로
+    }
+    const away = ntAway; ntAway = 0;              // 돌아온 직후 한 번만 씁니다
+    const changed = unread !== ntLastUnread;
+    ntLastUnread = unread;
+    // 안 읽은 게 하나도 없는 걸 봤다면, 그 뒤에 오는 건 전부 새 알림입니다 (요약 말고 하나하나)
+    if (!unread){ ntFirst = false; return; }
+    if (!changed && !away) return;              // 돌아왔을 때는 개수가 같아도 한 번 확인
+
+    const { data } = await sb.rpc("list_notifications", { p_limit: away ? 30 : 10 });
+    const all = data || [];
+    if (!all.length) return;
+    const fresh = all.filter(n=> !n.is_read && n.id > ntSeen);
+    ntSeen = Math.max(ntSeen, ...all.map(n=> Number(n.id)));
+    try { store.setItem(ntKey(), String(ntSeen)); } catch(e){}
+
+    if (!fresh.length || !$("notiPop").hidden) return;   // 알림 창을 보고 있으면 띄우지 않음
+    if (ntFirst){ ntFirst = false; ntSummary(unread); return; }
+    // 한꺼번에 여러 개 오면 쪽지·공지를 먼저 — 선생님 공지가 답글에 밀려 '더 보기'로 숨지 않게
+    const PRI = { message:0, notice:0, grade:1, score:1 };
+    fresh.sort((a,b)=> ((a.kind in PRI ? PRI[a.kind] : 2) - (b.kind in PRI ? PRI[b.kind] : 2)) || (b.id - a.id));
+    if (away){ ntReturn(fresh, away); return; }                                     // 비웠다 돌아옴 → 한 장에 모아서
+    if (fresh.length > NT_MAX_SHOWN) ntSummary(fresh.length - NT_MAX_SHOWN, true);   // 맨 아래에 "N개 더"
+    fresh.slice(0, NT_MAX_SHOWN).reverse().forEach(ntShow);                          // 중요한 것이 맨 위로
+  }
+
+  // 머리글(종·계정 단추) 바로 아래에 둡니다. 스크롤해서 머리글이 안 보이면 화면 맨 위로.
+  function ntPlace(box){
+    if (innerWidth > 640){
+      const h = document.querySelector("header.top");
+      const b = h ? h.getBoundingClientRect().bottom : 0;
+      box.style.top = Math.max(12, Math.round(b) + 10) + "px";
+    } else box.style.top = "";                              // 폰은 CSS 대로 맨 위(노치 아래)
+  }
+
+  function ntMake(cls, html, onOpen){
+    const box = ntBox();
+    const el = document.createElement("div");
+    el.className = "nt " + cls;
+    el.setAttribute("role", "status");
+    el.tabIndex = 0;
+    el.innerHTML = html + '<button class="x" aria-label="닫기">×</button>';
+
+    let timer = null;
+    const close = ()=>{
+      clearTimeout(timer);
+      el.classList.remove("on");
+      setTimeout(()=> el.remove(), 250);
+    };
+    const arm = ()=>{ clearTimeout(timer); timer = setTimeout(close, NT_LIFE); };
+    el.onmouseenter = ()=> clearTimeout(timer);       // 읽는 동안에는 안 사라지게
+    el.onmouseleave = arm;
+    el.querySelector(".x").onclick = (e)=>{ e.stopPropagation(); close(); };
+    el.onclick = (e)=>{ e.stopPropagation(); close(); onOpen(); };   // 바깥 클릭으로 알림 창이 바로 닫히지 않게
+    el.onkeydown = (e)=>{ if (e.key === "Enter"){ close(); onOpen(); } else if (e.key === "Escape") close(); };
+
+    ntPlace(box);
+    box.prepend(el);
+    const cards = box.querySelectorAll(".nt");                 // 돌아왔을 때 모음(.nr)은 건드리지 않습니다
+    for (let i = NT_MAX_SHOWN + 1; i < cards.length; i++) cards[i].remove();
+    requestAnimationFrame(()=> requestAnimationFrame(()=> el.classList.add("on")));
+    arm();
+  }
+
+  function ntShow(n){
+    const where = n.link_type === "message" ? "눌러서 쪽지 보기"
+                : n.link_type === "post"    ? "눌러서 글 보기" : "눌러서 보기";
+    ntMake("k-" + (n.kind || "etc"),
+      '<span class="ic">' + (NOTI_ICON[n.kind] || "🔔") + '</span>'
+      + '<span class="tx"><span class="t1">' + esc(n.title) + '</span>'
+      + (n.body ? '<span class="t2">' + esc(n.body) + '</span>' : '')
+      + '<span class="t3">' + where + '</span></span>',
+      ()=> notiGo(Number(n.id), n.link_type, Number(n.link_id)));
+  }
+
+  // "12분 전" 같은 상대 시각 (하루 넘으면 날짜)
+  function ntAgo(ts){
+    const m = Math.floor((now() - new Date(ts)) / 60000);
+    if (m < 1)  return "방금";
+    if (m < 60) return m + "분 전";
+    if (m < 60 * 24) return Math.floor(m / 60) + "시간 전";
+    return fmtDate(ts);
+  }
+
+  function ntReturn(list, awayMs){
+    const box = ntBox();
+    ntPlace(box);
+    const old = box.querySelector(".nr"); if (old) old.remove();    // 한 장만
+
+    const KO = { message:"쪽지", notice:"공지", comment:"댓글", reply:"답글", grade:"과제", score:"점수" };
+    const cnt = {};
+    list.forEach(n=>{ const k = KO[n.kind] || "알림"; cnt[k] = (cnt[k] || 0) + 1; });
+    const kinds = Object.keys(cnt).map(k=> k + " " + cnt[k]).join(" · ");
+    const away  = awayMs >= 24 * 3600 * 1000 ? "하루 넘게" : humanKo(awayMs / 1000) + " 동안";
+    const SHOW  = 5;
+
+    const el = document.createElement("section");
+    el.className = "nr";
+    el.setAttribute("role", "region");
+    el.setAttribute("aria-label", "자리 비운 사이 온 알림");
+    el.innerHTML =
+        '<div class="nr-h"><b>자리 비운 사이 알림 ' + list.length + '개</b>'
+      + '<button class="x" aria-label="닫기">×</button></div>'
+      + '<div class="nr-sub">' + away + ' · ' + kinds + '</div>'
+      + '<div class="nr-list">'
+      + list.slice(0, SHOW).map(n=>
+          '<button class="nr-i" data-n="' + n.id + '" data-lt="' + esc(n.link_type || "")
+          + '" data-li="' + (n.link_id || "") + '">'
+          + '<span class="ic">' + (NOTI_ICON[n.kind] || "🔔") + '</span>'
+          + '<span class="tx"><span class="t1">' + esc(n.title) + '</span>'
+          + (n.body ? '<span class="t2">' + esc(n.body) + '</span>' : '') + '</span>'
+          + '<span class="tm">' + ntAgo(n.created_at) + '</span></button>').join("")
+      + (list.length > SHOW ? '<div class="nr-more">외 ' + (list.length - SHOW) + '개는 알림 창에서</div>' : '')
+      + '</div>'
+      + '<div class="nr-f"><button class="b-ghost" data-act="read">모두 읽음</button>'
+      + '<button class="b-main" data-act="all">알림 모두 보기</button></div>';
+
+    const close = ()=>{ el.classList.remove("on"); setTimeout(()=> el.remove(), 260); };
+    el.onclick = (e)=> e.stopPropagation();          // 바깥 클릭으로 알림 창이 바로 닫히지 않게
+    el.querySelector(".x").onclick = close;
+    el.onkeydown = (e)=>{ if (e.key === "Escape") close(); };
+    el.querySelectorAll(".nr-i").forEach(b=>{
+      b.onclick = ()=>{
+        b.remove();                                  // 본 것은 목록에서 빼고
+        if (!el.querySelector(".nr-i")) close();     // 다 봤으면 닫습니다
+        notiGo(Number(b.dataset.n), b.dataset.lt, Number(b.dataset.li));
+      };
+    });
+    el.querySelector('[data-act="read"]').onclick = async ()=>{
+      close();
+      await sb.rpc("mark_notifications_read");
+      updateBadges();
+      toast("알림을 모두 읽음으로 했어요.");
+    };
+    el.querySelector('[data-act="all"]').onclick = ()=>{
+      close(); $("accMenu").hidden = true; loadNotifications(true);
+    };
+
+    box.prepend(el);
+    requestAnimationFrame(()=> requestAnimationFrame(()=> el.classList.add("on")));
+  }
+
+  function ntSummary(count, more){
+    ntMake("k-etc",
+      '<span class="ic">🔔</span>'
+      + '<span class="tx"><span class="t1">' + (more ? "새 알림 " + count + "개 더" : "안 읽은 알림이 " + count + "개 있어요") + '</span>'
+      + '<span class="t3">눌러서 알림 보기</span></span>',
+      ()=>{ $("accMenu").hidden = true; loadNotifications(true); });
   }
 
   async function updateBadges(){
@@ -6378,6 +6674,7 @@ _imgs
     const n = Number(nn || 0), m = Number(mm || 0);
     $("notiDot").hidden = !(n > 0 || m > 0);
     $("notiBtn").title = m > 0 ? "안 읽은 쪽지 " + m + "개" : "알림";
+    ntCheck(n);                        // 새로 온 게 있으면 오른쪽 위에 팝업
   }
 
   $("notiBtn").onclick = (e)=>{
@@ -6810,9 +7107,18 @@ _imgs
     commit();                              // 조각 기록 + 타이머 초기화
   }
 
+  window.addEventListener("pagehide", ()=> ntMarkAway());   // 폰에서 앱을 닫을 때는 이것만 오기도 합니다
+  // 아이폰 홈 화면 앱은 돌아올 때 visibilitychange 없이 pageshow 만 오기도 합니다.
+  // (둘 다 오면 먼저 온 쪽이 떠난 시각을 가져가고, 나중 것은 0 이라 덮어쓰지 않습니다)
+  window.addEventListener("pageshow", (e)=>{
+    if (!e.persisted) return;
+    const a = ntTakeAway();
+    if (a){ ntAway = a; if (me && me.nickname) updateBadges(); }
+  });
   window.addEventListener("beforeunload", (e)=>{
     if (state.running) step();
     closeIfIdle();
+    ntMarkAway();
     save();
     if (writeHasContent()){ e.preventDefault(); e.returnValue = ""; }
   });
@@ -6829,8 +7135,11 @@ _imgs
     wakeSync();                       // 다른 앱 갔다 오면 브라우저가 풀어둔 화면 켜두기를 다시 잡습니다
   }
   document.addEventListener("visibilitychange", ()=>{
-    if (document.hidden){ closeIfIdle(); save(); flush(); }
-    else { onResume(); refreshRank(); }
+    if (document.hidden){ closeIfIdle(); save(); flush(); ntMarkAway(); }          // 떠난 시각을 적어 둡니다
+    else {
+      const a = ntTakeAway(); if (a) ntAway = a;   // 3분 넘게 비웠으면 알림을 한 장에 모아서
+      onResume(); refreshRank(); if (me && me.nickname) updateBadges();             // 돌아오자마자 새 알림 확인
+    }
   });
   // 홈 화면 앱(PWA)으로 쓰면 visibilitychange 대신 pageshow 만 오는 경우가 있습니다
   window.addEventListener("pageshow", onResume);

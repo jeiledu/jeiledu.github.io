@@ -1468,18 +1468,26 @@
   .rank-list li.top1 .rk, .rank-list li.top2 .rk, .rank-list li.top3 .rk{font-size:15px}
   /* 지금 타이머를 돌리고 있는 사람 (서버가 60초 안에 저장을 받았을 때) */
   .rank-list .live{
+    position:relative;
     width:7px; height:7px; flex:none; border-radius:50%; background:#2f8a60;
     margin-left:-5px; box-shadow:0 0 0 3px rgba(61,154,114,.16);
+  }
+  /* 숨쉬는 테두리는 transform·opacity 로만 움직입니다.
+     예전에는 box-shadow 를 움직여서 점마다 매 프레임 다시 그려야 했고, 같이 튼 영상이 끊기는 데 한몫했습니다. */
+  .rank-list .live::after{
+    content:""; position:absolute; inset:-5px; border-radius:50%;
+    background:rgba(61,154,114,.12); pointer-events:none;
     animation:livePulse 2s ease-in-out infinite;
   }
   @keyframes livePulse{
-    0%,100%{ box-shadow:0 0 0 3px rgba(61,154,114,.16) }
-    50%    { box-shadow:0 0 0 5px rgba(61,154,114,.05) }
+    0%,100%{ transform:scale(.75); opacity:1 }
+    50%    { transform:scale(1);   opacity:.35 }
   }
   :root[data-theme="dark"] .rank-list .live{
     background:#57c79a; box-shadow:0 0 0 3px rgba(87,199,154,.20);
   }
-  @media (prefers-reduced-motion: reduce){ .rank-list .live{ animation:none } }
+  :root[data-theme="dark"] .rank-list .live::after{ background:rgba(87,199,154,.16) }
+  @media (prefers-reduced-motion: reduce){ .rank-list .live::after{ animation:none; opacity:0 } }
   .live-n{color:#2f7d5c; font-weight:700}
   :root[data-theme="dark"] .live-n{color:#6fd3a8}
   .rank-list .nm{flex:1; color:var(--ink); letter-spacing:-.2px; overflow:hidden;
@@ -1523,11 +1531,12 @@
 
   /* ---------- Modal ---------- */
   .modal-back{
-    position:fixed; inset:0; background:rgba(24,40,66,.35); backdrop-filter:blur(3px);
+    position:fixed; inset:0; background:rgba(24,40,66,.35);
     display:flex; align-items:center; justify-content:center; z-index:70; padding:20px;
     opacity:0; pointer-events:none; transition:opacity .18s;
   }
-  .modal-back.on{opacity:1; pointer-events:auto}
+  /* 흐림 효과는 열린 팝업에만. 닫힌 팝업 배경이 20개 넘게 화면 전체에 깔려 있어서 그래픽 부담이 됩니다. */
+  .modal-back.on{opacity:1; pointer-events:auto; backdrop-filter:blur(3px)}
   .modal{
     background:#fff; border-radius:20px; padding:28px 26px 22px; width:100%; max-width:392px;
     box-shadow:0 24px 60px rgba(24,40,66,.22); text-align:center;
@@ -1694,6 +1703,99 @@
   .dm-pic-tip{margin:0 0 12px; font-size:11.5px; color:var(--ink-faint)}
   .dm-body{font-size:14px; line-height:1.85; color:var(--ink); white-space:pre-wrap;
            word-break:break-word; min-height:70px; margin-bottom:16px}
+
+  /* 채팅 — 색은 전부 var(--…) 로 (야간 모드 대응). 내 말풍선만 고정색: 흰 글씨 대비 4.88 */
+  .modal.chat{max-width:520px; display:flex; flex-direction:column; height:min(680px, 86vh);
+              overflow:hidden; padding:20px 20px 16px}
+  .chat-head{gap:8px; margin-bottom:10px}
+  .chat-head h3{flex:1; min-width:0; font-size:17px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chat-head .btn-ghost{padding:7px 12px; flex:none}
+  .chat-head .btn-ghost[hidden]{display:none}
+  #chatListView, #chatRoomView, #chatPickView, #chatInfoView{flex:1; min-height:0; display:flex; flex-direction:column}
+  #chatListView[hidden], #chatRoomView[hidden], #chatPickView[hidden], #chatInfoView[hidden]{display:none}
+  #chatPickView, #chatInfoView{overflow-y:auto}
+  .w-field[hidden]{display:none}
+  .chat-chips{display:flex; flex-wrap:wrap; gap:6px; min-height:30px}
+  .chat-chips button{display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:var(--blue-soft);
+                     color:var(--blue-dark); border-radius:99px; padding:5px 10px; font:inherit; font-size:13px; font-weight:600; cursor:pointer}
+  .chat-chips button i{font-style:normal; color:var(--ink-soft)}
+  .chat-chips .none{font-size:12.5px; color:var(--ink-soft); padding:5px 0}
+  .chat-rename{display:flex; gap:8px}
+  .chat-rename input{flex:1}
+  .chat-sub{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin:4px 0 6px}
+  .chat-members{flex:1; min-height:80px; overflow-y:auto; border:1px solid var(--line); border-radius:12px; padding:4px}
+  .chat-mem{display:flex; align-items:center; gap:10px; padding:8px 10px; font-size:14px; color:var(--ink)}
+  .chat-mem .chat-ava{width:30px; height:30px; border-radius:10px; font-size:13px}
+  .chat-mem small{font-size:11px; font-weight:600; color:var(--ink-soft)}
+  .chat-sys{align-self:center; max-width:90%; text-align:center; font-size:12px; color:var(--ink-soft);
+            background:var(--blue-tint); border-radius:10px; padding:5px 12px; margin:4px 0}
+  .chat-col{display:flex; flex-direction:column; align-items:flex-start; min-width:0}
+  .chat-msg.mine .chat-col{align-items:flex-end}
+  .chat-name{font-size:12px; font-weight:700; color:var(--ink-soft); margin:6px 2px 3px}
+  .chat-bub.pic{padding:0; overflow:hidden; background:none; border:0; border-radius:14px; line-height:0}
+  .chat-img{width:200px; height:200px; object-fit:cover; display:block; cursor:zoom-in; border-radius:14px;
+            background:var(--blue-tint); border:1px solid var(--line)}
+  .chat-img.loading{cursor:default}
+  .chat-bub.dim{color:var(--ink-soft); font-style:italic}
+  .chat-pending{align-self:flex-end; font-size:12px; color:var(--ink-soft); padding:6px 4px}
+  .chat-attach{flex:none; width:44px; height:44px; border-radius:12px; border:1.5px solid var(--line);
+               background:var(--blue-tint); font-size:18px; cursor:pointer; line-height:1}
+  .chat-attach:hover{border-color:var(--blue)}
+  .chat-ava.grp{background:#e5f3ee; color:#2a6e52}
+  :root[data-theme="dark"] .chat-ava.grp{background:#1e3330; color:#7fd3ae}
+  .chat-rooms{flex:1; min-height:0; overflow-y:auto; margin:0 -6px}
+  .chat-row{
+    display:flex; align-items:center; gap:11px; width:100%; padding:11px 10px; border:0; border-radius:12px;
+    background:none; cursor:pointer; font-family:inherit; text-align:left; color:var(--ink);
+  }
+  .chat-row:hover{background:var(--blue-tint)}
+  .chat-ava{width:38px; height:38px; border-radius:12px; background:var(--blue-soft); color:var(--blue-dark);
+            display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex:none}
+  .chat-row .cr-body{flex:1; min-width:0; display:flex; flex-direction:column; gap:3px}
+  .chat-row .cr-top{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+  .chat-row .cr-nick{font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chat-row .cr-nick small{font-weight:600; font-size:11px; color:var(--ink-soft); margin-left:5px}
+  .chat-row .cr-when{font-size:11.5px; color:var(--ink-soft); flex:none}
+  .chat-row .cr-last{font-size:13px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .chat-row .cr-n{background:#d94f4f; color:#fff; font-size:11px; font-weight:700; border-radius:99px;
+                  padding:2px 7px; flex:none}
+  .modal .chat-tip{margin:10px 0 0; font-size:11.5px; color:var(--ink-soft); text-align:center}
+  .chat-log{flex:1; min-height:0; overflow-y:auto; padding:4px 2px 10px; display:flex; flex-direction:column; gap:5px}
+  .chat-day{align-self:center; font-size:11.5px; color:var(--ink-soft); background:var(--blue-tint);
+            border-radius:99px; padding:3px 11px; margin:10px 0 4px}
+  .chat-msg{display:flex; align-items:flex-end; gap:6px; max-width:86%}
+  .chat-msg.mine{align-self:flex-end; flex-direction:row-reverse}
+  .chat-bub{padding:8px 12px; border-radius:16px; border-bottom-left-radius:6px; font-size:14px; line-height:1.55;
+            white-space:pre-wrap; word-break:break-word; background:var(--blue-tint); color:var(--ink);
+            border:1px solid var(--line)}
+  .chat-msg.mine .chat-bub{background:#2f6fd0; color:#fff; border-color:#2f6fd0;
+                           border-bottom-left-radius:16px; border-bottom-right-radius:6px}
+  .chat-msg.mine .chat-bub a{color:#fff}
+  .chat-meta{display:flex; flex-direction:column; align-items:flex-start; flex:none;
+             font-size:10.5px; line-height:1.35; color:var(--ink-soft)}
+  .chat-msg.mine .chat-meta{align-items:flex-end}
+  .chat-meta .u{color:var(--blue-dark); font-weight:700}
+  .chat-meta .u[hidden]{display:none}
+  .chat-older{align-self:center; margin:4px 0 6px; font-size:12px; color:var(--ink-soft)}
+  .chat-empty{margin:auto; text-align:center; font-size:13px; line-height:1.8; color:var(--ink-soft)}
+  .chat-input{display:flex; gap:8px; align-items:flex-end; padding-top:10px; border-top:1px solid var(--line)}
+  .chat-input textarea{
+    flex:1; resize:none; height:44px; min-height:44px; max-height:120px; padding:11px 13px; border-radius:12px;
+    border:1.5px solid var(--line); background:var(--blue-tint); color:var(--ink);
+    font-family:inherit; font-size:14px; line-height:1.45;
+  }
+  .chat-input textarea:focus{outline:0; border-color:var(--blue); background:var(--card)}
+  .chat-input .btn-write{flex:none; height:44px; background:#2f6fd0}
+  .chat-input .btn-write:disabled{opacity:.55; cursor:default}
+  #accBtn{position:relative}
+  .acc-dot{position:absolute; top:3px; right:3px; width:10px; height:10px; border-radius:50%;
+           background:#d94f4f; box-shadow:0 0 0 2px var(--card); pointer-events:none}
+  .acc-dot[hidden]{display:none}
+  .acc-menu .cnt{margin-left:auto; background:#d94f4f; color:#fff; font-size:11px; font-weight:700;
+                 border-radius:99px; padding:1px 7px}
+  .acc-menu .cnt[hidden]{display:none}
+  .rank-list .nm .who-btn{max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                          text-align:left; vertical-align:bottom}
 
   /* 파일 미리보기 */
   .modal.wide{max-width:960px; width:100%; padding:18px}
@@ -1981,6 +2083,10 @@
       max-height:92vh; overflow:auto; padding-bottom:calc(22px + env(safe-area-inset-bottom));
     }
     .modal.dm{max-width:100%}
+    .modal.chat{height:92vh; height:92dvh; max-height:none; overflow:hidden; padding:16px 14px;
+                padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+    .chat-head .btn-ghost{padding:7px 10px}
+    .chat-img{width:180px; height:180px}
     .modal.wide{padding:14px}
     .pv-body{height:64vh}
     .modal-opts{grid-template-columns:1fr}
@@ -2069,10 +2175,12 @@
       <div class="account">
         <button class="acc-btn guest" id="accBtn">
           <span class="ava" id="accAva">?</span><span id="accName">로그인</span>
+          <span class="acc-dot" id="accDot" hidden title="안 읽은 채팅"></span>
         </button>
         <div class="acc-menu" id="accMenu" hidden>
           <div class="mail"><b id="accRole"></b><span id="accMail"></span></div>
           <button id="mRecord">내 기록 · 뱃지</button>
+          <button id="mChat">채팅<span class="cnt" id="chatCnt" hidden></span></button>
           <button id="mInbox">쪽지함</button>
           <button id="mBlock">차단 목록</button>
           <button id="mNick">닉네임 변경</button>
@@ -2529,6 +2637,69 @@
   </div>
 </div>
 
+<!-- 채팅 -->
+<div class="modal-back" id="chatModal">
+  <div class="modal dm chat" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+    <div class="dm-head chat-head">
+      <button class="btn-ghost" id="chatBack" hidden>‹ 목록</button>
+      <h3 id="chatTitle">채팅</h3>
+      <button class="btn-ghost" id="chatNewGroup" title="단체방 만들기">＋ 단체방</button>
+      <button class="btn-ghost" id="chatInfo" hidden title="멤버 · 초대 · 방 이름 · 나가기">👥 <span id="chatInfoN"></span></button>
+      <button class="btn-ghost" id="chatLeave" hidden>나가기</button>
+      <button class="btn-ghost" id="chatClose">닫기</button>
+    </div>
+    <!-- 목록 -->
+    <div id="chatListView">
+      <div class="chat-rooms" id="chatRooms"></div>
+      <p class="chat-tip">랭킹이나 게시판에서 닉네임을 누르면 1:1 채팅을 시작할 수 있어요.</p>
+    </div>
+    <!-- 대화방 -->
+    <div id="chatRoomView" hidden>
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
+      <div class="chat-input">
+        <button class="chat-attach" id="chatAttach" title="사진 보내기" aria-label="사진 보내기">📷</button>
+        <input type="file" id="chatFile" accept="image/*" multiple hidden>
+        <textarea id="chatText" rows="1" maxlength="1000" placeholder="메시지 입력"></textarea>
+        <button class="btn-write" id="chatSend">보내기</button>
+      </div>
+    </div>
+    <!-- 단체방 만들기 · 초대하기 -->
+    <div id="chatPickView" hidden>
+      <div class="w-field" id="chatPickTitleWrap">
+        <label>방 이름 (선택)</label>
+        <input id="chatPickTitle" maxlength="30" placeholder="비워 두면 멤버 이름으로 보여요">
+      </div>
+      <div class="w-field" style="position:relative">
+        <label>함께할 사람</label>
+        <input id="chatPickQ" placeholder="닉네임으로 검색" autocomplete="off">
+        <div class="dm-sug" id="chatPickSug" hidden></div>
+      </div>
+      <div class="chat-chips" id="chatPicked"></div>
+      <p class="err" id="chatPickErr"></p>
+      <div class="w-btns">
+        <button class="btn-ghost" id="chatPickCancel">취소</button>
+        <button class="btn-write" id="chatPickOk">만들기</button>
+      </div>
+    </div>
+    <!-- 단체방 정보 -->
+    <div id="chatInfoView" hidden>
+      <div class="w-field">
+        <label>방 이름</label>
+        <div class="chat-rename">
+          <input id="chatRenameIn" maxlength="30" placeholder="비워 두면 멤버 이름으로 보여요">
+          <button class="btn-ghost" id="chatRenameOk">바꾸기</button>
+        </div>
+      </div>
+      <div class="chat-sub">멤버 <b id="chatMemN"></b></div>
+      <div class="chat-members" id="chatMembers"></div>
+      <div class="w-btns" style="justify-content:space-between">
+        <button class="btn-ghost btn-danger" id="chatGroupLeave">단체방 나가기</button>
+        <button class="btn-write" id="chatInviteBtn">＋ 초대하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 쪽지 -->
 <div class="modal-back" id="dmModal">
   <div class="modal dm" role="dialog" aria-modal="true">
@@ -2722,7 +2893,7 @@
     <div class="dm-head"><h3>이용 안내 · 개인정보</h3><button class="btn-ghost" id="termsClose">닫기</button></div>
     <div class="terms-body">
       <h4>무엇을 저장하나요</h4>
-      <p>닉네임, 학교 구글 계정 이메일, 공부한 시간과 날짜, 직접 올린 글·댓글·쪽지·파일을 저장합니다.
+      <p>닉네임, 학교 구글 계정 이메일, 공부한 시간과 날짜, 직접 올린 글·댓글·쪽지·채팅·파일을 저장합니다.
          실명·학번·연락처는 따로 받지 않습니다.</p>
       <h4>누가 볼 수 있나요</h4>
       <p>랭킹과 게시판에는 <b>닉네임만</b> 보입니다. 이메일은 다른 학생에게 보이지 않습니다.
@@ -2931,6 +3102,9 @@
   let records  = load(KEY);
   let sessions = load(SKEY);
 
+  // 세션 목록은 몇 달 치가 쌓이면 꽤 큽니다. 타이머가 도는 동안 1.5초마다 통째로 다시 쓰지 않도록
+  // 바뀌었을 때만 저장합니다. (sessions 를 고치는 곳에서는 sessionsDirty = true 를 같이 둘 것)
+  let sessionsDirty = false;
   let saveTimer = null;
   function saveSoon(){
     if (saveTimer) return;
@@ -2940,7 +3114,7 @@
     clearTimeout(saveTimer); saveTimer = null;
     try {
       store.setItem(KEY, JSON.stringify(records));
-      store.setItem(SKEY, JSON.stringify(sessions));
+      if (sessionsDirty){ store.setItem(SKEY, JSON.stringify(sessions)); sessionsDirty = false; }
       // 진행 중인 세션도 보관 → 새로고침·로그인 이동 후에도 이어서 진행
       store.setItem(TKEY, JSON.stringify({
         mode: state.mode, phase: state.phase,
@@ -3088,6 +3262,7 @@
       subject: subject || null
     };
     (sessions[k] = sessions[k] || []).push(row);
+    sessionsDirty = true;
     if (syncableDay(k)){            // 오래된 세션은 기기에만 남기고 서버로 보내지 않습니다
       dirty.add(k);
       pushSession(row);
@@ -3167,6 +3342,8 @@
     $("dualNote").hidden = true;
   };
 
+  let lastDrawnSec = -1;            // step() 이 마지막으로 화면을 그린 초
+
   function start(){
     if (state.running) return;
 
@@ -3235,6 +3412,12 @@
       }
       return;
     }
+    // 화면은 숫자(초)가 바뀔 때만, 그리고 보일 때만 다시 그립니다.
+    // 예전에는 0.2초마다 그려서 원 테두리 애니메이션이 한순간도 안 쉬었고,
+    // 같이 틀어둔 영상이 끊기는 원인이 됐습니다. (시간 계산은 여전히 0.2초마다)
+    const shownSec = Math.floor(state.elapsed);
+    if (document.hidden || shownSec === lastDrawnSec) return;
+    lastDrawnSec = shownSec;
     render();
   }
 
@@ -4099,6 +4282,9 @@
         o.connect(g); g.connect(ctx.destination);
         o.start(t); o.stop(t+.42);
       });
+      // 다 울리면 닫습니다. 예전에는 울릴 때마다 오디오 장치를 새로 열고 안 닫아서
+      // 포모도로를 돌릴수록 쌓였고, 같이 틀어둔 유튜브 소리·영상이 끊기는 원인이 됐습니다.
+      setTimeout(()=>{ try { ctx.close(); } catch(e){} }, 1500);
     }catch(e){}
   }
 
@@ -4199,6 +4385,7 @@
 
   async function onSession(session){
     ntReset();                          // 다른 계정으로 바뀌면 '이미 본 알림' 기준도 새로
+    chatReset(session && session.user ? session.user.id : null);   // 계정이 바뀌었을 때만 채팅 창·안 읽은 수 초기화
     if (!session){ me = null; renderAccount(); renderRank(); return; }
 
     const email = session.user.email || "";
@@ -4295,6 +4482,7 @@
       const have = new Set(fromServer.map(r=> new Date(r.start).getTime()));
       const mine = (sessions[tk] || []).filter(r=> !have.has(new Date(r.start).getTime()));
       sessions[tk] = fromServer.concat(mine).sort((a,b)=> new Date(a.start) - new Date(b.start));
+      sessionsDirty = true;
     }
 
     save();
@@ -4503,7 +4691,8 @@
         return '<li class="'+(r.is_me?"me ":"")+(r.rk<=3?"top"+r.rk:"")+'">'
              + '<span class="rk">'+medal+'</span>'
              + (r.online ? '<span class="live" title="지금 공부 중"></span>' : '')
-             + '<span class="nm">'+esc(r.nickname)+'</span>'
+             + '<span class="nm">'+(r.is_me ? esc(r.nickname)
+                 : '<button class="who-btn" data-nick="'+esc(r.nickname)+'" title="쪽지·채팅 보내기">'+esc(r.nickname)+'</button>')+'</span>'
              + (r.is_me ? '' : '<button class="cheer" data-cheer="'+esc(r.nickname)+'" title="응원 보내기">👏</button>')
              + '<span class="vl">'+val(r)+'</span></li>';
       }).join("");
@@ -4602,6 +4791,7 @@
   $("mAdmin").onclick = ()=>{ location.href = "admin.html"; };
   $("mOut").onclick   = async ()=>{
     await sb.auth.signOut();
+    chatReset(null);
     me = null; boardLoaded = false;
     pushRenderSwitch(); pushRenderBar();
     $("notiWrap").hidden = true; $("notiPop").hidden = true;
@@ -5132,12 +5322,21 @@
          + esc(nick) + '</button>';
   }
 
+  // 랭킹은 닉네임만 받으므로, 메뉴를 누른 순간에 아이디를 찾습니다 (닉네임은 겹치지 않음)
+  async function whoResolve(nick){
+    const { data } = await rpcRetry("search_members", { p_q: nick });
+    const u = (data || []).find(x=> x.nickname === nick);
+    return u ? u.id : null;
+  }
+
   function openWhoMenu(btn){
-    const uid = btn.dataset.uid, nick = btn.dataset.nick;
-    const mine = me && me.id === uid;
+    const nick = btn.dataset.nick;
+    let uid = btn.dataset.uid || null;
+    const mine = me && (uid ? me.id === uid : me.nickname === nick);
     const menu = $("whoMenu");
     menu.innerHTML = '<div class="nm">' + esc(nick) + (mine ? " (나)" : "") + '</div>'
       + (mine ? '' : '<button data-act="dm">✉️ 쪽지 보내기</button>')
+      + (mine || !chatReady ? '' : '<button data-act="chat">💬 채팅하기</button>')
       + '<button data-act="posts">📄 작성한 글 보기</button>'
       + (mine ? '' : '<button data-act="block" style="color:#c0504a">🚫 차단하기</button>');
 
@@ -5150,16 +5349,22 @@
     menu.style.left = Math.max(10, left) + "px";
     menu.style.top  = top + "px";
 
-    menu.querySelectorAll("[data-act]").forEach(b=> b.onclick = (e)=>{
+    menu.querySelectorAll("[data-act]").forEach(b=> b.onclick = async (e)=>{
       e.stopPropagation();
       menu.hidden = true;
+      if (!uid) uid = mine ? me.id : await whoResolve(nick);
+      if (!uid){ toast("사용자를 찾을 수 없어요."); return; }
       if (b.dataset.act === "dm"){ openDM("in"); showDmWrite({ id: uid, nick }); }
+      else if (b.dataset.act === "chat"){ chatWith(uid, nick); }
       else if (b.dataset.act === "block"){ blockUser(uid, nick); }
       else {
         authorFilter = { id: uid, nick };
         tagFilter = ""; query = ""; page = 0;
         $("boardSearch").value = "";
-        showList(); loadPosts();
+        // 랭킹(타이머 화면)에서 눌렀으면 커뮤니티로 옮겨 갑니다. 처음 열면 openBoard 가 위 조건으로 불러옵니다.
+        const loaded = boardLoaded;
+        if ($("boardView").hidden) await switchView("board");
+        if (loaded){ showList(); loadPosts(); }
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
@@ -6667,14 +6872,17 @@ _imgs
     if (!sb || !me || !me.nickname){ $("notiWrap").hidden = true; return; }
     $("notiWrap").hidden = false;
 
-    const [{ data: nn }, { data: mm }] = await Promise.all([
+    const [{ data: nn }, { data: mm }, cc] = await Promise.all([
       sb.rpc("unread_notifications"),
-      sb.rpc("unread_count")
+      sb.rpc("unread_count"),
+      chatReady ? sb.rpc("chat_unread_total") : Promise.resolve({ data: 0 })
     ]);
     const n = Number(nn || 0), m = Number(mm || 0);
     $("notiDot").hidden = !(n > 0 || m > 0);
     $("notiBtn").title = m > 0 ? "안 읽은 쪽지 " + m + "개" : "알림";
     ntCheck(n);                        // 새로 온 게 있으면 오른쪽 위에 팝업
+    if (cc.error){ if (chatMissing(cc.error)) chatSetReady(false); }   // schema24 전이면 채팅 메뉴를 숨김
+    else chatBadge(Number(cc.data || 0));                              // 계정 단추의 빨간 점 + 새 채팅 카드
   }
 
   $("notiBtn").onclick = (e)=>{
@@ -7003,6 +7211,545 @@ _imgs
   ["dmSubject", "dmBody"].forEach(id=>{ $(id).oninput = dmSaveDraft; });
   $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; openDM("in"); };
 
+  /* =====================================================================
+     채팅 — 1:1 + 단체방 + 사진 (schema24-a~e)
+     · 서버 함수로만 오갑니다. 표를 직접 읽지 않습니다.
+     · 방을 보고 있으면 2.5초마다, 목록을 보고 있으면 10초마다 받아옵니다 (화면이 보일 때만).
+       창이 닫혀 있으면 updateBadges(30초)가 안 읽은 수만 세고, 늘어나면 오른쪽 위에 카드를 띄웁니다.
+     · 사진은 기기에서 줄인 뒤(compressImage) 저장소 chat/<방번호>/... 에 올리고 그 경로를 보냅니다.
+     · 메시지 옆 숫자 = 아직 안 읽은 사람 수 (카카오톡처럼). 1:1 이면 내 메시지에 '1'.
+     · schema24 를 아직 안 돌렸으면(함수 없음) 채팅 메뉴를 조용히 숨깁니다.
+     ===================================================================== */
+  const CHAT_POLL = 2500, CHAT_LIST_POLL = 10000, CHAT_PAGE = 50, CHAT_IMG_MAX = 20 * 1024 * 1024;
+  let chatRoom = null;                  // { id, kind, title, nick } — 지금 보고 있는 방
+  let chatMembers = [];                 // [{ id, nick, role, read, from, left }]
+  let chatLast = 0, chatFirst = 0, chatLastDay = "", chatPrevUid = null, chatLoaded = false;
+  let chatTimer = null, chatPulling = false, chatAgain = false, chatSending = false;
+  let chatReady = true, chatUnreadPrev = -1, chatView = "list", chatPickMode = "new";
+  const chatPicked = new Map();         // 단체방 만들기·초대에서 고른 사람 id → 닉네임
+  const chatDrafts = {};                // 방마다 쓰던 글 (창을 닫았다 열어도 남게)
+  const chatToldAt = {};                // 방마다 마지막으로 카드로 알려 준 메시지 시각
+  const chatUrls = new Map();           // 사진 경로 → 서명 주소 (1시간짜리, 다시 받지 않게)
+  const chatMissing = (e)=> !!e && (e.code === "PGRST202" || /could not find the function/i.test(String(e.message || "")));
+  const chatIsOpen  = ()=> $("chatModal").classList.contains("on");
+  const chatFine    = ()=> matchMedia("(pointer:fine)").matches;   // PC(마우스)인가
+
+  function chatSetReady(ok){
+    chatReady = ok;
+    $("mChat").hidden = !ok;
+  }
+
+  // 화면 전환: list 목록 / room 대화방 / pick 단체방 만들기·초대 / info 단체방 정보
+  function chatShow(v){
+    chatView = v;
+    $("chatListView").hidden = v !== "list";
+    $("chatRoomView").hidden = v !== "room";
+    $("chatPickView").hidden = v !== "pick";
+    $("chatInfoView").hidden = v !== "info";
+    $("chatBack").hidden = v === "list";
+    $("chatBack").textContent = (v === "room" || (v === "pick" && chatPickMode === "new")) ? "‹ 목록" : "‹ 대화";
+    $("chatNewGroup").hidden = v !== "list";
+    const grp = !!(chatRoom && chatRoom.kind === "group");
+    $("chatInfo").hidden  = !(v === "room" && grp);
+    $("chatLeave").hidden = !(v === "room" && chatRoom && !grp);
+    chatHead();
+  }
+  function chatRoomName(){
+    if (!chatRoom) return "채팅";
+    if (chatRoom.kind !== "group") return chatRoom.nick || "채팅";
+    if (chatRoom.title) return chatRoom.title;
+    const names = chatMembers.filter(m=> !m.left && m.id !== me.id).map(m=> m.nick || "?");
+    return names.length ? names.slice(0, 3).join(", ") + (names.length > 3 ? " 외 " + (names.length - 3) + "명" : "")
+                        : (chatRoom.names || "단체방");
+  }
+  function chatHead(){
+    const active = chatMembers.filter(m=> !m.left).length;
+    $("chatInfoN").textContent = active || "";
+    $("chatTitle").textContent =
+        chatView === "list" ? "채팅"
+      : chatView === "pick" ? (chatPickMode === "new" ? "단체방 만들기" : "초대하기")
+      : chatView === "info" ? "단체방 정보"
+      : chatRoomName();
+  }
+
+  function openChat(){
+    if (!sb || !me || !me.nickname){ openLogin(); return; }
+    $("chatModal").classList.add("on");
+    chatShowList();
+  }
+  function closeChat(){
+    if (chatRoom) chatDrafts[chatRoom.id] = $("chatText").value;
+    clearInterval(chatTimer); chatTimer = null;
+    chatRoom = null;
+    $("chatModal").classList.remove("on");
+    if (me) updateBadges();
+  }
+  // 로그아웃·계정 바뀜. onSession 은 1시간마다 토큰을 갱신할 때도 불리므로 같은 사람이면 그대로 둡니다
+  let chatOwner = null;
+  function chatReset(uid){
+    if (uid && uid === chatOwner) return;
+    chatOwner = uid || null;
+    clearInterval(chatTimer); chatTimer = null;
+    chatRoom = null; chatMembers = []; chatUnreadPrev = -1;
+    [chatDrafts, chatToldAt].forEach(o=>{ for (const k in o) delete o[k]; });
+    chatUrls.clear(); chatPicked.clear();
+    $("chatModal").classList.remove("on");
+    $("chatCnt").hidden = true; $("accDot").hidden = true;
+  }
+
+  // 닉네임 메뉴(랭킹·게시판)에서 바로 1:1 대화방 열기
+  async function chatWith(uid, nick){
+    if (!sb || !me || !me.nickname){ openLogin(); return; }
+    const { data, error } = await sb.rpc("chat_open", { p_with: uid });
+    if (error){
+      if (chatMissing(error)){ chatSetReady(false); toast("채팅은 아직 준비 중이에요."); }
+      else handled(error, "채팅 열기");
+      return;
+    }
+    $("chatModal").classList.add("on");
+    chatEnter({ id: Number(data), kind: "dm", nick });
+  }
+
+  /* ---------- 대화방 목록 ---------- */
+  function chatShowList(){
+    if (chatRoom) chatDrafts[chatRoom.id] = $("chatText").value;
+    chatRoom = null; chatMembers = [];
+    chatShow("list");
+    clearInterval(chatTimer);
+    chatTimer = setInterval(()=>{ if (!document.hidden) chatLoadRooms(false); }, CHAT_LIST_POLL);
+    chatLoadRooms(true);
+  }
+
+  const chatPreview = (r)=> r.last_kind === "image" ? "📷 사진"
+                          : String(r.last_body || "").replace(/\s+/g, " ");
+  const chatRowName = (r)=> r.kind === "group" ? (r.title || r.names || "단체방") : (r.other_nick || "탈퇴한 사용자");
+
+  async function chatLoadRooms(first){
+    const box = $("chatRooms");
+    if (first) box.innerHTML = '<div class="chat-empty">불러오는 중…</div>';
+    const { data, error } = await rpcRetry("chat_rooms_list");
+    if (chatRoom || !chatIsOpen() || chatView !== "list") return;   // 그사이 다른 화면으로 갔으면 그리지 않음
+    if (error){
+      if (chatMissing(error)) chatSetReady(false);
+      if (first) box.innerHTML = '<div class="chat-empty">'
+        + esc(chatMissing(error) ? "채팅은 아직 준비 중이에요." : isNetErr(error) ? "인터넷 연결을 확인해주세요." : cleanErr(error)) + '</div>';
+      return;
+    }
+    const rows = data || [];
+    if (!rows.length){
+      box.innerHTML = '<div class="chat-empty">아직 대화가 없어요.<br>랭킹이나 게시판에서 친구 닉네임을 누르거나<br>위의 <b>＋ 단체방</b>으로 시작해보세요.</div>';
+      return;
+    }
+    box.innerHTML = rows.map((r, i)=>{
+      const grp = r.kind === "group", name = chatRowName(r);
+      return '<button class="chat-row" data-i="'+i+'">'
+        + '<span class="chat-ava'+(grp ? " grp" : "")+'">'+(grp ? "👥" : esc(name.slice(0, 1)))+'</span>'
+        + '<span class="cr-body"><span class="cr-top"><span class="cr-nick">'+esc(name)
+        +   (grp ? '<small>'+r.members+'명</small>'
+                 : (r.other_role && r.other_role !== "student" ? '<small>'+esc(ROLE_KO[r.other_role] || "")+'</small>' : ''))
+        +   '</span><span class="cr-when">'+fmtDate(r.last_at, true)+'</span></span>'
+        + '<span class="cr-last">'+(r.last_mine && r.last_kind !== "system" ? "나: " : "")+esc(chatPreview(r))+'</span></span>'
+        + (r.unread ? '<span class="cr-n">'+(r.unread > 99 ? "99+" : r.unread)+'</span>' : '')
+        + '</button>';
+    }).join("");
+    box.querySelectorAll("[data-i]").forEach(b=> b.onclick = ()=>{
+      const r = rows[Number(b.dataset.i)];
+      chatEnter({ id: Number(r.room_id), kind: r.kind, title: r.title, names: r.names, nick: r.other_nick });
+    });
+  }
+
+  /* ---------- 대화방 ---------- */
+  async function chatEnter(room){
+    clearInterval(chatTimer); chatTimer = null;
+    chatRoom = room; chatMembers = [];
+    chatLast = 0; chatFirst = 0; chatLastDay = ""; chatPrevUid = null; chatLoaded = false;
+    chatShow("room");
+    $("chatLog").innerHTML = '<div class="chat-empty">불러오는 중…</div>';
+    $("chatText").value = chatDrafts[room.id] || "";
+    chatFit();
+    await chatPull();
+    if (chatRoom !== room) return;
+    chatTimer = setInterval(()=>{ if (!document.hidden) chatPull(); }, CHAT_POLL);
+    if (chatFine()) $("chatText").focus();          // 폰은 자판이 화면을 가리므로 자동으로 안 엽니다
+  }
+
+  const chatDayKey = (ts)=> keyOf(new Date(ts));
+  const chatNick = (uid)=> { const m = chatMembers.find(x=> x.id === uid); return m ? (m.nick || "탈퇴한 사용자") : "?"; };
+  function chatTime(ts){
+    const d = new Date(ts), h = d.getHours();
+    return (h < 12 ? "오전 " : "오후 ") + ((h % 12) || 12) + ":" + pad(d.getMinutes());
+  }
+  function chatDayEl(ts){
+    const d = new Date(ts), el = document.createElement("div");
+    el.className = "chat-day"; el.dataset.day = chatDayKey(ts);
+    el.textContent = d.getFullYear() + "년 " + (d.getMonth()+1) + "월 " + d.getDate() + "일 " + WD_KO[d.getDay()] + "요일";
+    return el;
+  }
+  // 이 메시지를 아직 안 읽은 사람 수 (보낸 사람·나·나간 사람·그 뒤에 들어온 사람은 빼고)
+  function chatUnreadOf(id, uid){
+    return chatMembers.filter(m=> !m.left && m.id !== uid && m.id !== me.id
+                                  && Number(m.read) < id && id > Number(m.from)).length;
+  }
+  function chatMsgEl(m, showName){
+    const el = document.createElement("div");
+    el.dataset.id = m.id;
+    if (m.kind === "system"){ el.className = "chat-sys"; el.textContent = m.body; return el; }
+    el.className = "chat-msg" + (m.mine ? " mine" : "");
+    el.dataset.uid = m.uid;
+    let bub;
+    if (m.blocked) bub = '<div class="chat-bub dim">차단한 사람의 메시지예요.</div>';
+    else if (m.kind === "image" && m.file)
+      bub = '<div class="chat-bub pic"><img class="chat-img loading" alt="사진" data-p="'+esc(m.file.path)+'"'
+          + ' data-name="'+esc(m.file.name || "사진")+'" data-mime="'+esc(m.file.mime || "")+'" data-size="'+(Number(m.file.size) || 0)+'"></div>'
+          + (m.body ? '<div class="chat-bub" style="margin-top:4px">'+linkify(m.body)+'</div>' : '');
+    else bub = '<div class="chat-bub">'+linkify(m.body)+'</div>';
+    const n = chatUnreadOf(m.id, m.uid);
+    el.innerHTML = '<div class="chat-col">'
+      + (showName && !m.mine ? '<div class="chat-name">'+esc(chatNick(m.uid))+'</div>' : '')
+      + bub + '</div>'
+      + '<div class="chat-meta"><span class="u" title="아직 안 읽은 사람"'+(n ? '' : ' hidden')+'>'+(n || "")+'</span>'
+      + '<span>'+chatTime(m.at)+'</span></div>';
+    return el;
+  }
+  // 사진 칸에 서명 주소를 채웁니다 (한 번 받은 주소는 다시 쓰고, 새 것만 한꺼번에 받습니다)
+  async function chatFillImgs(root){
+    const imgs = [...root.querySelectorAll("img.chat-img.loading")];
+    if (!imgs.length) return;
+    const need = [...new Set(imgs.map(i=> i.dataset.p).filter(p=> !chatUrls.has(p)))];
+    if (need.length){
+      try {
+        const { data } = await sb.storage.from("attachments").createSignedUrls(need, 3600);
+        (data || []).forEach(d=>{ if (d.path && d.signedUrl) chatUrls.set(d.path, d.signedUrl); });
+      } catch(e){}
+    }
+    imgs.forEach(i=>{
+      const u = chatUrls.get(i.dataset.p);
+      if (u){ i.src = u; i.classList.remove("loading"); }
+      else i.replaceWith(Object.assign(document.createElement("div"),
+             { className:"chat-bub dim", textContent:"(사진을 불러올 수 없어요)" }));
+    });
+  }
+
+  async function chatPull(){
+    const room = chatRoom;
+    if (!room) return;
+    if (chatPulling){ chatAgain = true; return; }   // 받는 중이면 끝나고 한 번 더
+    chatPulling = true;
+    const { data, error } = await sb.rpc("chat_fetch", { p_room: room.id, p_after: chatLast, p_before: 0 });
+    chatPulling = false;
+    if (chatRoom !== room) return;
+    if (error){
+      if (!chatLoaded) $("chatLog").innerHTML = '<div class="chat-empty">'
+        + esc(isNetErr(error) ? "인터넷 연결을 확인해주세요." : cleanErr(error)) + '</div>';
+      else if (!isNetErr(error) && /열 수 없어요/.test(cleanErr(error))){ toast(cleanErr(error)); chatShowList(); }
+      return;                                       // 네트워크 문제면 다음 차례에 다시 시도합니다
+    }
+    const msgs = (data && data.msgs) || [];
+    chatMembers = (data && data.members) || [];
+    room.kind = (data && data.kind) || room.kind;
+    room.title = data ? data.title : room.title;
+    const dm = chatMembers.find(m=> m.id !== me.id);
+    if (room.kind !== "group" && dm) room.nick = dm.nick;
+    chatShow(chatView);                             // 제목·멤버 수 갱신
+
+    const log = $("chatLog");
+    const firstLoad = !chatLoaded;
+    if (firstLoad){
+      chatLoaded = true;
+      log.innerHTML = "";
+      if (msgs.length){ chatFirst = msgs[0].id; if (msgs.length >= CHAT_PAGE) chatOlderBtn(); }
+      else log.innerHTML = '<div class="chat-empty" id="chatHello">'+esc(chatRoomName())+(room.kind === "group" ? "에서" : "님과")+' 대화를 시작해보세요.</div>';
+    }
+    if (msgs.length){
+      const hello = $("chatHello"); if (hello) hello.remove();
+      if (!chatFirst) chatFirst = msgs[0].id;
+      const nearBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 80;
+      let mine = false, added = 0;
+      for (const m of msgs){
+        if (m.id <= chatLast) continue;
+        const day = chatDayKey(m.at);
+        if (day !== chatLastDay){ chatLastDay = day; chatPrevUid = null; log.appendChild(chatDayEl(m.at)); }
+        log.appendChild(chatMsgEl(m, room.kind === "group" && chatPrevUid !== m.uid));
+        chatPrevUid = m.kind === "system" ? null : m.uid;
+        if (m.mine) mine = true;
+        added++;
+      }
+      chatLast = msgs[msgs.length - 1].id;
+      if (added && (firstLoad || nearBottom || mine)) log.scrollTop = log.scrollHeight;   // 위로 올려 읽는 중이면 끌어내리지 않음
+      chatFillImgs(log);
+    }
+    chatMarkCounts();
+    if (chatView === "info") chatRenderInfo();
+    if (chatAgain){ chatAgain = false; chatPull(); }
+  }
+  // 누가 새로 읽었으면 메시지 옆 숫자를 줄입니다
+  function chatMarkCounts(){
+    $("chatLog").querySelectorAll(".chat-msg .u:not([hidden])").forEach(u=>{
+      const el = u.closest(".chat-msg");
+      const n = chatUnreadOf(Number(el.dataset.id), el.dataset.uid);
+      if (n) u.textContent = n; else u.hidden = true;
+    });
+  }
+
+  function chatOlderBtn(){
+    const b = document.createElement("button");
+    b.className = "link-btn chat-older";
+    b.textContent = "이전 대화 더 보기";
+    b.onclick = chatLoadOlder;
+    $("chatLog").prepend(b);
+  }
+  async function chatLoadOlder(){
+    const room = chatRoom;
+    if (!room || !chatFirst) return;
+    const log = $("chatLog"), btn = log.querySelector(".chat-older");
+    if (btn){ btn.disabled = true; btn.textContent = "불러오는 중…"; }
+    const { data, error } = await rpcRetry("chat_fetch", { p_room: room.id, p_after: 0, p_before: chatFirst });
+    if (chatRoom !== room) return;
+    if (btn) btn.remove();
+    if (error){ toast(isNetErr(error) ? "인터넷 연결을 확인해주세요." : cleanErr(error)); chatOlderBtn(); return; }
+    const msgs = (data && data.msgs) || [];
+    if (!msgs.length) return;
+    const h0 = log.scrollHeight, t0 = log.scrollTop;
+    const frag = document.createDocumentFragment();
+    let day = "", prev = null;
+    msgs.forEach(m=>{
+      const d = chatDayKey(m.at);
+      if (d !== day){ day = d; prev = null; frag.appendChild(chatDayEl(m.at)); }
+      frag.appendChild(chatMsgEl(m, room.kind === "group" && prev !== m.uid));
+      prev = m.kind === "system" ? null : m.uid;
+    });
+    const top = log.firstElementChild;              // 이어지는 날이면 날짜 줄이 두 번 나오지 않게
+    if (top && top.classList.contains("chat-day") && top.dataset.day === day) top.remove();
+    log.prepend(frag);
+    chatFirst = msgs[0].id;
+    if (msgs.length >= CHAT_PAGE) chatOlderBtn();
+    log.scrollTop = t0 + (log.scrollHeight - h0);   // 보던 자리 그대로
+    chatFillImgs(log);
+  }
+
+  async function chatSendNow(){
+    const room = chatRoom;
+    if (!room || chatSending) return;
+    const ta = $("chatText");
+    const text = ta.value.trim();
+    if (!text) return;
+    if (text.length > 1000){ toast("메시지는 1000자까지 보낼 수 있어요."); return; }
+    chatSending = true; $("chatSend").disabled = true;
+    const { error } = await sb.rpc("chat_send", { p_room: room.id, p_body: text });
+    chatSending = false; $("chatSend").disabled = false;
+    if (error){ handled(error, "채팅 보내기"); return; }   // 보내지 못한 글은 입력칸에 그대로 남습니다
+    chatDrafts[room.id] = "";
+    if (chatRoom !== room) return;
+    ta.value = ""; chatFit();
+    await chatPull();
+    if (chatFine()) ta.focus();
+  }
+
+  /* ---------- 사진 보내기 (📷 · 붙여넣기 · 끌어다 놓기) ---------- */
+  async function chatSendImages(list){
+    const room = chatRoom;
+    if (!room) return;
+    let files = [...(list || [])].filter(f=> /^image\//.test(f.type));
+    if (!files.length){ toast("사진만 보낼 수 있어요."); return; }
+    if (files.length > 5){ toast("사진은 한 번에 5장까지 보낼 수 있어요."); files = files.slice(0, 5); }
+    const log = $("chatLog");
+    for (const f0 of files){
+      if (f0.size > CHAT_IMG_MAX * 2){ toast("사진이 너무 커요. (" + fileSize(f0.size) + ")"); continue; }
+      const pend = Object.assign(document.createElement("div"), { className:"chat-pending", textContent:"📷 사진 보내는 중…" });
+      log.appendChild(pend); log.scrollTop = log.scrollHeight;
+      try {
+        const f = await compressImage(f0);         // 커다란 사진은 2000px·WebP 로 줄입니다
+        if (f.size > CHAT_IMG_MAX){ toast("사진은 20MB까지 보낼 수 있어요."); continue; }
+        const path = "chat/" + room.id + "/" + Date.now() + "_" + rand7() + (fileExt(f.name) || ".jpg");
+        const up = await sb.storage.from("attachments").upload(path, f, { upsert:false, contentType: f.type || "image/jpeg" });
+        if (up.error){ handled(up.error, "사진 올리기"); continue; }
+        const { error } = await sb.rpc("chat_send", { p_room: room.id, p_body: "", p_file_path: path,
+          p_file_name: safeName(f0.name || "사진"), p_file_size: f.size, p_file_mime: f.type || "image/jpeg" });
+        if (error){
+          sb.storage.from("attachments").remove([path]).then(()=>{}, ()=>{});   // 못 보낸 사진은 저장소에서도 지웁니다
+          handled(error, "사진 보내기");
+        }
+      } catch(e){ handled(e, "사진 보내기"); }
+      finally { pend.remove(); }
+    }
+    if (chatRoom === room) await chatPull();
+  }
+  $("chatAttach").onclick = ()=> $("chatFile").click();
+  $("chatFile").onchange = (e)=>{ const fs = [...e.target.files]; e.target.value = ""; chatSendImages(fs); };
+  $("chatText").addEventListener("paste", (e)=>{
+    const fs = [...(e.clipboardData?.files || [])].filter(f=> /^image\//.test(f.type));
+    if (fs.length){ e.preventDefault(); chatSendImages(fs); }
+  });
+  $("chatRoomView").addEventListener("dragover", (e)=> e.preventDefault());
+  $("chatRoomView").addEventListener("drop", (e)=>{
+    const fs = [...(e.dataTransfer?.files || [])];
+    if (fs.length){ e.preventDefault(); chatSendImages(fs); }
+  });
+  $("chatLog").addEventListener("click", (e)=>{             // 사진을 누르면 크게
+    const i = e.target.closest("img.chat-img:not(.loading)");
+    if (i) openPreview({ path: i.dataset.p, name: i.dataset.name || "사진", mime: i.dataset.mime, size: Number(i.dataset.size) || 0 });
+  });
+
+  // 입력칸은 내용에 맞춰 늘어납니다 (최대 120px)
+  function chatFit(){
+    const t = $("chatText");
+    t.style.height = "44px";
+    t.style.height = Math.min(120, t.scrollHeight + 3) + "px";
+  }
+  $("chatText").addEventListener("input", chatFit);
+  $("chatText").addEventListener("keydown", (e)=>{
+    // PC: Enter 보내기 · Shift+Enter 줄바꿈 / 폰: Enter 는 줄바꿈 (보내기 단추로)
+    // 한글 조합 중(isComposing)에 Enter 를 받으면 마지막 글자가 두 번 가므로 거릅니다
+    if (e.key !== "Enter" || e.shiftKey || e.isComposing || e.keyCode === 229) return;
+    if (!chatFine()) return;
+    e.preventDefault();
+    chatSendNow();
+  });
+
+  /* ---------- 단체방 만들기 · 초대하기 ---------- */
+  function chatOpenPick(mode){
+    chatPickMode = mode;
+    chatPicked.clear();
+    $("chatPickTitleWrap").hidden = mode !== "new";
+    $("chatPickTitle").value = "";
+    $("chatPickQ").value = "";
+    $("chatPickSug").hidden = true;
+    $("chatPickErr").textContent = "";
+    $("chatPickOk").textContent = mode === "new" ? "만들기" : "초대하기";
+    if (mode === "new"){ clearInterval(chatTimer); chatTimer = null; }   // 목록 갱신은 잠시 멈춤
+    chatShow("pick");
+    chatRenderPicked();
+    if (chatFine()) setTimeout(()=> $(mode === "new" ? "chatPickTitle" : "chatPickQ").focus(), 60);
+  }
+  function chatRenderPicked(){
+    const box = $("chatPicked");
+    box.innerHTML = chatPicked.size
+      ? [...chatPicked].map(([id, nick])=> '<button data-x="'+esc(id)+'" title="빼기">'+esc(nick)+' <i>✕</i></button>').join("")
+      : '<span class="none">아직 고른 사람이 없어요. 위에서 닉네임을 검색해 고르세요.</span>';
+    box.querySelectorAll("[data-x]").forEach(b=> b.onclick = ()=>{ chatPicked.delete(b.dataset.x); chatRenderPicked(); });
+  }
+  let chatSugTimer;
+  $("chatPickQ").oninput = (e)=>{
+    const q = e.target.value.trim();
+    clearTimeout(chatSugTimer);
+    if (!q){ $("chatPickSug").hidden = true; return; }
+    chatSugTimer = setTimeout(async ()=>{
+      const { data } = await rpcRetry("search_members", { p_q: q });
+      const inRoom = new Set(chatPickMode === "invite" ? chatMembers.filter(m=> !m.left).map(m=> m.id) : []);
+      const rows = (data || []).filter(r=> !chatPicked.has(r.id) && !inRoom.has(r.id));
+      $("chatPickSug").hidden = !rows.length;
+      $("chatPickSug").innerHTML = rows.map(r=>
+        '<button data-u="'+esc(r.id)+'" data-n="'+esc(r.nickname)+'">'+esc(r.nickname)
+        + (r.role !== "student" ? '<span class="rl">'+esc(ROLE_KO[r.role] || r.role)+'</span>' : '') + '</button>').join("");
+      $("chatPickSug").querySelectorAll("[data-u]").forEach(b=> b.onclick = ()=>{
+        chatPicked.set(b.dataset.u, b.dataset.n);
+        $("chatPickQ").value = ""; $("chatPickSug").hidden = true;
+        chatRenderPicked(); $("chatPickQ").focus();
+      });
+    }, 280);
+  };
+  $("chatPickCancel").onclick = ()=> chatPickMode === "new" ? chatShowList() : chatShow("info");
+  $("chatPickOk").onclick = async ()=>{
+    if (!chatPicked.size){ $("chatPickErr").textContent = "함께할 사람을 한 명 이상 골라주세요."; return; }
+    const ids = [...chatPicked.keys()];
+    $("chatPickOk").disabled = true;
+    if (chatPickMode === "new"){
+      const title = $("chatPickTitle").value.trim();
+      const { data, error } = await sb.rpc("chat_create_group", { p_title: title, p_users: ids });
+      $("chatPickOk").disabled = false;
+      if (!handled(error, "단체방 만들기", $("chatPickErr"))) return;
+      chatEnter({ id: Number(data), kind: "group", title: title || null });
+    } else {
+      const { error } = await sb.rpc("chat_invite", { p_room: chatRoom.id, p_users: ids });
+      $("chatPickOk").disabled = false;
+      if (!handled(error, "초대하기", $("chatPickErr"))) return;
+      toast(ids.length + "명을 초대했어요.");
+      chatShow("room");
+      chatPull();
+    }
+  };
+
+  /* ---------- 단체방 정보 (멤버 · 방 이름 · 초대 · 나가기) ---------- */
+  function chatRenderInfo(){
+    const act = chatMembers.filter(m=> !m.left);
+    $("chatMemN").textContent = act.length + "명";
+    $("chatMembers").innerHTML = act.map(m=>
+      '<div class="chat-mem"><span class="chat-ava">'+esc((m.nick || "?").slice(0, 1))+'</span>'
+      + '<span>'+esc(m.nick || "탈퇴한 사용자")+(m.id === me.id ? ' <small>(나)</small>' : '')
+      + (m.role && m.role !== "student" ? ' <small>'+esc(ROLE_KO[m.role] || "")+'</small>' : '')+'</span></div>').join("");
+  }
+  $("chatInfo").onclick = ()=>{
+    $("chatRenameIn").value = (chatRoom && chatRoom.title) || "";
+    chatShow("info");
+    chatRenderInfo();
+  };
+  $("chatInviteBtn").onclick = ()=> chatOpenPick("invite");
+  $("chatRenameOk").onclick = async ()=>{
+    const t = $("chatRenameIn").value.trim();
+    if (t === ((chatRoom && chatRoom.title) || "")) return;
+    const { error } = await sb.rpc("chat_rename", { p_room: chatRoom.id, p_title: t });
+    if (!handled(error, "방 이름 바꾸기")) return;
+    chatRoom.title = t || null;
+    toast("방 이름을 바꿨어요.");
+    chatShow("room"); chatPull();
+  };
+  async function chatLeaveNow(){
+    const room = chatRoom;
+    if (!room) return;
+    const grp = room.kind === "group";
+    const q = grp
+      ? "'" + chatRoomName() + "' 단체방에서 나갈까요?\n다른 사람이 다시 초대해야 들어올 수 있어요."
+      : (room.nick || "상대") + "님과의 대화방에서 나갈까요?\n지금까지의 대화가 내 채팅 목록에서 사라져요.";
+    if (!await ask(q, { title: grp ? "단체방 나가기" : "대화방 나가기", yes:"나가기", danger:true })) return;
+    const { error } = await sb.rpc("chat_leave", { p_room: room.id });
+    if (!handled(error, "대화방 나가기")) return;
+    delete chatDrafts[room.id];
+    toast("대화방에서 나왔어요.");
+    chatShowList();
+  }
+  $("chatLeave").onclick = chatLeaveNow;
+  $("chatGroupLeave").onclick = chatLeaveNow;
+
+  $("chatSend").onclick  = chatSendNow;
+  $("chatNewGroup").onclick = ()=> chatOpenPick("new");
+  $("chatBack").onclick  = ()=>{
+    if (chatView === "room" || (chatView === "pick" && chatPickMode === "new")) chatShowList();
+    else chatShow("room");                          // 정보·초대 화면 → 대화로
+  };
+  $("chatClose").onclick = closeChat;
+  $("chatModal").onclick = (e)=>{ if (e.target.id === "chatModal") closeChat(); };   // 쓰던 글은 방마다 남겨 둡니다
+  $("mChat").onclick = ()=>{ $("accMenu").hidden = true; openChat(); };
+  document.addEventListener("visibilitychange", ()=>{        // 돌아오면 바로 한 번 받아옵니다
+    if (document.hidden || !chatIsOpen()) return;
+    if (chatRoom) chatPull(); else if (chatView === "list") chatLoadRooms(false);
+  });
+
+  // updateBadges 가 안 읽은 채팅 수를 넘겨줍니다
+  function chatBadge(c){
+    $("chatCnt").hidden = !c;
+    $("chatCnt").textContent = c > 99 ? "99+" : String(c);
+    $("accDot").hidden = !c;
+    if (chatUnreadPrev >= 0 && c > chatUnreadPrev) chatNotify();
+    chatUnreadPrev = c;
+  }
+  async function chatNotify(){
+    if (chatIsOpen() && chatView === "list") return;   // 목록을 보고 있으면 목록에 바로 보입니다
+    const { data } = await sb.rpc("chat_rooms_list");
+    // 이미 카드로 알려 준 메시지는 다시 띄우지 않습니다 (다른 방에 새 메시지가 와도 앞의 것이 또 뜨지 않게)
+    const rows = (data || []).filter(r=> r.unread > 0 && !r.last_mine
+                                     && !(chatRoom && chatRoom.id === Number(r.room_id))
+                                     && chatToldAt[r.room_id] !== r.last_at);
+    rows.forEach(r=> chatToldAt[r.room_id] = r.last_at);
+    rows.slice(0, 2).reverse().forEach(r=> ntMake("k-message",
+      '<span class="ic">💬</span>'
+      + '<span class="tx"><span class="t1">' + esc(chatRowName(r)) + (r.kind === "group" ? '' : '님') + '의 채팅'
+      +   (r.unread > 1 ? ' ' + r.unread + '개' : '') + '</span>'
+      + '<span class="t2">' + esc(chatPreview(r)) + '</span>'
+      + '<span class="t3">눌러서 대화 보기</span></span>',
+      ()=>{ $("chatModal").classList.add("on");
+            chatEnter({ id: Number(r.room_id), kind: r.kind, title: r.title, names: r.names, nick: r.other_nick }); }));
+  }
+
   const updateUnread = updateBadges;
 
   /* ---------- 게시판 helpers ---------- */
@@ -7077,6 +7824,7 @@ _imgs
         if (m.id === "nickModal" && nickFirst) return;
         if (m.id === "labProModal"){ labProClose(); return; }   // 쓰던 코드가 있으면 물어봅니다
         if (m.id === "dmModal"){ dmTryClose(); return; }        // 쓰던 쪽지가 있으면 물어봅니다
+        if (m.id === "chatModal"){ closeChat(); return; }       // 받아오기도 같이 멈춥니다
         m.classList.remove("on");
       });
       else if (pickerOpen) togglePicker(false);

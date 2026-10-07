@@ -189,6 +189,31 @@
                 white-space:nowrap; font-weight:600; color:var(--ink)}
   .lockmk{font-size:12px}
   .dlg-btns{display:flex; gap:8px; justify-content:flex-end; margin-top:18px}
+
+  /* 대화 기록 */
+  .dlg.wide{max-width:760px}
+  .seg{display:inline-flex; background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:3px; gap:2px}
+  .seg button{border:0; background:none; padding:7px 14px; border-radius:8px; font:inherit; font-size:13px;
+              font-weight:600; color:var(--ink-soft); cursor:pointer}
+  .seg button.on{background:#fff; color:var(--blue-dark); box-shadow:0 1px 3px rgba(31,58,102,.12)}
+  .tag.flag{background:var(--red-soft); color:var(--red)}
+  tr.flagged td{background:#fffafa}
+  .tk-who{font-weight:700; white-space:nowrap}
+  .tk-who .r{font-weight:600; font-size:11px; color:var(--ink-soft); margin-left:4px}
+  .tk-prev{color:var(--ink-soft); max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .tk-log{display:flex; flex-direction:column; gap:6px; max-height:62vh; overflow:auto; padding:6px 2px;
+          border:1px solid var(--line); border-radius:12px; background:var(--bg)}
+  .tk-day{align-self:center; font-size:11.5px; color:var(--ink-soft); padding:6px 0 2px}
+  .tk-m{max-width:78%; align-self:flex-start; margin:0 8px}
+  .tk-m.r{align-self:flex-end; text-align:right}
+  .tk-m .who{font-size:11.5px; font-weight:700; color:var(--ink-soft); margin:2px 2px 3px}
+  .tk-m .bub{display:inline-block; text-align:left; padding:8px 12px; border-radius:14px; background:#fff;
+             border:1px solid var(--line); font-size:13.5px; line-height:1.6; white-space:pre-wrap; word-break:break-word}
+  .tk-m.r .bub{background:var(--blue-soft); border-color:#d3e2f8}
+  .tk-m.flag .bub{background:var(--red-soft); border-color:#efc9c9}
+  .tk-m .tm{font-size:10.5px; color:var(--ink-soft); margin:2px 4px 0}
+  .tk-m .bub.pic{padding:4px}
+  .tk-img{display:block; width:200px; height:200px; object-fit:cover; border-radius:10px; cursor:zoom-in; background:var(--bg)}
   .err{color:var(--red); font-size:12.5px; min-height:17px; margin:6px 0 0}
 
   /* 로그인/권한 */
@@ -264,6 +289,7 @@
       <button data-p="assign">과제</button>
       <button data-p="errors">오류 기록</button>
       <button data-p="blocks">차단 현황</button>
+      <button data-p="talks">대화 기록</button>
       <button data-p="words">금지어</button>
       <button data-p="settings">사이트 설정</button>
       <button data-p="push">푸시 알림</button>
@@ -312,7 +338,10 @@
     $("toast").textContent = msg; $("toast").classList.add("on");
     clearTimeout(toastT); toastT = setTimeout(()=> $("toast").classList.remove("on"), 3000);
   }
-  function openDlg(html){ $("dlg").innerHTML = html; $("modal").classList.add("on"); }
+  function openDlg(html, cls){
+    $("dlg").className = "dlg" + (cls ? " " + cls : "");    // cls: "wide" 면 넓은 창 (대화 기록)
+    $("dlg").innerHTML = html; $("modal").classList.add("on");
+  }
 
   // 브라우저 기본 팝업 대신 쓰는 확인창
   function ask(text, opts){
@@ -435,6 +464,7 @@
     assign:   ["과제 제출 현황", pageAssign],
     errors:   ["오류 기록",    pageErrors],
     blocks:   ["차단 현황",    pageBlocks],
+    talks:    ["대화 기록",    pageTalks],
     words:    ["금지어 관리",  pageWords],
     settings: ["사이트 설정",  pageSettings],
     push:     ["푸시 알림",    pagePush]
@@ -1626,6 +1656,208 @@
       + '· 차단은 학생이 스스로를 보호하는 정상적인 기능이기도 합니다. 숫자 하나로 단정하지 말고 '
       + '흐름을 보세요. 갑자기 여러 명이 같은 학생을 차단했다면 그 시점에 무슨 일이 있었는지 확인해볼 만합니다.<br>'
       + '· 관리자가 차단을 대신 풀어줄 수는 없습니다. 학생 본인만 해제할 수 있어요.</p></div>';
+  }
+
+  /* ===================== 대화 기록 (채팅 · 쪽지) =====================
+     학교폭력 등 안전 확인용 (schema24-a·b). 관리자만 볼 수 있고,
+     대화를 열어보면 누가 언제 열었는지 '열람 기록'에 남습니다.                    */
+  let tkTab = "chat", tkQ = "", tkAll = false, tkPage = 0;
+  const TK_SIZE = 30;
+  const ROLE_KO = { student:"학생", teacher:"선생님", admin:"관리자" };
+  const tkWho = (nick, role)=> '<span class="tk-who">' + esc(nick || "(탈퇴)")
+    + (role && role !== "student" ? '<span class="r">' + (ROLE_KO[role] || role) + '</span>' : '') + '</span>';
+
+  async function pageTalks(){
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<div class="seg" id="tkTabs"><button data-t="chat">채팅</button><button data-t="dm">쪽지</button>'
+      + '<button data-t="log">열람 기록</button></div>'
+      + '<span class="grow"></span>'
+      + '<input id="tkSearch" placeholder="닉네임·내용 검색" value="'+esc(tkQ)+'">'
+      + '<button class="b" id="tkGo">검색</button>'
+      + '<label class="anon"><input type="checkbox" id="tkAll"'+(tkAll ? " checked" : "")+'> 선생님과의 대화도</label>'
+      + '</div><div class="tbl-wrap" id="tkBody"></div><div class="pager" id="tkPager"></div></div>'
+      + '<p class="muted" style="font-size:12px;line-height:1.9;margin:0 4px">'
+      + '· 이 화면은 <b>관리자에게만</b> 보입니다.<br>'
+      + '· 금지어가 들어간 대화는 <span class="tag flag">금지어</span> 로 표시돼요. 단어 목록은 <b>금지어</b> 메뉴에서 관리합니다.<br>'
+      + '· 학생이 쪽지를 지우거나 채팅방에서 나가도 여기에는 그대로 남아 있어요.<br>'
+      + '· 대화를 열어보면 누가 언제 열었는지 <b>열람 기록</b>에 남습니다. 꼭 필요할 때만 열어 주세요.</p>';
+
+    const syncTabs = ()=>{
+      $("tkTabs").querySelectorAll("button").forEach(b=> b.classList.toggle("on", b.dataset.t === tkTab));
+      const hideF = tkTab === "log";
+      ["tkSearch","tkGo"].forEach(id=> $(id).style.display = hideF ? "none" : "");
+      $("tkAll").parentNode.style.display = hideF ? "none" : "";
+    };
+    $("tkTabs").onclick = (e)=>{
+      const b = e.target.closest("button[data-t]"); if (!b) return;
+      tkTab = b.dataset.t; tkPage = 0; syncTabs(); loadTalks();
+    };
+    $("tkGo").onclick = ()=>{ tkQ = $("tkSearch").value.trim(); tkPage = 0; loadTalks(); };
+    $("tkSearch").onkeydown = (e)=>{ if (e.key === "Enter") $("tkGo").click(); };
+    $("tkAll").onchange = ()=>{ tkAll = $("tkAll").checked; tkPage = 0; loadTalks(); };
+    syncTabs();
+    await loadTalks();
+  }
+
+  async function loadTalks(){
+    const body = $("tkBody");
+    body.innerHTML = '<div class="empty">불러오는 중…</div>';
+    try {
+      if (tkTab === "chat")     await loadTalkRooms(body);
+      else if (tkTab === "dm")  await loadTalkDms(body);
+      else                      await loadTalkLog(body);
+    } catch(e){
+      body.innerHTML = '<div class="empty">' + esc(cleanErr(e))
+        + '<br><small>schema24-a → b → c → d → e 를 아직 실행하지 않았다면 먼저 실행해 주세요.</small></div>';
+      $("tkPager").innerHTML = "";
+    }
+  }
+
+  async function loadTalkRooms(body){
+    const rows = await rpc("admin_chat_rooms",
+      { p_q: tkQ || null, p_students_only: !tkAll, p_limit: TK_SIZE, p_offset: tkPage * TK_SIZE });
+    const total = rows.length ? Number(rows[0].total) : 0;
+    body.innerHTML = '<table><thead><tr><th>대화방 · 참여한 사람</th><th>메시지</th><th>마지막 메시지</th><th>마지막 시각</th><th></th>'
+      + '</tr></thead><tbody>'
+      + (rows.length ? rows.map(r=>
+          '<tr class="'+(r.flagged ? "flagged" : "")+'">'
+          + '<td>'+tkRoomName(r)+'</td>'
+          + '<td class="num">'+r.msg_count+(r.images ? ' <span class="muted">📷'+r.images+'</span>' : '')
+          +   (r.flagged ? ' <span class="tag flag">금지어 '+r.flagged+'</span>' : '')+'</td>'
+          + '<td class="tk-prev">'+esc(r.last_kind === "image" ? "📷 사진" : (r.last_body || ""))+'</td>'
+          + '<td class="num muted">'+dt(r.last_at)+'</td>'
+          + '<td class="act"><button class="b sm" data-room="'+r.id+'">대화 보기</button></td></tr>').join("")
+        : '<tr><td colspan="5" class="empty">'+(tkQ ? "찾는 대화가 없어요." : "아직 채팅 기록이 없어요.")+'</td></tr>')
+      + '</tbody></table>';
+    pager($("tkPager"), total, TK_SIZE, tkPage, n=>{ tkPage = n; loadTalks(); });
+    body.querySelectorAll("[data-room]").forEach(b=>{
+      const r = rows.find(x=> String(x.id) === b.dataset.room);
+      b.onclick = ()=> openTalkRoom(r);
+    });
+  }
+
+  // 1:1 은 "A ↔ B", 단체방은 "👥 방 이름 (N명)" + 참여한 사람
+  function tkRoomName(r){
+    const names = esc(r.names || "(빈 방)");
+    if (r.kind === "group")
+      return '<span class="tk-who">👥 '+esc(r.title || "단체방")+' <span class="r">'+r.member_count+'명</span></span>'
+           + '<br><span class="muted" style="font-size:12px">'+names+'</span>';
+    return '<span class="tk-who">'+names.replace(", ", ' <span class="muted">↔</span> ')+'</span>';
+  }
+
+  async function openTalkRoom(r){
+    const msgs = await rpc("admin_chat_messages", { p_room: r.id });
+    const grp = r.kind === "group";
+    const title = grp ? "👥 " + (r.title || "단체방") : String(r.names || "").replace(", ", " ↔ ");
+    let day = "", prevWho = null;
+    const log = msgs.map(m=>{
+      const d = ymd(m.created_at);
+      let h = "";
+      if (d !== day){ day = d; prevWho = null; h += '<div class="tk-day">'+d+'</div>'; }
+      if (m.kind === "system"){ prevWho = null; return h + '<div class="tk-day">'+esc(m.body)+' · '+dt(m.created_at).slice(11)+'</div>'; }
+      const side = !grp && !m.is_lo ? " r" : "";               // 1:1 은 양쪽으로, 단체방은 모두 왼쪽에 이름과 함께
+      const content = m.kind === "image" && m.file_path
+        ? '<img class="tk-img" data-p="'+esc(m.file_path)+'" data-name="'+esc(m.file_name || "사진")+'" alt="사진">'
+        : esc(m.body);
+      h += '<div class="tk-m'+side+(m.flagged ? " flag" : "")+'">'
+        + (prevWho !== m.sender_id ? '<div class="who">'+esc(m.sender_nick || "(탈퇴)")+'</div>' : '')
+        + '<div class="bub'+(m.kind === "image" ? " pic" : "")+'">'+content+'</div>'
+        + '<div class="tm">'+dt(m.created_at).slice(11)+(m.flagged ? ' · <b style="color:var(--red)">금지어</b>' : '')+'</div></div>';
+      prevWho = m.sender_id;
+      return h;
+    }).join("");
+    const real = msgs.filter(m=> m.kind !== "system").length;
+    openDlg('<h3>'+esc(title)+'</h3>'
+      + '<p class="sub">'+(grp ? esc(r.names || "") + '<br>' : '')
+      + '메시지 '+real+'개'+(msgs.length >= 3000 ? ' (최근 3000개)' : '')
+      + (r.images ? ' · 사진 '+r.images+'장' : '') + (r.flagged ? ' · 금지어 '+r.flagged+'개' : '')+'</p>'
+      + '<div class="tk-log" id="tkLog">'+(log || '<div class="empty">메시지가 없어요.</div>')+'</div>'
+      + '<div class="dlg-btns"><button class="b" id="tkCsv">CSV로 저장</button>'
+      + '<button class="b pri" id="tkClose">닫기</button></div>', "wide");
+    const box = $("tkLog"); box.scrollTop = box.scrollHeight;     // 최근 대화가 보이게
+    $("tkClose").onclick = closeDlg;
+    // 사진: 서명 주소를 한꺼번에 받아 작게 보여주고, 누르면 원본을 새 탭에서
+    const imgs = [...box.querySelectorAll("img.tk-img")];
+    if (imgs.length){
+      const paths = [...new Set(imgs.map(i=> i.dataset.p))];
+      sb.storage.from("attachments").createSignedUrls(paths, 3600).then(({ data })=>{
+        const map = {}; (data || []).forEach(d=>{ if (d.path && d.signedUrl) map[d.path] = d.signedUrl; });
+        imgs.forEach(i=>{
+          const u = map[i.dataset.p];
+          if (u){ i.src = u; i.onclick = ()=> window.open(u, "_blank", "noopener"); }
+          else i.replaceWith(Object.assign(document.createElement("span"), { className:"muted", textContent:"(사진을 불러올 수 없어요)" }));
+        });
+        box.scrollTop = box.scrollHeight;
+      }, ()=>{});
+    }
+    $("tkCsv").onclick = ()=>{
+      const q = (v)=> '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      const csv = "﻿" + ["시각","보낸 사람","종류","내용","금지어"].join(",") + "\n"
+        + msgs.map(m=> [q(dt(m.created_at)), q(m.kind === "system" ? "(안내)" : (m.sender_nick || "(탈퇴)")),
+                        ({ text:"글", image:"사진", system:"안내" })[m.kind] || m.kind,
+                        q(m.kind === "image" ? (m.file_name || "사진") : m.body), m.flagged ? "Y" : ""].join(",")).join("\n");
+      downloadText("채팅_" + (grp ? (r.title || "단체방") : String(r.names || "").replace(", ", "_")) + "_"
+                   + ymd(new Date().toISOString()) + ".csv", csv);
+    };
+  }
+
+  async function loadTalkDms(body){
+    const rows = await rpc("admin_dm_list",
+      { p_q: tkQ || null, p_students_only: !tkAll, p_limit: TK_SIZE, p_offset: tkPage * TK_SIZE });
+    const total = rows.length ? Number(rows[0].total) : 0;
+    const state = (m)=> [
+      m.read_at ? "읽음" : '<b>안 읽음</b>',
+      m.del_sender ? "보낸 사람이 지움" : "",
+      m.del_recipient ? "받은 사람이 지움" : ""
+    ].filter(Boolean).join(" · ");
+    body.innerHTML = '<table><thead><tr><th>보낸 사람 → 받은 사람</th><th>제목 · 내용</th><th>상태</th><th>보낸 시각</th><th></th>'
+      + '</tr></thead><tbody>'
+      + (rows.length ? rows.map(m=>
+          '<tr class="'+(m.flagged ? "flagged" : "")+'">'
+          + '<td>'+tkWho(m.sender_nick, m.sender_role)+' <span class="muted">→</span> '+tkWho(m.recipient_nick, m.recipient_role)+'</td>'
+          + '<td class="tk-prev"><b>'+esc(m.title)+'</b>'+(m.files ? ' 📎'+m.files : '')
+          +   (m.flagged ? ' <span class="tag flag">금지어</span>' : '')
+          +   '<br><span class="muted">'+esc(m.preview || "")+'</span></td>'
+          + '<td class="muted" style="font-size:12px">'+state(m)+'</td>'
+          + '<td class="num muted">'+dt(m.created_at)+'</td>'
+          + '<td class="act"><button class="b sm" data-dm="'+m.id+'">열기</button></td></tr>').join("")
+        : '<tr><td colspan="5" class="empty">'+(tkQ ? "찾는 쪽지가 없어요." : "쪽지가 없어요.")+'</td></tr>')
+      + '</tbody></table>';
+    pager($("tkPager"), total, TK_SIZE, tkPage, n=>{ tkPage = n; loadTalks(); });
+    body.querySelectorAll("[data-dm]").forEach(b=> b.onclick = ()=> openTalkDm(Number(b.dataset.dm)));
+  }
+
+  async function openTalkDm(id){
+    const rows = await rpc("admin_dm_get", { p_id: id });
+    const m = rows && rows[0];
+    if (!m){ toast("쪽지를 찾을 수 없어요."); return; }
+    const files = m.files || [];
+    openDlg('<h3>'+esc(m.title)+'</h3>'
+      + '<p class="sub">'+esc(m.sender_nick || "(탈퇴)")+' → '+esc(m.recipient_nick || "(탈퇴)")
+      + ' · '+dt(m.created_at)+' · '+(m.read_at ? "읽음 "+dt(m.read_at) : "안 읽음")
+      + (m.del_sender ? " · 보낸 사람이 지움" : "") + (m.del_recipient ? " · 받은 사람이 지움" : "")+'</p>'
+      + '<div class="sub-body" style="max-height:46vh">'+(esc(m.body) || '<span class="muted">(내용 없음)</span>')+'</div>'
+      + (files.length ? '<div style="margin-top:12px">' + files.map((f, i)=>
+          '<div class="sub-file"><span class="fn">'+esc(f.name)+'</span>'
+          + '<span class="muted">'+mb(f.size)+'</span>'
+          + '<button class="b sm" data-fi="'+i+'">받기</button></div>').join("") + '</div>' : '')
+      + '<div class="dlg-btns"><button class="b pri" id="tkClose">닫기</button></div>', "wide");
+    $("tkClose").onclick = closeDlg;
+    $("dlg").querySelectorAll("[data-fi]").forEach(b=> b.onclick = ()=> downloadStored(files[Number(b.dataset.fi)]));
+  }
+
+  async function loadTalkLog(body){
+    const rows = await rpc("admin_view_logs", { p_limit: 100 });
+    body.innerHTML = '<table><thead><tr><th>열어본 관리자</th><th>종류</th><th>대상</th><th>시각</th></tr></thead><tbody>'
+      + (rows.length ? rows.map(l=>
+          '<tr><td><b>'+esc(l.admin_nick || "-")+'</b></td>'
+          + '<td>'+(l.kind === "chat" ? "채팅" : "쪽지")+'</td>'
+          + '<td>'+esc(l.label || "-")+'</td>'
+          + '<td class="num muted">'+dt(l.created_at)+'</td></tr>').join("")
+        : '<tr><td colspan="4" class="empty">아직 열어본 기록이 없어요.</td></tr>')
+      + '</tbody></table>';
+    $("tkPager").innerHTML = "";
   }
 
   /* ===================== 금지어 관리 ===================== */

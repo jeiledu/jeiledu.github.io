@@ -840,7 +840,12 @@
   async function pageGroups(){
     const gs = await rpc("admin_groups");
     $("page").innerHTML =
-      '<div class="card"><h3>그룹 '+gs.length+'개</h3><div class="tbl-wrap"><table><thead><tr>'
+      '<div class="card"><div class="tools"><h3 style="margin:0">그룹 '+gs.length+'개</h3><span class="grow"></span>'
+      + '<button class="b pri" id="gNew">＋ 새 그룹 만들기</button></div>'
+      + '<p class="muted" style="margin:0 0 12px;font-size:12.5px;line-height:1.7">'
+      + '반·수업별로 그룹을 만들어 학생을 넣어 두면 <b>랭킹 그룹</b>으로 쓰이고, 과제의 <b>제출 대상</b>으로 고를 수 있어요. '
+      + '관리자가 만든 그룹에는 관리자 본인이 들어가지 않아요.</p>'
+      + '<div class="tbl-wrap"><table><thead><tr>'
       + '<th>이름</th><th>초대코드</th><th>방장</th><th>인원</th><th>생성</th><th></th>'
       + '</tr></thead><tbody>'
       + (gs.length ? gs.map(g=>
@@ -853,6 +858,7 @@
         : '<tr><td colspan="6" class="empty">그룹이 없어요.</td></tr>')
       + '</tbody></table></div></div>';
 
+    $("gNew").onclick = openNewGroup;
     $("page").querySelectorAll("[data-gm]").forEach(b=> b.onclick = ()=> openGroupMembers(Number(b.dataset.gm)));
     $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
       const n = await ask("새 그룹 이름을 입력하세요.", { title:"그룹 이름 변경", yes:"저장", input:b.dataset.n });
@@ -867,24 +873,69 @@
     });
   }
 
-  async function openGroupMembers(gid){
+  // 닉네임을 쉼표·줄바꿈·탭으로 나눠서 (엑셀에서 한 열을 복사해 붙여넣어도 됨 · 닉네임 안의 띄어쓰기는 살림)
+  const splitNicks = (t)=> [...new Set(String(t || "").split(/[\r\n\t,，;]+/).map(s=> s.trim()).filter(Boolean))];
+
+  // 여러 명 넣고 결과 알려주기 — 못 찾은 닉네임은 그대로 보여줌
+  async function addNicks(gid, nicks){
+    if (!nicks.length) return [];
+    const res = await rpc("admin_add_members_by_nick", { p_group: gid, p_nicks: nicks });
+    const miss = res.filter(x=> !x.added).map(x=> x.nickname);
+    toast((res.length - miss.length) + "명을 넣었어요." + (miss.length ? " 못 찾은 닉네임 " + miss.length + "개" : ""));
+    return miss;
+  }
+
+  function openNewGroup(){
+    openDlg('<h3>새 그룹 만들기</h3><p class="sub">예) 1학년 3반 정보, 2학년 데이터과학 A반</p>'
+      + '<div class="f"><label>그룹 이름 (2~20자)</label><input id="ngName" maxlength="20"></div>'
+      + '<div class="f"><label>넣을 학생 닉네임 (선택 · 나중에 넣어도 돼요)</label>'
+      + '<textarea id="ngNicks" placeholder="쉼표나 줄바꿈으로 구분 · 엑셀의 닉네임 열을 그대로 붙여넣어도 돼요"></textarea></div>'
+      + '<p class="err" id="ngErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="ngCancel">취소</button><button class="b pri" id="ngOk">만들기</button></div>');
+    setTimeout(()=> $("ngName").focus(), 60);
+    $("ngCancel").onclick = closeDlg;
+    $("ngOk").onclick = async ()=>{
+      $("ngOk").disabled = true;
+      try {
+        const gid = await rpc("admin_create_group", { p_name: $("ngName").value.trim() });
+        const miss = await addNicks(Number(gid), splitNicks($("ngNicks").value));
+        await pageGroups();
+        openGroupMembers(Number(gid), miss);
+      } catch(e){ $("ngOk").disabled = false; $("ngErr").textContent = cleanErr(e); }
+    };
+  }
+
+  async function openGroupMembers(gid, missed){
     const ms = await rpc("admin_group_members", { p_group: gid });
     openDlg('<h3>그룹 멤버</h3><p class="sub">'+ms.length+'명</p>'
-      + '<div class="f" style="position:relative"><label>학생 추가</label>'
+      + (missed && missed.length
+          ? '<p class="err" style="margin:0 0 10px">못 찾은 닉네임: '+esc(missed.join(", "))+' — 철자를 확인해 주세요.</p>' : '')
+      + '<div class="f"><label>여러 명 한꺼번에 넣기</label>'
+      + '<textarea id="gmBulk" placeholder="닉네임을 쉼표나 줄바꿈으로 구분해서 붙여넣기" style="min-height:64px"></textarea>'
+      + '<div style="text-align:right;margin-top:6px"><button class="b sm pri" id="gmBulkOk">넣기</button></div></div>'
+      + '<div class="f" style="position:relative"><label>한 명씩 찾아서 넣기</label>'
       + '<input id="gmAdd" placeholder="닉네임으로 검색" autocomplete="off">'
       + '<div id="gmSug" style="position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;'
       + 'border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 20px rgba(31,58,102,.12);'
       + 'margin-top:4px;max-height:180px;overflow:auto;display:none"></div></div>'
       + '<div class="tbl-wrap"><table><tbody id="gmList">'
-      + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname)+'</b></td>'
+      + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname || "(탈퇴)")+'</b>'
+          + (m.role && m.role !== "student" ? ' <span class="tag teacher">'+(m.role === "admin" ? "관리자" : "선생님")+'</span>' : '')+'</td>'
           + '<td class="num muted">'+ymd(m.joined_at)+' 참여</td>'
           + '<td class="num">오늘 '+hhm(m.today_seconds)+'</td>'
-          + '<td class="act"><button class="b sm danger" data-rm="'+esc(m.nickname)+'">빼기</button></td></tr>').join("")
+          + '<td class="act"><button class="b sm danger" data-rm="'+esc(m.nickname || "")+'"'
+          + (m.user_id ? ' data-uid="'+esc(m.user_id)+'"' : '')+'>빼기</button></td></tr>').join("")
          : '<tr><td class="empty">멤버가 없어요.</td></tr>')
       + '</tbody></table></div>'
       + '<div class="dlg-btns"><button class="b" id="gmClose">닫기</button></div>');
 
     $("gmClose").onclick = closeDlg;
+    $("gmBulkOk").onclick = async ()=>{
+      const nicks = splitNicks($("gmBulk").value);
+      if (!nicks.length){ toast("닉네임을 붙여넣어 주세요."); return; }
+      try { const miss = await addNicks(gid, nicks); openGroupMembers(gid, miss); }
+      catch(e){ toast(cleanErr(e)); }
+    };
 
     let t;
     $("gmAdd").oninput = (e)=>{
@@ -907,10 +958,14 @@
     };
 
     $("gmList").querySelectorAll("[data-rm]").forEach(b=> b.onclick = async ()=>{
-      const rows = await rpc("admin_users", { p_q: b.dataset.rm, p_limit: 5 });
-      const u = rows.find(x=> x.nickname === b.dataset.rm);
-      if (!u) return;
-      await rpc("admin_remove_member", { p_group: gid, p_user: u.id });
+      let uid = b.dataset.uid;                        // schema25-d 부터는 아이디가 같이 옵니다
+      if (!uid){
+        const rows = await rpc("admin_users", { p_q: b.dataset.rm, p_limit: 5 });
+        const u = rows.find(x=> x.nickname === b.dataset.rm);
+        if (!u) return;
+        uid = u.id;
+      }
+      await rpc("admin_remove_member", { p_group: gid, p_user: uid });
       toast("뺐어요."); closeDlg(); openGroupMembers(gid);
     });
   }
@@ -1329,10 +1384,12 @@
         + '게시판 설정에서 종류를 <b>과제 제출형</b>으로 지정한 게시판의 글만 나옵니다.</p>'
         + (list.length
             ? '<div class="tbl-wrap"><table><thead><tr>'
-              + '<th>과제</th><th>마감</th><th class="num">제출</th><th class="num">만점</th>'
+              + '<th>과제</th><th>대상</th><th>마감</th><th class="num">제출</th><th class="num">만점</th>'
               + '<th>점수</th><th></th></tr></thead><tbody>'
               + list.map(p=>
                   '<tr><td><b>'+esc(p.title)+'</b> <span class="muted">'+esc(p.category_name)+'</span></td>'
+                  + '<td>'+(p.target_name ? '<span class="tag teacher">'+esc(p.target_name)+'</span>'
+                                          : '<span class="muted">전체 학생</span>')+'</td>'
                   + '<td class="muted">'+(p.due_at ? dt(p.due_at) : '마감 없음')
                   +   (p.due_at && !p.allow_late ? ' <span class="tag hid">마감 후 잠금</span>' : '')+'</td>'
                   + '<td class="num"><b>'+p.submitted+'</b> <span class="muted">/ '+p.students+'</span></td>'
@@ -1369,17 +1426,23 @@
     const info   = assignInfo || {};
     const useSc  = (info.max_score != null);
     const open   = !!info.scores_open;
-    const done   = rows.filter(r=> r.submitted).length;
-    const graded = rows.filter(r=> r.score != null).length;
+    const inT    = (r)=> r.in_target !== false;            // schema25 전이면 전부 대상
+    const target = rows.filter(inT);
+    const done   = target.filter(r=> r.submitted).length;
+    const graded = target.filter(r=> r.score != null).length;
+    const missing = target.filter(r=> !r.submitted);
+    const nFiles = rows.reduce((n, r)=> n + (r.files || []).length, 0);
     $("headNote").textContent = assignPost.title;
 
     $("page").innerHTML =
       '<div class="card"><div class="tools">'
       + '<button class="b" id="aBack">← 다른 과제</button><span class="grow"></span>'
-      + '<span class="muted">제출 '+done+' / '+rows.length+'명'
+      + '<span class="muted">대상 <b>'+esc(info.target_name || "전체 학생")+'</b> · 제출 '+done+' / '+target.length+'명'
       +   (useSc ? ' · 점수 '+graded+'명' : '') + '</span>'
       + (useSc ? '<button class="b '+(open?"":"pri")+'" id="aOpen">'
                  + (open ? '점수 감추기' : '점수 공개하기') + '</button>' : '')
+      + '<button class="b" id="aZip"'+(nFiles ? '' : ' disabled')+'>📦 파일 모두 받기</button>'
+      + '<button class="b" id="aRemind"'+(missing.length ? '' : ' disabled')+'>✉️ 미제출자에게 쪽지</button>'
       + '<button class="b" id="aCsv">CSV</button></div>'
       + (useSc
           ? '<p class="muted" style="margin:0 0 12px;font-size:12.5px">만점 '
@@ -1390,21 +1453,25 @@
             + '점수를 쓰려면 학생 화면의 글에서 <b>과제 설정</b>으로 만점을 정해주세요.</p>')
       + '<div class="tbl-wrap"><table><thead><tr>'
       + '<th>학생</th><th>상태</th>'+(useSc ? '<th class="num">점수</th>' : '')
-      + '<th>제출 내용</th><th>첨부</th><th>제출 시각</th><th></th>'
+      + '<th>제출 내용</th><th>첨부</th><th>처음 제출</th><th>마지막 수정</th><th></th>'
       + '</tr></thead><tbody>'
       + rows.map((r,i)=>{
           const nf = (r.files || []).length;
-          return '<tr><td><b>'+esc(r.nickname)+'</b></td>'
+          const edited = r.first_at && r.at && Math.abs(new Date(r.at) - new Date(r.first_at)) > 60000;
+          return '<tr><td><b>'+esc(r.nickname)+'</b>'
+          + (inT(r) ? '' : ' <span class="tag hid" title="대상 그룹이 아닌데 제출했어요">대상 아님</span>')+'</td>'
           + '<td>'+(r.submitted
               ? (r.checked ? '<span class="tag teacher">확인함</span>'
-                           : '<span class="tag student">제출</span>')
+                           : '<span class="tag student">'+(r.version > 1 ? '다시 냄' : '제출')+'</span>')
                 + (r.late ? ' <span class="tag ban">지각</span>' : '')
+                + (r.edited_late ? ' <span class="tag ban" title="마감 전에 냈지만 마감 뒤에 고쳤어요">마감 후 수정</span>' : '')
                 + (r.locked ? ' <span class="lockmk" title="다시 제출할 수 없음">🔒</span>' : '')
               : '<span class="tag hid">미제출</span>')+'</td>'
           + (useSc ? '<td class="num"><b>'+(r.score != null ? scoreTxt(r.score) : '-')+'</b></td>' : '')
           + '<td style="max-width:300px">'+esc((r.body||"").slice(0,90))+(r.body&&r.body.length>90?'…':'')+'</td>'
           + '<td class="num muted">'+(nf ? nf+'개' : '-')+'</td>'
-          + '<td class="num muted">'+(r.at ? dt(r.at) : '-')+'</td>'
+          + '<td class="num muted">'+(r.first_at ? dt(r.first_at) : (r.at ? dt(r.at) : '-'))+'</td>'
+          + '<td class="num muted">'+(edited ? dt(r.at) + (r.version > 1 ? ' <span title="몇 번째 제출">('+r.version+'번째)</span>' : '') : '-')+'</td>'
           + '<td class="act">'+(r.submitted
               ? '<button class="b sm" data-gr="'+i+'">보기 · 확인</button>' : '')+'</td></tr>';
         }).join("")
@@ -1423,15 +1490,20 @@
     };
 
     $("aCsv").onclick = ()=>{
-      const head = "학생,상태,지각,잠금,점수,만점,제출시각,첨부수,내용,피드백";
+      const head = "학생,대상,상태,지각,마감후수정,잠금,점수,만점,처음제출,마지막수정,몇번째,첨부수,내용,피드백";
       const q = (v)=> '"' + String(v==null?"":v).replace(/"/g,'""').replace(/\n/g," ") + '"';
       const body = rows.map(r=> [
-        q(r.nickname), r.submitted?"제출":"미제출", r.late?"지각":"", r.locked?"잠김":"",
+        q(r.nickname), inT(r)?"":"대상아님", r.submitted?"제출":"미제출", r.late?"지각":"",
+        r.edited_late?"마감후수정":"", r.locked?"잠김":"",
         r.score!=null?scoreTxt(r.score):"", useSc?scoreTxt(info.max_score):"",
-        r.at?dt(r.at):"", (r.files||[]).length, q(r.body), q(r.feedback)
+        r.first_at?dt(r.first_at):(r.at?dt(r.at):""), r.at?dt(r.at):"", r.version||"",
+        (r.files||[]).length, q(r.body), q(r.feedback)
       ].join(",")).join("\n");
       downloadText(assignPost.title+"_제출현황.csv", "\uFEFF"+head+"\n"+body);
     };
+
+    $("aZip").onclick = ()=> zipSubmissions(assignPost.title, rows);
+    $("aRemind").onclick = ()=> remindMissing(assignPost, info, missing);
 
     $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = ()=>
       openGrade(rows[Number(b.dataset.gr)], useSc, info));
@@ -1442,8 +1514,11 @@
     const files = r.files || [];
     openDlg(
       '<h3>'+esc(r.nickname)+' 학생의 제출물</h3>'
-      + '<p class="sub">'+(r.at ? dt(r.at) : '-')+' 제출'
-      +   (r.late ? ' · 지각' : '') + (r.locked ? ' · 잠김' : '') + '</p>'
+      + '<p class="sub">'+dt(r.first_at || r.at)+' 처음 제출'
+      +   (r.late ? ' · 지각' : '')
+      +   (r.first_at && r.at && Math.abs(new Date(r.at) - new Date(r.first_at)) > 60000
+            ? ' · 마지막 수정 '+dt(r.at) + (r.edited_late ? ' (마감 후)' : '') : '')
+      +   (r.locked ? ' · 잠김' : '') + '</p>'
       + '<div class="f"><label>제출 내용</label>'
       + '<div class="sub-body">'+(r.body ? esc(r.body) : '<i class="muted">내용 없이 파일만 냈어요.</i>')+'</div></div>'
       + (files.length
@@ -1470,11 +1545,26 @@
           ? '<p class="muted" style="font-size:12px;margin:0 0 10px">'
             + '지금 넣는 점수는 <b>점수 공개하기</b>를 누르기 전까지 학생에게 보이지 않아요.</p>'
           : '')
+      + '<details class="f" id="gLogWrap"><summary style="cursor:pointer;font-size:12.5px;font-weight:700;color:var(--ink-soft)">'
+      + '제출 기록 보기 (언제 내고 언제 고쳤나)</summary><div class="sub-body" id="gLog" style="margin-top:8px">불러오는 중…</div></details>'
       + '<p class="err" id="gErr"></p>'
       + '<div class="dlg-btns"><button class="b" id="gCancel">취소</button>'
       + '<button class="b pri" id="gSave">저장</button></div>');
 
     $("gCancel").onclick = closeDlg;
+    $("gLogWrap").ontoggle = async ()=>{
+      if (!$("gLogWrap").open || $("gLog").dataset.done) return;
+      $("gLog").dataset.done = "1";
+      const ACT = { submit:"제출", resubmit:"다시 제출", file_add:"파일 추가", file_del:"파일 삭제" };
+      try {
+        const logs = await rpc("submission_log_list", { p_post: assignPost.id, p_user: r.user_id });
+        $("gLog").innerHTML = logs.length ? logs.map(l=>
+            '<div>'+dt(l.created_at)+' · <b>'+(ACT[l.action] || esc(l.action))+'</b>'
+            + (l.after_due ? ' <span class="tag ban">마감 후</span>' : '')
+            + (l.detail ? ' — <span class="muted">'+esc(String(l.detail).slice(0, 120))+'</span>' : '')+'</div>').join("")
+          : '<span class="muted">기록이 없어요. (2026-10-09 이전에 낸 제출물은 기록이 없어요)</span>';
+      } catch(e){ $("gLog").textContent = cleanErr(e) + " — schema25 를 실행했는지 확인해 주세요."; }
+    };
     $("dlg").querySelectorAll("[data-sd]").forEach(b=> b.onclick = ()=>
       downloadStored(files[Number(b.dataset.sd)]));
 
@@ -1497,6 +1587,76 @@
           p_checked: true, p_score: sc, p_lock: $("gLock").checked });
         closeDlg(); toast("저장했어요."); pageAssign();
       }catch(e){ $("gErr").textContent = cleanErr(e); }
+    };
+  }
+
+  /* ---------- 제출 파일 모두 받기 (zip) ----------
+     학생별 폴더로 묶어서 한 파일로. JSZip 은 누를 때만 불러옵니다 (평소 페이지 무게 0).
+     파일이 많으면 브라우저 메모리를 많이 쓰니 PC 에서 쓰는 걸 권합니다. */
+  function loadScript(src){
+    return new Promise((ok, no)=>{
+      const s = document.createElement("script");
+      s.src = src; s.crossOrigin = "anonymous";              // 함정 32: 외부 스크립트는 crossorigin
+      s.onload = ok; s.onerror = ()=> no(new Error("압축 도구를 불러오지 못했어요."));
+      document.head.appendChild(s);
+    });
+  }
+  async function zipSubmissions(title, rows){
+    const list = [];
+    rows.forEach(r=> (r.files || []).forEach(f=> list.push({ r, f })));
+    if (!list.length){ toast("받을 파일이 없어요."); return; }
+    const total = list.reduce((n, x)=> n + Number(x.f.size || 0), 0);
+    if (!await ask("제출 파일 " + list.length + "개 (" + mb(total) + ")를 학생별 폴더로 묶어 받을까요?"
+                   + (total > 300 * 1048576 ? "\n용량이 커서 시간이 꽤 걸리고 메모리를 많이 써요." : ""),
+                   { title:"파일 모두 받기", yes:"받기" })) return;
+    try {
+      if (!window.JSZip) await loadScript("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js");
+    } catch(e){ toast(cleanErr(e)); return; }
+    const zip = new window.JSZip(), used = new Set(), fails = [];
+    const clean = (s)=> String(s || "").normalize("NFC").replace(/[\\/:*?"<>|]/g, "_").trim() || "이름없음";
+    let i = 0;
+    for (const { r, f } of list){
+      i++; toast("파일 받는 중… " + i + " / " + list.length);
+      const { data, error } = await sb.storage.from("attachments").download(f.path);
+      if (error || !data){ fails.push(r.nickname + " · " + f.name); continue; }
+      let name = clean(r.nickname) + "/" + clean(f.name);
+      for (let k = 2; used.has(name); k++) name = clean(r.nickname) + "/(" + k + ") " + clean(f.name);   // 같은 이름 겹침
+      used.add(name);
+      zip.file(name, data);
+    }
+    if (fails.length) zip.file("_받지 못한 파일.txt", fails.join("\r\n"));
+    toast("압축하는 중…");
+    const blob = await zip.generateAsync({ type:"blob" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = clean(title) + "_제출파일.zip";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 10000);
+    toast(fails.length ? "받았어요. " + fails.length + "개는 못 받았어요 (zip 안의 목록 참고)." : "받았어요.");
+  }
+
+  /* ---------- 미제출자에게 쪽지 한꺼번에 ---------- */
+  function remindMissing(post, info, missing){
+    if (!missing.length){ toast("미제출자가 없어요."); return; }
+    const due = info.due_at ? " (마감 " + dt(info.due_at) + ")" : "";
+    openDlg('<h3>미제출자에게 쪽지</h3>'
+      + '<p class="sub">' + missing.length + '명: ' + esc(missing.map(r=> r.nickname).join(", ")) + '</p>'
+      + '<div class="f"><label>제목</label><input id="rmTitle" maxlength="100" value="'
+      + esc("[과제] " + post.title + " 제출 안내") + '"></div>'
+      + '<div class="f"><label>내용</label><textarea id="rmBody" maxlength="5000">'
+      + esc("아직 '" + post.title + "' 과제를 내지 않았어요" + due + ".\n커뮤니티의 과제 글에서 제출해 주세요.") + '</textarea></div>'
+      + '<p class="muted" style="font-size:12px;margin:0">학생마다 쪽지가 한 통씩 가고 알림도 떠요. 보낸 쪽지는 관리자 계정의 보낸 쪽지함에 남아요.</p>'
+      + '<p class="err" id="rmErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="rmCancel">취소</button><button class="b pri" id="rmSend">'
+      + missing.length + '명에게 보내기</button></div>');
+    $("rmCancel").onclick = closeDlg;
+    $("rmSend").onclick = async ()=>{
+      $("rmSend").disabled = true;
+      try {
+        const n = await rpc("admin_message_users", { p_users: missing.map(r=> r.user_id),
+          p_title: $("rmTitle").value.trim(), p_body: $("rmBody").value });
+        closeDlg(); toast(n + "명에게 쪽지를 보냈어요.");
+      } catch(e){ $("rmSend").disabled = false; $("rmErr").textContent = cleanErr(e); }
     };
   }
 

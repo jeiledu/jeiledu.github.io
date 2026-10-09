@@ -1050,6 +1050,8 @@
   }
   .cmt-form textarea:focus{outline:0; border-color:var(--blue); background:#fff}
   .sec-chk{display:flex; align-items:center; gap:7px; margin-top:9px; cursor:pointer}
+  .sec-chk[hidden]{display:none}
+  p.sec-chk{margin:9px 0 0; cursor:default}
   .sec-chk input{width:15px;height:15px;accent-color:#7a5bd0;margin:0;cursor:pointer}
   .sec-chk span{font-size:11.5px; color:var(--ink-faint); letter-spacing:-.2px}
   .cmt.secret .c-body{background:#faf8ff; border-radius:9px; padding:8px 11px; margin:-4px 0}
@@ -1969,7 +1971,7 @@
   #checkModal{z-index:80}
   .nt.k-notice{border-left-color:#c77a1e}                       /* 공지 */
   .nt.k-comment, .nt.k-reply{border-left-color:#3d8f73}         /* 댓글·답글 */
-  .nt.k-grade, .nt.k-score{border-left-color:#8a5cc7}           /* 과제 */
+  .nt.k-grade, .nt.k-score, .nt.k-due{border-left-color:#8a5cc7}   /* 과제 */
   :root[data-theme="dark"] .nt{box-shadow:0 14px 34px rgba(0,0,0,.45)}
   @media (max-width:640px){
     #notiToasts{top:max(10px, env(safe-area-inset-top)); left:10px; right:10px; width:auto}   /* 아이폰 노치 아래로 */
@@ -2382,6 +2384,9 @@
               <em>체크하지 않으면 마감 뒤에도 낼 수 있고 '지각'으로만 표시돼요.</em>
             </span>
           </label>
+          <label style="margin-top:12px">제출 대상</label>
+          <select id="wTarget" class="as-target"><option value="">전체 학생</option></select>
+          <div class="tip">그룹을 고르면 그 그룹 학생만 '미제출'로 셉니다. 그룹은 관리자 화면 <b>그룹</b>에서 만들어요.</div>
         </div>
         <div class="w-field" id="wMaxWrap" hidden>
           <label>만점 (선택)</label>
@@ -2980,6 +2985,11 @@
       <label>만점 (선택)</label>
       <input type="number" id="asOptMax" min="1" max="10000" step="0.5" placeholder="예) 100">
       <div class="tip">비워두면 점수 없이 확인·피드백만 하는 과제가 돼요.</div>
+    </div>
+    <div class="w-field">
+      <label>제출 대상</label>
+      <select id="asOptTarget" class="as-target"><option value="">전체 학생</option></select>
+      <div class="tip">그룹을 고르면 그 그룹 학생만 '미제출'로 셉니다.</div>
     </div>
     <p class="err" id="asOptErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:0"></p>
     <div class="modal-btns">
@@ -4417,6 +4427,9 @@
     refreshRank();
     updateUnread();
     boardLoaded = false;
+    // 마감 24시간 안 남았는데 아직 안 낸 과제가 있으면 알림으로 (과제마다 한 번, 학생만 · schema25-b)
+    if (me.role === "student")
+      sb.rpc("assign_remind_me").then(({ data })=>{ if (Number(data) > 0) updateBadges(); }, ()=>{});
 
     dailyGoal = Number(me.daily_goal || 0);
     renderGoal();
@@ -5144,6 +5157,7 @@
     const edited = p.updated_at && (new Date(p.updated_at) - new Date(p.created_at) > 60000);
     const roots  = cs.filter(c=> !c.parent_id);
     const kids   = (id) => cs.filter(c=> c.parent_id === id);
+    const asgPost = !!cats.find(c=> String(c.id) === String(p.category_id) && c.kind === "assign");   // 과제 글이면 댓글은 늘 비밀
 
     const cmtHtml = (c, isReply) =>
       '<div class="cmt'+(isReply?" reply":"")+(c.secret?" secret":"")+'"><div class="c-body">'
@@ -5187,10 +5201,14 @@
       +   (roots.length
             ? roots.map(c=> cmtHtml(c, false) + kids(c.id).map(k=> cmtHtml(k, true)).join("")).join("")
             : '<div class="empty">첫 댓글을 남겨보세요.</div>')
-      +   '<div class="cmt-form"><textarea id="cInput" placeholder="댓글 입력"></textarea>'
+      +   '<div class="cmt-form"><textarea id="cInput" placeholder="'+(asgPost ? "선생님께 질문 (다른 학생에게는 안 보여요)" : "댓글 입력")+'"></textarea>'
       +   '<button class="btn-write" id="cSend">등록</button></div>'
-      +   '<label class="sec-chk"><input type="checkbox" id="cSecret">'
-      +   '<span>🔒 비밀댓글 (글쓴이와 관리자만 볼 수 있어요)</span></label>'
+      +   (asgPost
+            // 과제 글 댓글은 서버가 늘 비밀로 저장합니다 (답 베끼기 방지, schema25-a)
+            ? '<p class="sec-chk"><span>🔒 과제 글의 댓글은 선생님과 나만 볼 수 있어요.</span></p>'
+              + '<input type="checkbox" id="cSecret" checked hidden>'
+            : '<label class="sec-chk"><input type="checkbox" id="cSecret">'
+              + '<span>🔒 비밀댓글 (글쓴이와 관리자만 볼 수 있어요)</span></label>')
       + '</div>';
 
     $("dBack").onclick = ()=>{ showList(); loadPosts(); };
@@ -5227,7 +5245,8 @@
         if (box.innerHTML){ box.innerHTML = ""; return; }
         box.innerHTML = '<div class="reply-form"><textarea placeholder="답글 입력"></textarea>'
                       + '<button class="btn-write">등록</button></div>'
-                      + '<label class="sec-chk" style="margin-left:26px"><input type="checkbox">'
+                      + '<label class="sec-chk" style="margin-left:26px"'+(asgPost ? ' hidden' : '')+'>'
+                      + '<input type="checkbox"'+(asgPost ? ' checked' : '')+'>'
                       + '<span>🔒 비밀댓글</span></label>';
         const ta = box.querySelector("textarea");
         const sc = box.querySelector('input[type=checkbox]');
@@ -5410,7 +5429,9 @@
       + (a.max_score != null
           ? '<span class="as-chip">만점 '+scoreTxt(a.max_score)+'점</span>' : '')
       + (a.can_manage
-          ? '<span class="grow"></span><span>제출 '+a.done+' / '+a.total+'명'
+          ? '<span class="grow"></span><span>'
+            + (a.target_name ? '대상 <b>'+esc(a.target_name)+'</b> · ' : (a.target_group === undefined ? '' : '대상 전체 학생 · '))
+            + '제출 '+a.done+' / '+a.total+'명'
             + (a.max_score != null ? ' · 점수 '+a.graded+'명' : '') + '</span>'
           : '')
       + '</div>';
@@ -5479,9 +5500,14 @@
               + '</div><input type="file" id="asFileInput" multiple hidden>'
             : '')
         + '<div class="assign-foot">'
-        + (a.my_at ? '<span>'+fmtDate(a.my_at, true)+' 제출됨'
-                   + (a.my_late ? ' · 지각' : '') + '</span>'
-                   : '<span>아직 제출하지 않았어요</span>')
+        + (a.my_at
+            // 처음 낸 시각은 다시 내도 바뀌지 않습니다. 고친 적이 있으면 마지막으로 고친 시각도 함께.
+            ? '<span>'+fmtDate(a.my_first_at || a.my_at, true)+' 제출'
+              + (a.my_late ? ' · 지각' : '')
+              + (a.my_first_at && Math.abs(new Date(a.my_at) - new Date(a.my_first_at)) > 60000
+                  ? ' · 마지막 수정 '+fmtDate(a.my_at, true) + (a.my_edited_late ? ' (마감 후)' : '') : '')
+              + '</span>'
+            : '<span>아직 제출하지 않았어요</span>')
         + (editable
             ? '<button class="btn-write" id="asSend">'+(a.my_at ? '다시 제출' : '제출하기')+'</button>'
             : '')
@@ -5529,7 +5555,21 @@
         if (!handled(se, "과제 제출")){ btn.disabled = false; btn.textContent = label; return; }
         if (subPending.length){
           btn.textContent = "파일 올리는 중…";
-          await uploadSubFiles(Number(sid), p.id);
+          let failed = await uploadSubFiles(Number(sid), p.id);
+          // 하나라도 못 올렸으면 '제출했어요'라고 하지 않습니다 (와이파이가 끊겨도 낸 줄 알던 문제)
+          while (failed.length){
+            const why = [...new Set(failed.map(x=> x.msg))].slice(0, 2).join(" / ");
+            const again = await ask("파일 " + failed.length + "개를 올리지 못했어요.\n"
+              + failed.map(x=> "· " + x.f.name).join("\n") + "\n\n이유: " + why
+              + "\n\n적은 내용은 저장됐어요. 파일을 다시 올려볼까요?",
+              { title:"파일 제출 실패", yes:"다시 올리기", no:"나중에 할게요" });
+            if (!again){
+              toast("⚠️ 파일 " + failed.length + "개는 제출되지 않았어요. 다시 첨부해서 '다시 제출'을 눌러주세요.");
+              openPost(p.id); return;
+            }
+            btn.textContent = "파일 올리는 중…";
+            failed = await uploadSubFiles(Number(sid), p.id);
+          }
         }
         toast("제출했어요!"); openPost(p.id);
       };
@@ -5581,22 +5621,50 @@
     renderSubFiles(true);
   }
 
+  // 올리지 못한 파일은 subPending 에 남기고 [{f, msg}] 로 돌려줍니다 (다시 시도할 수 있게)
   async function uploadSubFiles(subId, postId){
+    const failed = [];
+    const why = (e)=> isNetErr(e) ? "인터넷 연결이 끊겼어요" : cleanErr(e);
     for (const f of subPending){
       // 저장소 경로 규칙: sub/<글번호>/<내 uuid>/<영문·숫자 이름>
       const path = "sub/" + postId + "/" + me.id + "/" + Date.now() + "_" + rand7() + fileExt(f.name);
       const { error } = await sb.storage.from("attachments").upload(path, f, { upsert: false });
-      if (error){ showError(error, "파일 올리기 · " + f.name); continue; }
+      if (error){ failed.push({ f, msg: why(error) }); continue; }
       const { error: ae } = await sb.rpc("add_submission_file",
         { p_sub: subId, p_path: path, p_name: safeName(f.name),
           p_size: f.size, p_mime: f.type || null });
-      if (ae) showError(ae, "파일 올리기 · " + f.name);
+      if (ae){
+        sb.storage.from("attachments").remove([path]).then(()=>{}, ()=>{});   // 제출물에 못 붙인 파일은 저장소에서도 지웁니다
+        failed.push({ f, msg: why(ae) });
+      }
     }
-    subPending = [];
+    if (failed.length) logErrorQuiet("과제 파일 올리기", failed.map(x=> x.f.name + ": " + x.msg).join(" | "));
+    subPending = failed.map(x=> x.f);
+    return failed;
+  }
+
+  /* 과제 '제출 대상' 고르기 — 그룹 목록은 한 번만 받아 둡니다 (schema25 전이면 고를 수 없게) */
+  let asGroups = null;                  // [{id, name, students}] · 못 받았으면 false
+  async function fillTarget(sel, value){
+    sel.disabled = true;                // 목록을 받기 전에 저장해도 대상이 지워지지 않게
+    if (asGroups === null){
+      const { data, error } = await sb.rpc("assign_groups");
+      asGroups = error ? false : (data || []);
+    }
+    sel.innerHTML = '<option value="">전체 학생</option>'
+      + (asGroups || []).map(g=> '<option value="'+g.id+'">'+esc(g.name)+' ('+g.students+'명)</option>').join("");
+    sel.disabled = asGroups === false;
+    sel.value = value != null ? String(value) : "";
+  }
+  // set_assign_options 에 넘길 값 (고를 수 없는 상태면 아예 안 넘겨서 예전 서버에서도 동작)
+  function withTarget(args, sel){
+    if (!sel.disabled) args.p_target = sel.value ? Number(sel.value) : null;
+    return args;
   }
 
   /* 과제 설정 모달 (선생님) */
   function openAssignOpt(postId, a){
+    fillTarget($("asOptTarget"), a.target_group);
     const local = (ts)=> ts
       ? new Date(new Date(ts).getTime() - new Date().getTimezoneOffset()*60000)
           .toISOString().slice(0,16)
@@ -5613,11 +5681,11 @@
         $("asOptErr").textContent = "만점은 1점에서 10000점 사이로 넣어주세요."; return;
       }
       const dv = $("asOptDue").value;
-      const { error } = await sb.rpc("set_assign_options", {
+      const { error } = await sb.rpc("set_assign_options", withTarget({
         p_post: postId,
         p_due: dv ? new Date(dv).toISOString() : null,
         p_allow_late: !$("asOptNoLate").checked,
-        p_max: mx ? Number(mx) : null });
+        p_max: mx ? Number(mx) : null }, $("asOptTarget")));
       if (!handled(error, "과제 설정")) return;
       closeAssignOpt();
       toast("과제 설정을 저장했어요."); openPost(postId);
@@ -6430,6 +6498,7 @@ _imgs
     $("wMax").value = (post && lastAssignInfo && lastAssignInfo.max_score != null)
       ? String(lastAssignInfo.max_score) : "";
     const canPin = !!(me && (me.role === "admin" || me.role === "teacher"));
+    if (canPin) fillTarget($("wTarget"), post && lastAssignInfo ? lastAssignInfo.target_group : null);
     $("wPinWrap").hidden = !canPin;
     // 전교생 알림 — 선생님·관리자, 새 글에만
     $("wCastWrap").hidden = !canPin || !!post;
@@ -6518,11 +6587,11 @@ _imgs
     if (!$("wDueWrap").hidden){
       const dv = $("wDue").value;
       const mx = $("wMax").value.trim();
-      const { error: de } = await sb.rpc("set_assign_options", {
+      const { error: de } = await sb.rpc("set_assign_options", withTarget({
         p_post: id,
         p_due: dv ? new Date(dv).toISOString() : null,
         p_allow_late: !$("wNoLate").checked,
-        p_max: mx ? Number(mx) : null });
+        p_max: mx ? Number(mx) : null }, $("wTarget")));
       if (de) toast("과제 설정 저장 실패: " + cleanErr(de));
     }
 
@@ -6641,7 +6710,7 @@ _imgs
      알림
      ===================================================================== */
   const NOTI_ICON = { message:"✉️", comment:"💬", reply:"↩️", notice:"📢",
-                      grade:"📝", score:"💯" };
+                      grade:"📝", score:"💯", due:"⏰" };
 
   async function loadNotifications(openPop){
     if (!sb || !me || !me.nickname) return;
@@ -6737,7 +6806,7 @@ _imgs
     if (!fresh.length || !$("notiPop").hidden) return;   // 알림 창을 보고 있으면 띄우지 않음
     if (ntFirst){ ntFirst = false; ntSummary(unread); return; }
     // 한꺼번에 여러 개 오면 쪽지·공지를 먼저 — 선생님 공지가 답글에 밀려 '더 보기'로 숨지 않게
-    const PRI = { message:0, notice:0, grade:1, score:1 };
+    const PRI = { message:0, notice:0, due:0, grade:1, score:1 };
     fresh.sort((a,b)=> ((a.kind in PRI ? PRI[a.kind] : 2) - (b.kind in PRI ? PRI[b.kind] : 2)) || (b.id - a.id));
     if (away){ ntReturn(fresh, away); return; }                                     // 비웠다 돌아옴 → 한 장에 모아서
     if (fresh.length > NT_MAX_SHOWN) ntSummary(fresh.length - NT_MAX_SHOWN, true);   // 맨 아래에 "N개 더"
@@ -6807,7 +6876,7 @@ _imgs
     ntPlace(box);
     const old = box.querySelector(".nr"); if (old) old.remove();    // 한 장만
 
-    const KO = { message:"쪽지", notice:"공지", comment:"댓글", reply:"답글", grade:"과제", score:"점수" };
+    const KO = { message:"쪽지", notice:"공지", comment:"댓글", reply:"답글", grade:"과제", score:"점수", due:"마감" };
     const cnt = {};
     list.forEach(n=>{ const k = KO[n.kind] || "알림"; cnt[k] = (cnt[k] || 0) + 1; });
     const kinds = Object.keys(cnt).map(k=> k + " " + cnt[k]).join(" · ");

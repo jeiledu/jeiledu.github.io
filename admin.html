@@ -192,6 +192,37 @@
 
   /* 대화 기록 */
   .dlg.wide{max-width:760px}
+
+  /* 그룹 편집 — 왼쪽(안 들어간 사람) ↔ 오른쪽(멤버) */
+  .xfer{display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch}
+  .xf-col{display:flex; flex-direction:column; gap:7px; min-width:0; border:1px solid var(--line);
+          border-radius:12px; padding:10px; background:var(--bg)}
+  .xf-col > input{width:100%}
+  .xf-h{display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:13px}
+  .xf-h span{font-size:12px; color:var(--ink-soft)}
+  .xf-opts{display:flex; flex-wrap:wrap; gap:4px 12px}
+  .xf-list{height:330px; overflow-y:auto; background:#fff; border:1px solid var(--line); border-radius:9px; padding:4px}
+  .xf-item{display:block; width:100%; text-align:left; border:0; background:none; padding:7px 9px; border-radius:7px;
+           cursor:pointer; font:inherit; font-size:13px; color:var(--ink); user-select:none}
+  .xf-item:hover{background:var(--blue-tint)}
+  .xf-item.on{background:var(--blue-soft); box-shadow:inset 3px 0 0 var(--blue)}
+  .xf-item .xf-nm{margin-left:7px; color:var(--ink-soft)}
+  .xf-item small{display:block; margin-top:2px; font-size:11.5px; color:var(--ink-soft);
+                 overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .xf-new{margin-left:6px; font-size:11px; font-weight:700; color:#2b7355}
+  .xf-out{margin-left:6px; font-size:11px; font-weight:700; color:var(--red)}
+  .xf-mid{display:flex; flex-direction:column; justify-content:center; gap:8px}
+  .xf-mid .b{font-size:18px; padding:9px 14px; line-height:1}
+  .xf-mid .b:disabled{opacity:.35; cursor:default}
+  .xf-mid .v{display:none}
+  @media (max-width:720px){
+    .xfer{grid-template-columns:minmax(0,1fr)}
+    .xf-list{height:220px}
+    .xf-mid{flex-direction:row; justify-content:center}
+    .xf-mid .b{font-size:14px}
+    .xf-mid .h{display:none}
+    .xf-mid .v{display:inline}
+  }
   .seg{display:inline-flex; background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:3px; gap:2px}
   .seg button{border:0; background:none; padding:7px 14px; border-radius:8px; font:inherit; font-size:13px;
               font-weight:600; color:var(--ink-soft); cursor:pointer}
@@ -230,9 +261,10 @@
   #toast.on{opacity:1; transform:translate(-50%,0)}
 
   @media (max-width:820px){
-    .shell{grid-template-columns:1fr}
+    /* 함정 5번: 1fr 은 내용만큼 늘어나서 메뉴 줄이 화면 밖으로 밀고 페이지 전체가 축소됐다 → minmax(0,1fr) */
+    .shell{grid-template-columns:minmax(0,1fr)}
     .side{position:static; height:auto; border-right:0; border-bottom:1px solid var(--line);
-          padding:14px 12px}
+          padding:14px 12px; min-width:0}
     .side nav{flex-direction:row; overflow-x:auto; gap:4px; scrollbar-width:none}
     .side nav::-webkit-scrollbar{display:none}
     .side nav button{white-space:nowrap; padding:9px 13px}
@@ -338,8 +370,15 @@
     $("toast").textContent = msg; $("toast").classList.add("on");
     clearTimeout(toastT); toastT = setTimeout(()=> $("toast").classList.remove("on"), 3000);
   }
+  // 창을 닫기 전에 물어볼 게 있으면(예: 그룹 편집 중 저장 안 함) 이 함수가 false 를 돌려줍니다
+  let dlgGuard = null;
+  async function tryCloseDlg(){
+    if (dlgGuard && !(await dlgGuard())) return;
+    dlgGuard = null; closeDlg();
+  }
   function openDlg(html, cls){
-    $("dlg").className = "dlg" + (cls ? " " + cls : "");    // cls: "wide" 면 넓은 창 (대화 기록)
+    dlgGuard = null;
+    $("dlg").className = "dlg" + (cls ? " " + cls : "");    // cls: "wide" 면 넓은 창 (대화 기록·그룹 편집)
     $("dlg").innerHTML = html; $("modal").classList.add("on");
   }
 
@@ -367,8 +406,11 @@
     });
   }
   function closeDlg(){ $("modal").classList.remove("on"); }
-  $("modal").onclick = (e)=>{ if (e.target.id === "modal") closeDlg(); };
-  document.addEventListener("keydown", e=>{ if (e.key === "Escape") closeDlg(); });
+  $("modal").onclick = (e)=>{ if (e.target.id === "modal") tryCloseDlg(); };
+  document.addEventListener("keydown", e=>{
+    if (e.key !== "Escape" || $("askBack").classList.contains("on")) return;   // 확인창이 떠 있으면 그쪽이 먼저
+    tryCloseDlg();
+  });
 
   const hhm = (sec)=>{
     sec = Math.floor(sec||0);
@@ -852,20 +894,14 @@
           '<tr><td><b>'+esc(g.name)+'</b></td><td class="num">'+esc(g.code)+'</td>'
           + '<td class="muted">'+esc(g.owner||"-")+'</td><td class="num">'+g.members+'명</td>'
           + '<td class="num muted">'+ymd(g.created_at)+'</td>'
-          + '<td class="act"><button class="b sm" data-gm="'+g.id+'">멤버</button> '
-          + '<button class="b sm" data-gr="'+g.id+'" data-n="'+esc(g.name)+'">이름</button> '
+          + '<td class="act"><button class="b sm" data-ge="'+g.id+'" data-n="'+esc(g.name)+'">멤버 · 이름 편집</button> '
           + '<button class="b sm danger" data-gd="'+g.id+'">삭제</button></td></tr>').join("")
         : '<tr><td colspan="6" class="empty">그룹이 없어요.</td></tr>')
       + '</tbody></table></div></div>';
 
-    $("gNew").onclick = openNewGroup;
-    $("page").querySelectorAll("[data-gm]").forEach(b=> b.onclick = ()=> openGroupMembers(Number(b.dataset.gm)));
-    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
-      const n = await ask("새 그룹 이름을 입력하세요.", { title:"그룹 이름 변경", yes:"저장", input:b.dataset.n });
-      if (!n) return;
-      await rpc("admin_save_group", { p_id: Number(b.dataset.gr), p_name: n });
-      toast("바꿨어요."); pageGroups();
-    });
+    $("gNew").onclick = ()=> openGroupEditor(null);
+    $("page").querySelectorAll("[data-ge]").forEach(b=> b.onclick = ()=>
+      openGroupEditor({ id: Number(b.dataset.ge), name: b.dataset.n }));
     $("page").querySelectorAll("[data-gd]").forEach(b=> b.onclick = async ()=>{
       if (!await ask("그룹을 삭제할까요?\n멤버들의 공부 기록은 남습니다.", { title:"그룹 삭제", yes:"삭제", danger:true })) return;
       await rpc("admin_delete_group", { p_id: Number(b.dataset.gd) });
@@ -873,101 +909,136 @@
     });
   }
 
-  // 닉네임을 쉼표·줄바꿈·탭으로 나눠서 (엑셀에서 한 열을 복사해 붙여넣어도 됨 · 닉네임 안의 띄어쓰기는 살림)
-  const splitNicks = (t)=> [...new Set(String(t || "").split(/[\r\n\t,，;]+/).map(s=> s.trim()).filter(Boolean))];
+  /* ---------- 그룹 편집: 왼쪽(안 들어간 사람) ↔ 오른쪽(그룹 멤버) ----------
+     · 눌러서 고르고(여러 명 가능) 가운데 화살표로 옮깁니다. 두 번 누르면 바로 옮겨요.
+     · 사람마다 닉네임 + 구글 계정 이름 + 이메일 + 지금 속한 그룹이 보입니다 (schema26 admin_people)
+     · '저장'을 눌러야 반영됩니다 (admin_set_group_members 가 목록 그대로 맞춤) */
+  async function openGroupEditor(g){
+    let people = [], cur = [];
+    try {
+      people = await rpc("admin_people");
+      if (g) cur = await rpc("admin_group_members", { p_group: g.id });
+    } catch(e){
+      toast(cleanErr(e) + " — schema26.sql 을 실행했는지 확인해 주세요.");
+      return;
+    }
+    const byId = new Map(people.map(p=> [p.id, p]));
+    const orig = new Set(cur.map(m=> m.user_id).filter(Boolean));
+    const inSet = new Set(orig);
+    const pick = { L: new Set(), R: new Set() };
+    let qL = "", qR = "", staff = false, onlyFree = false;
 
-  // 여러 명 넣고 결과 알려주기 — 못 찾은 닉네임은 그대로 보여줌
-  async function addNicks(gid, nicks){
-    if (!nicks.length) return [];
-    const res = await rpc("admin_add_members_by_nick", { p_group: gid, p_nicks: nicks });
-    const miss = res.filter(x=> !x.added).map(x=> x.nickname);
-    toast((res.length - miss.length) + "명을 넣었어요." + (miss.length ? " 못 찾은 닉네임 " + miss.length + "개" : ""));
-    return miss;
-  }
+    openDlg('<h3>'+(g ? '그룹 편집' : '새 그룹 만들기')+'</h3>'
+      + '<p class="sub">사람을 눌러 고른 뒤 가운데 화살표로 옮기세요. 두 번 누르면 바로 옮겨져요. <b>저장</b>을 눌러야 반영돼요.</p>'
+      + '<div class="f"><label>그룹 이름 (2~20자) · 예) 1학년 3반 정보</label>'
+      + '<input id="geName" maxlength="20" value="'+esc(g ? g.name : "")+'"></div>'
+      + '<div class="xfer">'
+      +   '<div class="xf-col">'
+      +     '<div class="xf-h"><b>안 들어간 사람</b><span id="xfLn"></span></div>'
+      +     '<input id="xfLq" placeholder="닉네임 · 이름 · 이메일 검색" autocomplete="off">'
+      +     '<div class="xf-opts"><label class="anon" style="margin:0"><input type="checkbox" id="xfFree"> 그룹 없는 학생만</label>'
+      +     '<label class="anon" style="margin:0"><input type="checkbox" id="xfStaff"> 선생님도 보기</label></div>'
+      +     '<div class="xf-list" id="xfL"></div>'
+      +     '<button class="b sm" id="xfLall">보이는 사람 모두 고르기</button>'
+      +   '</div>'
+      +   '<div class="xf-mid">'
+      +     '<button class="b" id="xfAdd" title="고른 사람을 그룹에 넣기"><span class="h">→</span><span class="v">↓ 넣기</span></button>'
+      +     '<button class="b" id="xfDel" title="고른 사람을 그룹에서 빼기"><span class="h">←</span><span class="v">↑ 빼기</span></button>'
+      +   '</div>'
+      +   '<div class="xf-col">'
+      +     '<div class="xf-h"><b>그룹 멤버</b><span id="xfRn"></span></div>'
+      +     '<input id="xfRq" placeholder="멤버 중에서 검색" autocomplete="off">'
+      +     '<div class="xf-list" id="xfR"></div>'
+      +     '<button class="b sm" id="xfRall">보이는 사람 모두 고르기</button>'
+      +   '</div>'
+      + '</div>'
+      + '<p class="muted" id="xfDiff" style="font-size:12.5px;margin:10px 0 0;min-height:18px"></p>'
+      + '<p class="err" id="geErr"></p>'
+      + '<div class="dlg-btns"><button class="b" id="geCancel">취소</button><button class="b pri" id="geSave">저장</button></div>',
+      "wide");
 
-  function openNewGroup(){
-    openDlg('<h3>새 그룹 만들기</h3><p class="sub">예) 1학년 3반 정보, 2학년 데이터과학 A반</p>'
-      + '<div class="f"><label>그룹 이름 (2~20자)</label><input id="ngName" maxlength="20"></div>'
-      + '<div class="f"><label>넣을 학생 닉네임 (선택 · 나중에 넣어도 돼요)</label>'
-      + '<textarea id="ngNicks" placeholder="쉼표나 줄바꿈으로 구분 · 엑셀의 닉네임 열을 그대로 붙여넣어도 돼요"></textarea></div>'
-      + '<p class="err" id="ngErr"></p>'
-      + '<div class="dlg-btns"><button class="b" id="ngCancel">취소</button><button class="b pri" id="ngOk">만들기</button></div>');
-    setTimeout(()=> $("ngName").focus(), 60);
-    $("ngCancel").onclick = closeDlg;
-    $("ngOk").onclick = async ()=>{
-      $("ngOk").disabled = true;
-      try {
-        const gid = await rpc("admin_create_group", { p_name: $("ngName").value.trim() });
-        const miss = await addNicks(Number(gid), splitNicks($("ngNicks").value));
-        await pageGroups();
-        openGroupMembers(Number(gid), miss);
-      } catch(e){ $("ngOk").disabled = false; $("ngErr").textContent = cleanErr(e); }
+    const norm = (s)=> String(s || "").toLowerCase();
+    const hit = (p, q)=> !q || [p.nickname, p.name, p.email].some(v=> norm(v).includes(q));
+    const visible = (side)=> people.filter(p=> side === "R"
+        ? inSet.has(p.id) && hit(p, qR)
+        : !inSet.has(p.id) && (staff || p.role === "student") && (!onlyFree || !p.groups) && hit(p, qL));
+    const itemHtml = (p, side)=>{
+      const mark = side === "R" && !orig.has(p.id) ? '<span class="xf-new">+ 새로 넣음</span>'
+                 : side === "L" && orig.has(p.id)  ? '<span class="xf-out">빠짐</span>' : '';
+      const sub = [p.email, p.groups ? "그룹: " + p.groups : ""].filter(Boolean).join(" · ");
+      return '<button type="button" class="xf-item'+(pick[side].has(p.id) ? " on" : "")+'" data-id="'+esc(p.id)+'">'
+        + '<b>'+esc(p.nickname || "(닉네임 없음)")+'</b>'
+        + (p.name ? '<span class="xf-nm">'+esc(p.name)+'</span>' : '')
+        + (p.role !== "student" ? '<span class="tag teacher" style="margin-left:6px">'+(p.role === "admin" ? "관리자" : "선생님")+'</span>' : '')
+        + mark + (sub ? '<small>'+esc(sub)+'</small>' : '') + '</button>';
     };
-  }
-
-  async function openGroupMembers(gid, missed){
-    const ms = await rpc("admin_group_members", { p_group: gid });
-    openDlg('<h3>그룹 멤버</h3><p class="sub">'+ms.length+'명</p>'
-      + (missed && missed.length
-          ? '<p class="err" style="margin:0 0 10px">못 찾은 닉네임: '+esc(missed.join(", "))+' — 철자를 확인해 주세요.</p>' : '')
-      + '<div class="f"><label>여러 명 한꺼번에 넣기</label>'
-      + '<textarea id="gmBulk" placeholder="닉네임을 쉼표나 줄바꿈으로 구분해서 붙여넣기" style="min-height:64px"></textarea>'
-      + '<div style="text-align:right;margin-top:6px"><button class="b sm pri" id="gmBulkOk">넣기</button></div></div>'
-      + '<div class="f" style="position:relative"><label>한 명씩 찾아서 넣기</label>'
-      + '<input id="gmAdd" placeholder="닉네임으로 검색" autocomplete="off">'
-      + '<div id="gmSug" style="position:absolute;left:0;right:0;top:100%;z-index:5;background:#fff;'
-      + 'border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 20px rgba(31,58,102,.12);'
-      + 'margin-top:4px;max-height:180px;overflow:auto;display:none"></div></div>'
-      + '<div class="tbl-wrap"><table><tbody id="gmList">'
-      + (ms.length ? ms.map(m=>'<tr><td><b>'+esc(m.nickname || "(탈퇴)")+'</b>'
-          + (m.role && m.role !== "student" ? ' <span class="tag teacher">'+(m.role === "admin" ? "관리자" : "선생님")+'</span>' : '')+'</td>'
-          + '<td class="num muted">'+ymd(m.joined_at)+' 참여</td>'
-          + '<td class="num">오늘 '+hhm(m.today_seconds)+'</td>'
-          + '<td class="act"><button class="b sm danger" data-rm="'+esc(m.nickname || "")+'"'
-          + (m.user_id ? ' data-uid="'+esc(m.user_id)+'"' : '')+'>빼기</button></td></tr>').join("")
-         : '<tr><td class="empty">멤버가 없어요.</td></tr>')
-      + '</tbody></table></div>'
-      + '<div class="dlg-btns"><button class="b" id="gmClose">닫기</button></div>');
-
-    $("gmClose").onclick = closeDlg;
-    $("gmBulkOk").onclick = async ()=>{
-      const nicks = splitNicks($("gmBulk").value);
-      if (!nicks.length){ toast("닉네임을 붙여넣어 주세요."); return; }
-      try { const miss = await addNicks(gid, nicks); openGroupMembers(gid, miss); }
-      catch(e){ toast(cleanErr(e)); }
+    const draw = ()=>{
+      ["L", "R"].forEach(side=>{
+        const list = visible(side);
+        // 화면에서 사라진 사람은 고른 것에서도 뺍니다 (검색을 바꿨을 때 안 보이는 사람이 옮겨지지 않게)
+        const ids = new Set(list.map(p=> p.id));
+        [...pick[side]].forEach(id=>{ if (!ids.has(id)) pick[side].delete(id); });
+        $("xf" + side).innerHTML = list.length ? list.map(p=> itemHtml(p, side)).join("")
+          : '<div class="empty" style="padding:18px 4px">'+(side === "R" ? "아직 멤버가 없어요." : "보여줄 사람이 없어요.")+'</div>';
+        $("xf" + side + "n").textContent = (side === "R" ? inSet.size : list.length) + "명"
+          + (pick[side].size ? " · " + pick[side].size + "명 고름" : "");
+      });
+      $("xfAdd").disabled = !pick.L.size;
+      $("xfDel").disabled = !pick.R.size;
+      const add = [...inSet].filter(id=> !orig.has(id)).length, del = [...orig].filter(id=> !inSet.has(id)).length;
+      $("xfDiff").innerHTML = (add || del)
+        ? '저장하면 <b>' + add + '명 넣고 ' + del + '명 뺍니다</b>. (지금 멤버 ' + inSet.size + '명)'
+        : (g ? '바뀐 멤버가 없어요.' : '');
     };
-
-    let t;
-    $("gmAdd").oninput = (e)=>{
-      const q = e.target.value.trim();
-      clearTimeout(t);
-      if (q.length < 2){ $("gmSug").style.display = "none"; return; }
-      t = setTimeout(async ()=>{
-        const rows = await rpc("admin_users", { p_q: q, p_limit: 8 });
-        $("gmSug").style.display = rows.length ? "block" : "none";
-        $("gmSug").innerHTML = rows.map(u=>
-          '<button class="b" style="display:block;width:100%;text-align:left;border:0;border-radius:0"'
-          + ' data-u="'+u.id+'" data-n="'+esc(u.nickname)+'">'+esc(u.nickname)
-          + ' <span class="muted">'+esc(u.email)+'</span></button>').join("");
-        $("gmSug").querySelectorAll("[data-u]").forEach(b=> b.onclick = async ()=>{
-          await rpc("admin_add_member", { p_group: gid, p_user: b.dataset.u });
-          toast(b.dataset.n + " 학생을 넣었어요.");
-          closeDlg(); openGroupMembers(gid);
-        });
-      }, 280);
+    const move = (from)=>{
+      pick[from].forEach(id=> from === "L" ? inSet.add(id) : inSet.delete(id));
+      pick[from].clear();
+      draw();
     };
-
-    $("gmList").querySelectorAll("[data-rm]").forEach(b=> b.onclick = async ()=>{
-      let uid = b.dataset.uid;                        // schema25-d 부터는 아이디가 같이 옵니다
-      if (!uid){
-        const rows = await rpc("admin_users", { p_q: b.dataset.rm, p_limit: 5 });
-        const u = rows.find(x=> x.nickname === b.dataset.rm);
-        if (!u) return;
-        uid = u.id;
-      }
-      await rpc("admin_remove_member", { p_group: gid, p_user: uid });
-      toast("뺐어요."); closeDlg(); openGroupMembers(gid);
+    ["L", "R"].forEach(side=>{
+      const box = $("xf" + side);
+      box.onclick = (e)=>{
+        const it = e.target.closest(".xf-item"); if (!it) return;
+        const id = it.dataset.id;
+        pick[side].has(id) ? pick[side].delete(id) : pick[side].add(id);
+        draw();
+      };
+      box.ondblclick = (e)=>{
+        const it = e.target.closest(".xf-item"); if (!it) return;
+        pick[side].clear(); pick[side].add(it.dataset.id); move(side);
+      };
     });
+    $("xfLq").oninput = (e)=>{ qL = norm(e.target.value.trim()); draw(); };
+    $("xfRq").oninput = (e)=>{ qR = norm(e.target.value.trim()); draw(); };
+    $("xfStaff").onchange = (e)=>{ staff = e.target.checked; draw(); };
+    $("xfFree").onchange = (e)=>{ onlyFree = e.target.checked; draw(); };
+    $("xfLall").onclick = ()=>{ visible("L").forEach(p=> pick.L.add(p.id)); draw(); };
+    $("xfRall").onclick = ()=>{ visible("R").forEach(p=> pick.R.add(p.id)); draw(); };
+    $("xfAdd").onclick = ()=> move("L");
+    $("xfDel").onclick = ()=> move("R");
+
+    const dirty = ()=> ($("geName").value.trim() !== (g ? g.name : ""))
+                     || inSet.size !== orig.size || [...inSet].some(id=> !orig.has(id));
+    dlgGuard = async ()=> !dirty()
+      || await ask("저장하지 않은 변경이 있어요. 닫으면 사라져요.", { title:"그룹 편집 닫기", yes:"닫기", danger:true });
+    $("geCancel").onclick = tryCloseDlg;
+    $("geSave").onclick = async ()=>{
+      const name = $("geName").value.trim();
+      if (name.length < 2 || name.length > 20){ $("geErr").textContent = "그룹 이름은 2~20자로 써주세요."; return; }
+      $("geSave").disabled = true;
+      try {
+        let gid = g ? g.id : null;
+        if (!gid) gid = Number(await rpc("admin_create_group", { p_name: name }));
+        else if (name !== g.name) await rpc("admin_save_group", { p_id: gid, p_name: name });
+        const r = await rpc("admin_set_group_members", { p_group: gid, p_users: [...inSet] });
+        dlgGuard = null; closeDlg();
+        toast((g ? "저장했어요." : "'" + name + "' 그룹을 만들었어요.")
+              + (r && (r.added || r.removed) ? " (" + r.added + "명 넣음 · " + r.removed + "명 뺌)" : ""));
+        pageGroups();
+      } catch(e){ $("geSave").disabled = false; $("geErr").textContent = cleanErr(e); }
+    };
+    draw();
+    setTimeout(()=> (g ? $("xfLq") : $("geName")).focus(), 60);
   }
 
   /* ===================== 게시글 ===================== */

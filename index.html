@@ -1029,6 +1029,56 @@
   .as-result .as-score{margin-left:auto; font-size:20px; font-weight:800; color:var(--blue-dark);
                        letter-spacing:-.5px}
   .as-result .as-score i{font-size:12.5px; font-weight:600; color:var(--ink-faint); font-style:normal}
+  /* 제출 명단 (선생님) — 색은 var(--…) 또는 야간용 재정의가 있는 것만 */
+  .as-roster{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line)}
+  .ro-head{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px; font-size:13px; color:var(--ink)}
+  .ro-head .grow{flex:1}
+  .ro-note{font-size:11.5px; color:var(--ink-soft); margin-left:4px}
+  .ro-f{border:1px solid var(--line); background:var(--card); color:var(--ink-soft); border-radius:99px;
+        padding:4px 10px; font:inherit; font-size:12px; cursor:pointer}
+  .ro-f b{color:var(--ink)}
+  .ro-f.on{background:#2f6fd0; border-color:#2f6fd0; color:#fff}
+  .ro-f.on b{color:#fff}
+  .ro-list{list-style:none; margin:0; padding:0; background:var(--card); border:1px solid var(--line); border-radius:12px}
+  .ro-list.scrolly{overflow-y:auto}
+  .ro-row{display:flex; align-items:center; gap:10px; padding:9px 12px; border-bottom:1px solid var(--line); font-size:13px}
+  .ro-row:last-child{border-bottom:0}
+  .ro-row.no{background:var(--blue-tint)}
+  .ro-nm{width:120px; flex:none; font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .ro-tags{flex:1; min-width:0; display:flex; gap:4px; flex-wrap:wrap}
+  .ro-at{flex:none; font-size:12.5px; color:var(--ink); font-variant-numeric:tabular-nums; text-align:right; line-height:1.4}
+  .ro-at i{display:block; font-style:normal; font-size:11px; color:var(--ink-soft)}
+  .ro-sc{flex:none; width:52px; text-align:right; font-weight:800; color:var(--blue-dark); font-variant-numeric:tabular-nums}
+  .ro-btn{flex:none; width:96px; padding:6px 8px !important; font-size:12px !important; text-align:center}
+  .ro-btn.btn-write, #agSave{background:#2f6fd0}   /* 야간에도 흰 글씨 대비 4.88 */
+  .ro-t{display:inline-block; font-size:11px; font-weight:700; border-radius:6px; padding:2px 6px; line-height:1.4}
+  .ro-t.sub{background:var(--blue-soft); color:var(--blue-dark)}
+  .ro-t.ok{background:#e3f3ec; color:#2b6e52}
+  .ro-t.late{background:#fdecea; color:#b3413b}
+  .ro-t.miss{background:#eef1f5; color:#55657a}
+  .ro-t.other{background:#fbf1d4; color:#7d5c07}
+  .ro-t.lock{background:none; padding:2px 0}
+  :root[data-theme="dark"] .ro-t.ok{background:#1e3330; color:#7fd3ae}
+  :root[data-theme="dark"] .ro-t.late{background:#3a2224; color:#ff9a92}
+  :root[data-theme="dark"] .ro-t.miss{background:#26303c; color:#a8b8cc}
+  :root[data-theme="dark"] .ro-t.other{background:#3a3220; color:#f0c96a}
+  .ag-meta{display:flex; flex-wrap:wrap; gap:6px 14px; margin:0 0 14px; font-size:12.5px; color:var(--ink-soft)}
+  .ag-meta b{color:var(--ink); font-variant-numeric:tabular-nums}
+  .ag-log{margin-top:12px; font-size:12.5px; color:var(--ink)}
+  .ag-log summary{cursor:pointer; font-weight:700; color:var(--ink-soft)}
+  .ag-log #agLog{margin-top:8px; line-height:1.9}
+  #asGradeModal .modal{max-width:640px}
+  .modal .ag-tip{margin:0; font-size:11.5px; color:var(--ink-soft); text-align:right}
+  .ag-btns button{white-space:nowrap}
+  .modal .chk-row input{width:17px; height:17px; padding:0; flex:none}   /* .modal input{width:100%} 이 체크박스까지 늘리지 않게 */
+  #asGradeModal textarea{min-height:90px}
+  @media (max-width:620px){
+    .ro-row{flex-wrap:wrap; gap:6px 10px}
+    .ro-nm{width:auto; flex:1}
+    .ro-tags{flex-basis:100%; order:3}
+    .ro-btn{order:4; width:auto; flex:1}
+    .ro-at{order:2}
+  }
   .as-result .as-fb{flex-basis:100%; margin:2px 0 0; padding-top:10px;
                     border-top:1px dashed var(--line); font-size:13px; line-height:1.7;
                     color:var(--ink); white-space:pre-wrap; word-break:break-word}
@@ -2961,6 +3011,14 @@
       <button class="btn btn-finish" id="askNo">취소</button>
       <button class="btn btn-start" id="askYes">확인</button>
     </div>
+  </div>
+</div>
+
+<!-- 제출물 확인 · 피드백 (과제 글쓴 선생님 · 관리자) — 바깥을 눌러도 닫히지 않습니다 -->
+<div class="modal-back" id="asGradeModal">
+  <div class="modal dm" role="dialog" aria-modal="true" aria-labelledby="agTitle">
+    <div class="dm-head"><h3 id="agTitle">제출물</h3><button class="btn-ghost" id="agClose">닫기</button></div>
+    <div id="agBody"></div>
   </div>
 </div>
 
@@ -5450,7 +5508,7 @@
     } else if (a.can_manage){
       /* ---------- 선생님·관리자 ---------- */
       box.innerHTML = head
-        + '<p class="assign-note">제출 내용과 점수는 관리자 화면의 <b>과제</b> 메뉴에서 하나씩 볼 수 있어요.'
+        + '<p class="assign-note">아래 <b>제출 명단</b>에서 학생별 제출물을 보고 확인·점수·피드백을 줄 수 있어요.'
         + (a.max_score != null
             ? (a.scores_open
                 ? ' 지금은 점수가 <b>공개된 상태</b>예요.'
@@ -5463,7 +5521,8 @@
             ? '<button class="'+(a.scores_open ? "btn-ghost" : "btn-write")+'" id="asOpen">'
               + (a.scores_open ? '점수 감추기' : '점수 공개하기') + '</button>'
             : '')
-        + '</div>';
+        + '</div>'
+        + '<div class="as-roster" id="asRoster"><p class="assign-note">제출 명단을 불러오는 중…</p></div>';
     } else {
       /* ---------- 학생 ---------- */
       const graded = (a.scores_open && a.my_score != null);
@@ -5531,6 +5590,8 @@
         toast(on ? "점수를 공개했어요." : "점수를 다시 감췄어요.");
         openPost(p.id);
       };
+      rosterFilter = "all";
+      loadRoster(p.id, a);
       return;
     }
 
@@ -5575,6 +5636,203 @@
       };
     }
   }
+
+  /* ---------- 제출 명단 (과제를 올린 선생님 · 관리자에게만 · 학생 화면엔 없음) ----------
+     · assignment_list 는 서버가 글쓴 선생님·관리자만 허락합니다 (학생이 불러도 '권한이 없어요').
+     · 제출 시각은 초까지. 10명이 넘으면 목록 안에서 스크롤.
+     · 학생을 누르면 제출물 · 첨부 · 점수 · 피드백 · 잠금 · 제출 기록 창(#asGradeModal). */
+  let rosterRows = [], rosterFilter = "all", rosterCtx = null, rosterList = [];
+  const RO_VISIBLE = 10;
+  const ro2 = (n)=> String(n).padStart(2, "0");
+  const fmtSec = (ts)=>{ const d = new Date(ts);
+    return (d.getMonth()+1) + "/" + d.getDate() + " " + ro2(d.getHours()) + ":" + ro2(d.getMinutes()) + ":" + ro2(d.getSeconds()); };
+  const roInT = (r)=> r.in_target !== false;
+  const roEdited = (r)=> r.first_at && r.at && Math.abs(new Date(r.at) - new Date(r.first_at)) > 1000;
+
+  async function loadRoster(postId, a){
+    rosterCtx = { postId, a };
+    const { data, error } = await rpcRetry("assignment_list", { p_post: postId });
+    const box = $("asRoster");
+    if (!box || !rosterCtx || rosterCtx.postId !== postId) return;    // 그사이 다른 글로 갔으면 그리지 않음
+    if (error){
+      box.innerHTML = '<p class="assign-note">제출 명단을 불러오지 못했어요. ' + esc(isNetErr(error) ? "인터넷 연결을 확인해주세요." : cleanErr(error))
+        + ' <button class="link-btn" id="roRetry">다시 시도</button></p>';
+      $("roRetry").onclick = ()=> loadRoster(postId, a);
+      return;
+    }
+    rosterRows = data || [];
+    renderRoster();
+  }
+
+  function renderRoster(){
+    const box = $("asRoster");
+    if (!box || !rosterCtx) return;
+    const a = rosterCtx.a, rows = rosterRows;
+    const keep = $("roList") ? $("roList").scrollTop : 0;
+    const is = {
+      all:  ()=> true,
+      done: (r)=> r.submitted,
+      miss: (r)=> !r.submitted && roInT(r),
+      todo: (r)=> r.submitted && !r.checked
+    };
+    const F = { all:"전체", done:"제출", miss:"미제출", todo:"확인 안 함" };
+    rosterList = rows.filter(is[rosterFilter] || is.all);
+
+    const tags = (r)=> !r.submitted ? '<span class="ro-t miss">미제출</span>'
+      : (r.checked ? '<span class="ro-t ok">확인함</span>' : '<span class="ro-t sub">'+(r.version > 1 ? "다시 냄" : "제출")+'</span>')
+        + (r.late ? '<span class="ro-t late">지각</span>' : '')
+        + (r.edited_late ? '<span class="ro-t late" title="마감 전에 냈지만 마감 뒤에 고쳤어요">마감 후 수정</span>' : '')
+        + (r.locked ? '<span class="ro-t lock" title="다시 제출할 수 없음">🔒</span>' : '');
+    box.innerHTML =
+      '<div class="ro-head"><b>제출 명단</b><span class="ro-note">🔒 학생에게는 보이지 않아요</span><span class="grow"></span>'
+      + Object.keys(F).map(k=> '<button class="ro-f'+(rosterFilter === k ? " on" : "")+'" data-f="'+k+'">'
+          + F[k]+' <b>'+rows.filter(is[k]).length+'</b></button>').join("") + '</div>'
+      + (rosterList.length
+          ? '<ul class="ro-list" id="roList">' + rosterList.map((r, i)=>
+              '<li class="ro-row'+(r.submitted ? "" : " no")+'">'
+              + '<span class="ro-nm">'+esc(r.nickname || "탈퇴한 사용자")
+              +   (roInT(r) ? '' : ' <span class="ro-t other" title="대상 그룹이 아닌데 제출했어요">대상 아님</span>')+'</span>'
+              + '<span class="ro-tags">'+tags(r)+'</span>'
+              + '<span class="ro-at">'+(r.submitted
+                  ? fmtSec(r.first_at || r.at) + (roEdited(r) ? '<i>수정 '+fmtSec(r.at)+'</i>' : '')
+                  : '-')+'</span>'
+              + (a.max_score != null ? '<span class="ro-sc">'+(r.score != null ? scoreTxt(r.score)+'점' : '')+'</span>' : '')
+              + (r.submitted
+                  ? '<button class="'+(r.checked ? "btn-ghost" : "btn-write")+' ro-btn" data-i="'+i+'">'
+                    + (r.checked ? "다시 보기" : "확인·피드백") + '</button>'
+                  : '<span class="ro-btn"></span>')
+              + '</li>').join("") + '</ul>'
+          : '<p class="assign-note" style="margin-top:8px">해당하는 학생이 없어요.</p>');
+
+    box.querySelectorAll("[data-f]").forEach(b=> b.onclick = ()=>{ rosterFilter = b.dataset.f; renderRoster(); });
+    box.querySelectorAll(".ro-btn[data-i]").forEach(b=> b.onclick = ()=> openAsGrade(Number(b.dataset.i)));
+
+    // 10명까지만 보이고 나머지는 목록 안에서 스크롤 (줄 높이는 실제로 그려진 위치로 계산 — 랭킹과 같은 방식)
+    const list = $("roList");
+    if (list){
+      const items = list.children;
+      if (items.length > RO_VISIBLE){
+        const first = items[0], last = items[RO_VISIBLE - 1];
+        // 폰은 한 줄이 높아서 10명이 화면보다 길어지므로 화면의 70% 를 넘지 않게
+        const h = last.offsetTop + last.offsetHeight - first.offsetTop + 2;
+        list.style.maxHeight = Math.min(h, Math.round(innerHeight * 0.7)) + "px";
+        list.classList.add("scrolly");
+        list.scrollTop = keep;
+      }
+    }
+  }
+
+  /* 제출물 하나 보기 · 확인 · 점수 · 피드백 · 잠금 */
+  let agIdx = -1, agDirty = false;
+  function openAsGrade(i){
+    const r = rosterList[i], a = rosterCtx.a;
+    if (!r) return;
+    agIdx = i; agDirty = false;
+    const useSc = a.max_score != null;
+    const files = r.files || [];
+    // 다음에 볼 학생: 지금 목록에서 아래쪽의 '제출했는데 확인 안 한' 학생
+    const next = rosterList.findIndex((x, k)=> k > i && x.submitted && !x.checked);
+    $("agTitle").textContent = (r.nickname || "탈퇴한 사용자") + " 학생의 제출물";
+    $("agBody").innerHTML =
+      '<div class="ag-meta">'
+      + '<span>처음 제출 <b>'+fmtSec(r.first_at || r.at)+'</b>'+(r.late ? ' <span class="ro-t late">지각</span>' : '')+'</span>'
+      + (roEdited(r) ? '<span>마지막 수정 <b>'+fmtSec(r.at)+'</b>'+(r.edited_late ? ' <span class="ro-t late">마감 후</span>' : '')
+                       + (r.version > 1 ? ' · '+r.version+'번째 제출' : '')+'</span>' : '')
+      + (r.locked ? '<span>🔒 잠김</span>' : '') + '</div>'
+      + '<div class="w-field"><label>제출 내용</label>'
+      + '<div class="as-read">'+(r.body ? linkify(r.body) : '<i style="color:var(--ink-soft)">내용 없이 파일만 냈어요.</i>')+'</div></div>'
+      + (files.length
+          ? '<div class="w-field"><label>첨부파일 '+files.length+'개</label><div class="files">'
+            + files.map((f, k)=> '<div class="file-row"><span class="fi">'+FILE_ICON(f.mime, f.name)+'</span>'
+                + '<span class="fn">'+esc(safeName(f.name))+'</span><span class="fs">'+fileSize(f.size)+'</span>'
+                + (canPreview(f) ? '<button class="fp" data-agpv="'+k+'">미리보기</button>' : '')
+                + '<button class="fp" data-agdl="'+k+'">받기</button></div>').join("")
+            + '</div></div>'
+          : '')
+      + (useSc
+          ? '<div class="w-field"><label>점수 (만점 '+scoreTxt(a.max_score)+'점)'
+            + (a.scores_open ? '' : ' · <span style="font-weight:400">점수 공개 전까지 학생에게 안 보여요</span>')+'</label>'
+            + '<input type="number" id="agScore" min="0" max="'+scoreTxt(a.max_score)+'" step="0.5"'
+            + ' value="'+(r.score != null ? scoreTxt(r.score) : "")+'" placeholder="비워두면 점수 없음"></div>'
+          : '')
+      + '<div class="w-field"><label>피드백 (학생에게 보여요 · 비워도 돼요)</label>'
+      + '<textarea id="agFb" maxlength="1000" placeholder="잘한 점, 고칠 점을 적어주세요">'+esc(r.feedback || "")+'</textarea></div>'
+      + '<label class="chk-row"><input type="checkbox" id="agLock"'+(r.locked || !r.checked ? " checked" : "")+'>'
+      + '<span>🔒 다시 제출하지 못하게 잠그기<em>체크를 풀고 저장하면 학생이 고쳐서 다시 낼 수 있어요.</em></span></label>'
+      + '<details class="ag-log" id="agLogWrap"><summary>제출 기록 보기 (언제 내고 언제 고쳤나)</summary><div id="agLog">불러오는 중…</div></details>'
+      + '<p class="err" id="agErr" style="color:#c25b5b;font-size:12.5px;min-height:17px;margin:8px 0 0"></p>'
+      + '<p class="ag-tip">저장하면 학생에게 "과제를 확인했어요" 알림이 가요.</p>'
+      + '<div class="w-btns ag-btns">'
+      + '<button class="btn-ghost" id="agCancel">취소</button>'
+      + (next >= 0 ? '<button class="btn-ghost" id="agNext" title="저장하고 확인 안 한 다음 학생으로">저장 후 다음 →</button>' : '')
+      + '<button class="btn-write" id="agSave">저장</button></div>';
+    $("asGradeModal").classList.add("on");
+    $("asGradeModal").querySelector(".modal").scrollTop = 0;     // 다음 학생으로 넘어가면 맨 위부터
+
+    $("agBody").querySelectorAll("[data-agpv]").forEach(b=> b.onclick = ()=> openPreview(files[Number(b.dataset.agpv)]));
+    $("agBody").querySelectorAll("[data-agdl]").forEach(b=> b.onclick = ()=>{
+      const f = files[Number(b.dataset.agdl)]; downloadFile(f.path, f.name, f.size); });
+    ["agScore", "agFb", "agLock"].forEach(id=>{ const el = $(id); if (el) el.addEventListener("input", ()=> agDirty = true); });
+    if ($("agLock")) $("agLock").onchange = ()=> agDirty = true;
+    $("agLogWrap").ontoggle = async ()=>{
+      if (!$("agLogWrap").open || $("agLog").dataset.done) return;
+      $("agLog").dataset.done = "1";
+      const ACT = { submit:"제출", resubmit:"다시 제출", file_add:"파일 추가", file_del:"파일 삭제" };
+      const { data, error } = await rpcRetry("submission_log_list", { p_post: rosterCtx.postId, p_user: r.user_id });
+      if (error){ $("agLog").textContent = cleanErr(error); return; }
+      $("agLog").innerHTML = (data || []).length ? data.map(l=>
+          '<div>'+fmtSec(l.created_at)+' · <b>'+(ACT[l.action] || esc(l.action))+'</b>'
+          + (l.after_due ? ' <span class="ro-t late">마감 후</span>' : '')
+          + (l.detail ? ' — <span style="color:var(--ink-soft)">'+esc(String(l.detail).slice(0, 120))+'</span>' : '')+'</div>').join("")
+        : '<span style="color:var(--ink-soft)">기록이 없어요. (2026-10-09 이전 제출물은 기록이 없어요)</span>';
+    };
+
+    const save = async (goNext)=>{
+      let sc = null;
+      if (useSc){
+        const v = $("agScore").value.trim();
+        if (v !== ""){
+          sc = Number(v);
+          if (!(sc >= 0 && sc <= Number(a.max_score))){
+            $("agErr").textContent = "점수는 0점에서 " + scoreTxt(a.max_score) + "점 사이로 넣어주세요."; return;
+          }
+        }
+      }
+      $("agSave").disabled = true; if ($("agNext")) $("agNext").disabled = true;
+      const { error } = await sb.rpc("grade_submission", {
+        p_post: rosterCtx.postId, p_user: r.user_id,
+        p_feedback: $("agFb").value.trim() || null,
+        p_checked: true, p_score: sc, p_lock: $("agLock").checked });
+      if (error){
+        $("agSave").disabled = false; if ($("agNext")) $("agNext").disabled = false;
+        handled(error, "과제 확인", $("agErr")); return;
+      }
+      // 화면의 값도 바로 바꿔서 다음 학생으로 넘어가도 명단이 맞게 보이게
+      Object.assign(r, { checked: true, score: sc, feedback: $("agFb").value.trim() || null, locked: $("agLock").checked });
+      agDirty = false;
+      toast(r.nickname + " 학생 확인을 저장했어요.");
+      if (goNext && next >= 0){
+        // '확인 안 함'만 보고 있으면 방금 학생이 목록에서 빠져 번호가 당겨지므로 아이디로 다시 찾습니다
+        const nextUid = rosterList[next].user_id;
+        renderRoster();
+        const k = rosterList.findIndex(x=> x.user_id === nextUid);
+        if (k >= 0){ openAsGrade(k); return; }
+      }
+      closeAsGrade(true);
+      loadRoster(rosterCtx.postId, a);
+    };
+    $("agSave").onclick = ()=> save(false);
+    if ($("agNext")) $("agNext").onclick = ()=> save(true);
+    $("agCancel").onclick = ()=> closeAsGrade();
+  }
+  async function closeAsGrade(force){
+    if (!force && agDirty && !await ask("저장하지 않은 점수·피드백이 있어요. 닫을까요?",
+                                        { title:"창 닫기", yes:"닫기", danger:true })) return;
+    agDirty = false;
+    $("asGradeModal").classList.remove("on");
+    if (!force) renderRoster();
+  }
+  $("agClose").onclick = ()=> closeAsGrade();
 
   /* 제출 파일 목록 (이미 올린 것 + 올릴 예정) */
   function renderSubFiles(canEdit){

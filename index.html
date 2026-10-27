@@ -2019,7 +2019,12 @@
   @media (prefers-reduced-motion: reduce){ .nr{transition:none} }
 
   /* 자리 비움 확인 코드는 무엇보다 위 — 알림 팝업이 가리면 안 됩니다 */
-  #checkModal{z-index:80}
+  /* 쌓이는 순서: 보통 팝업 70 < 확인창(ask) 85 < 오류 86 < 자리 비움 확인 90
+     확인창이 HTML 에서 과제 확인 창(#asGradeModal)보다 앞에 있어서, 같은 70 이면 뒤에 깔려
+     '저장 안 하고 닫을까요?'가 안 보인 채 멈춘 것처럼 됐습니다. 팝업 위에서 묻는 창은 늘 위로. */
+  #askModal{z-index:85}
+  #errModal{z-index:86}
+  #checkModal{z-index:90}
   .nt.k-notice{border-left-color:#c77a1e}                       /* 공지 */
   .nt.k-comment, .nt.k-reply{border-left-color:#3d8f73}         /* 댓글·답글 */
   .nt.k-grade, .nt.k-score, .nt.k-due{border-left-color:#8a5cc7}   /* 과제 */

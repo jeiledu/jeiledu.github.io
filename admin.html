@@ -193,6 +193,13 @@
   /* 대화 기록 */
   .dlg.wide{max-width:760px}
 
+  /* 과제 점수 한꺼번에 고치기 */
+  .sc-tools{background:var(--blue-tint); border:1px solid var(--line); border-radius:12px; padding:8px 10px}
+  .sc-tools input{padding:6px 9px}
+  .sc-in{width:76px; padding:6px 8px; text-align:right; font-variant-numeric:tabular-nums}
+  .sc-in.chg{border-color:#d9a400; background:#fff8e1}
+  .sc-in:disabled{background:transparent; border-color:transparent}
+
   /* 그룹 편집 — 왼쪽(안 들어간 사람) ↔ 오른쪽(멤버) */
   .xfer{display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); gap:10px; align-items:stretch}
   .xf-col{display:flex; flex-direction:column; gap:7px; min-width:0; border:1px solid var(--line);
@@ -1503,6 +1510,7 @@
     const graded = target.filter(r=> r.score != null).length;
     const missing = target.filter(r=> !r.submitted);
     const nFiles = rows.reduce((n, r)=> n + (r.files || []).length, 0);
+    const leftover = useSc ? [] : rows.filter(r=> r.score != null);     // 만점을 비운 뒤 남은 점수
     $("headNote").textContent = assignPost.title;
 
     $("page").innerHTML =
@@ -1516,20 +1524,39 @@
       + '<button class="b" id="aRemind"'+(missing.length ? '' : ' disabled')+'>✉️ 미제출자에게 쪽지</button>'
       + '<button class="b" id="aCsv">CSV</button></div>'
       + (useSc
-          ? '<p class="muted" style="margin:0 0 12px;font-size:12.5px">만점 '
+          ? '<p class="muted" style="margin:0 0 10px;font-size:12.5px">만점 '
             + scoreTxt(info.max_score) + '점 · 점수는 지금 <b>'
-            + (open ? '학생에게 보입니다' : '학생에게 보이지 않습니다') + '</b>.</p>'
+            + (open ? '학생에게 보입니다' : '학생에게 보이지 않습니다') + '</b>. '
+            + '표의 점수 칸을 바로 고치거나, 학생을 골라 한꺼번에 넣기·지우기를 한 뒤 <b>점수 저장</b>을 누르세요. '
+            + '(여기서 바꾼 점수는 알림 없이 반영돼요)</p>'
+            + '<div class="tools sc-tools">'
+            + '<span>고른 학생 <b id="scSel">0</b>명</span>'
+            + '<input type="number" id="scVal" min="0" max="'+scoreTxt(info.max_score)+'" step="0.5" placeholder="점수" style="width:90px">'
+            + '<button class="b sm" id="scApply">고른 학생에게 넣기</button>'
+            + '<button class="b sm danger" id="scClear">고른 학생 점수 지우기</button>'
+            + '<span class="grow"></span><span class="muted" id="scDirty"></span>'
+            + '<button class="b sm" id="scUndo" disabled>되돌리기</button>'
+            + '<button class="b pri" id="scSave" disabled>점수 저장</button></div>'
           : '<p class="muted" style="margin:0 0 12px;font-size:12.5px">'
             + '이 과제는 만점이 정해져 있지 않아 점수 없이 확인·피드백만 할 수 있어요. '
-            + '점수를 쓰려면 학생 화면의 글에서 <b>과제 설정</b>으로 만점을 정해주세요.</p>')
+            + '점수를 쓰려면 학생 화면의 글에서 <b>과제 설정</b>으로 만점을 정해주세요.</p>'
+            + (leftover.length
+                ? '<div class="card" style="border-color:#f0dada;background:#fdf7f6;padding:12px 14px;margin:0 0 12px">'
+                  + '<b style="color:#b3564f">만점을 비우기 전에 넣은 점수가 '+leftover.length+'개 남아 있어요.</b>'
+                  + '<span class="muted" style="font-size:12.5px"> 학생에게는 보이지 않지만, 정리하려면 지워 주세요.</span> '
+                  + '<button class="b sm danger" id="scLeft">남은 점수 모두 지우기</button></div>'
+                : ''))
       + '<div class="tbl-wrap"><table><thead><tr>'
+      + (useSc ? '<th style="width:28px"><input type="checkbox" id="scAll" title="제출한 학생 모두 고르기"></th>' : '')
       + '<th>학생</th><th>상태</th>'+(useSc ? '<th class="num">점수</th>' : '')
       + '<th>제출 내용</th><th>첨부</th><th>처음 제출</th><th>마지막 수정</th><th></th>'
       + '</tr></thead><tbody>'
       + rows.map((r,i)=>{
           const nf = (r.files || []).length;
           const edited = r.first_at && r.at && Math.abs(new Date(r.at) - new Date(r.first_at)) > 60000;
-          return '<tr><td><b>'+esc(r.nickname)+'</b>'
+          return '<tr>'
+          + (useSc ? '<td><input type="checkbox" class="sc-ck" data-i="'+i+'"'+(r.submitted ? '' : ' disabled title="제출한 학생만 점수를 넣을 수 있어요"')+'></td>' : '')
+          + '<td><b>'+esc(r.nickname)+'</b>'
           + (inT(r) ? '' : ' <span class="tag hid" title="대상 그룹이 아닌데 제출했어요">대상 아님</span>')+'</td>'
           + '<td>'+(r.submitted
               ? (r.checked ? '<span class="tag teacher">확인함</span>'
@@ -1538,7 +1565,8 @@
                 + (r.edited_late ? ' <span class="tag ban" title="마감 전에 냈지만 마감 뒤에 고쳤어요">마감 후 수정</span>' : '')
                 + (r.locked ? ' <span class="lockmk" title="다시 제출할 수 없음">🔒</span>' : '')
               : '<span class="tag hid">미제출</span>')+'</td>'
-          + (useSc ? '<td class="num"><b>'+(r.score != null ? scoreTxt(r.score) : '-')+'</b></td>' : '')
+          + (useSc ? '<td class="num"><input type="number" class="sc-in" data-i="'+i+'" min="0" max="'+scoreTxt(info.max_score)+'" step="0.5"'
+                     + ' value="'+(r.score != null ? scoreTxt(r.score) : '')+'"'+(r.submitted ? '' : ' disabled placeholder="-"')+'></td>' : '')
           + '<td style="max-width:300px">'+esc((r.body||"").slice(0,90))+(r.body&&r.body.length>90?'…':'')+'</td>'
           + '<td class="num muted">'+(nf ? nf+'개' : '-')+'</td>'
           + '<td class="num muted">'+(r.first_at ? dt(r.first_at) : (r.at ? dt(r.at) : '-'))+'</td>'
@@ -1548,7 +1576,72 @@
         }).join("")
       + '</tbody></table></div></div>';
 
-    $("aBack").onclick = ()=>{ assignPost = null; $("headNote").textContent=""; pageAssign(); };
+    $("aBack").onclick = async ()=>{
+      if (scChanged().length && !await ask("저장하지 않은 점수가 있어요. 그래도 나갈까요?", { title:"점수 저장 안 함", yes:"나가기", danger:true })) return;
+      assignPost = null; $("headNote").textContent=""; pageAssign();
+    };
+
+    /* ---------- 점수 한꺼번에 고치기 (set_scores_bulk) ----------
+       칸을 고치거나 고른 학생에게 넣기·지우기 → '점수 저장' 한 번에. 범위를 벗어난 값이 하나라도 있으면 아무것도 안 바뀝니다. */
+    const scIns = [...$("page").querySelectorAll(".sc-in")];
+    const scCks = [...$("page").querySelectorAll(".sc-ck:not(:disabled)")];
+    const orig  = (r)=> r.score != null ? scoreTxt(r.score) : "";
+    function scChanged(){
+      return scIns.filter(el=> el.value.trim() !== orig(rows[Number(el.dataset.i)]));
+    }
+    function scSync(){
+      if (!$("scSave")) return;
+      const ch = scChanged();
+      scIns.forEach(el=> el.classList.toggle("chg", el.value.trim() !== orig(rows[Number(el.dataset.i)])));
+      $("scSel").textContent = scCks.filter(c=> c.checked).length;
+      $("scDirty").textContent = ch.length ? "바뀐 점수 " + ch.length + "개 (아직 저장 안 됨)" : "";
+      $("scSave").disabled = !ch.length; $("scUndo").disabled = !ch.length;
+      if ($("scAll")) $("scAll").checked = scCks.length > 0 && scCks.every(c=> c.checked);
+    }
+    const scPicked = ()=> scCks.filter(c=> c.checked).map(c=> $("page").querySelector('.sc-in[data-i="'+c.dataset.i+'"]'));
+    if ($("scSave")){
+      scIns.forEach(el=> el.oninput = scSync);
+      scCks.forEach(c=> c.onchange = scSync);
+      $("scAll").onchange = (e)=>{ scCks.forEach(c=> c.checked = e.target.checked); scSync(); };
+      $("scApply").onclick = ()=>{
+        const v = $("scVal").value.trim(), pk = scPicked();
+        if (!pk.length){ toast("먼저 왼쪽 칸에서 학생을 골라 주세요."); return; }
+        if (v === "" || !(Number(v) >= 0 && Number(v) <= Number(info.max_score))){
+          toast("0점에서 " + scoreTxt(info.max_score) + "점 사이로 넣어 주세요."); return; }
+        pk.forEach(el=> el.value = scoreTxt(Number(v))); scSync();
+      };
+      $("scClear").onclick = ()=>{
+        const pk = scPicked();
+        if (!pk.length){ toast("먼저 왼쪽 칸에서 학생을 골라 주세요."); return; }
+        pk.forEach(el=> el.value = ""); scSync();
+      };
+      $("scUndo").onclick = ()=>{ scIns.forEach(el=> el.value = orig(rows[Number(el.dataset.i)])); scSync(); };
+      $("scSave").onclick = async ()=>{
+        const ch = scChanged(), map = {};
+        for (const el of ch){
+          const v = el.value.trim();
+          if (v !== "" && !(Number(v) >= 0 && Number(v) <= Number(info.max_score))){
+            el.focus(); toast("점수는 0점에서 " + scoreTxt(info.max_score) + "점 사이로 넣어 주세요."); return; }
+          map[rows[Number(el.dataset.i)].user_id] = v === "" ? null : Number(v);
+        }
+        const nDel = Object.values(map).filter(v=> v === null).length;
+        if (!await ask(ch.length + "명의 점수를 저장할까요?" + (nDel ? "\n(그중 " + nDel + "명은 점수를 지웁니다)" : "")
+                       + (open ? "\n점수가 공개된 상태라 학생에게 바로 보여요." : ""),
+                       { title:"점수 저장", yes:"저장" })) return;
+        $("scSave").disabled = true;
+        try { const n = await rpc("set_scores_bulk", { p_post: assignPost.id, p_scores: map });
+              toast(n + "명의 점수를 저장했어요."); pageAssign(); }
+        catch(e){ $("scSave").disabled = false; toast(cleanErr(e)); }
+      };
+      scSync();
+    }
+    if ($("scLeft")) $("scLeft").onclick = async ()=>{
+      if (!await ask("남아 있는 점수 " + leftover.length + "개를 지울까요?", { title:"남은 점수 지우기", yes:"지우기", danger:true })) return;
+      const map = {}; leftover.forEach(r=> map[r.user_id] = null);
+      try { const n = await rpc("set_scores_bulk", { p_post: assignPost.id, p_scores: map });
+            toast(n + "명의 점수를 지웠어요."); pageAssign(); }
+      catch(e){ toast(cleanErr(e)); }
+    };
 
     if ($("aOpen")) $("aOpen").onclick = async ()=>{
       const on = !open;
@@ -1576,8 +1669,11 @@
     $("aZip").onclick = ()=> zipSubmissions(assignPost.title, rows);
     $("aRemind").onclick = ()=> remindMissing(assignPost, info, missing);
 
-    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = ()=>
-      openGrade(rows[Number(b.dataset.gr)], useSc, info));
+    $("page").querySelectorAll("[data-gr]").forEach(b=> b.onclick = async ()=>{
+      if (scChanged().length && !await ask("표에서 바꾼 점수가 아직 저장되지 않았어요.\n이 창에서 저장하면 표의 바뀐 점수는 사라져요. 계속할까요?",
+                                           { title:"점수 저장 안 함", yes:"계속" })) return;
+      openGrade(rows[Number(b.dataset.gr)], useSc, info);
+    });
   }
 
   /* 제출물 하나 열어보기 · 점수 · 피드백 · 잠금 */

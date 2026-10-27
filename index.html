@@ -903,6 +903,7 @@
 
   /* 답글 */
   .cmt.reply{padding-left:26px; position:relative}
+  .cmt.flash{background:var(--blue-soft); border-radius:10px; transition:background .6s}   /* 알림으로 들어왔을 때 새 댓글 표시 */
   .cmt.reply::before{
     content:"↳"; position:absolute; left:6px; top:12px; color:var(--ink-faint); font-size:12px;
   }
@@ -4451,14 +4452,22 @@
     if (st.ranking_enabled === "false") $("rankCard").hidden = true;
   }
 
+  // 이미 로그인 처리를 끝낸(또는 하는 중인) 계정. onSession 은 앱을 열 때 두 번(INITIAL_SESSION + getSession),
+  // 그리고 1시간마다 토큰을 갱신할 때도 불립니다. 같은 계정이면 다시 하지 않습니다 —
+  // 예전에는 그때마다 afterLogin 이 게시판을 다시 불러 보던 글이 목록으로 바뀌었습니다(알림으로 연 답글이 사라지던 원인 중 하나).
+  let sessionUid = null;
   async function onSession(session){
+    const uid = session && session.user ? session.user.id : null;
+    if (uid && uid === sessionUid) return;
+    sessionUid = uid;
     ntReset();                          // 다른 계정으로 바뀌면 '이미 본 알림' 기준도 새로
-    chatReset(session && session.user ? session.user.id : null);   // 계정이 바뀌었을 때만 채팅 창·안 읽은 수 초기화
+    chatReset(uid);                     // 계정이 바뀌었을 때만 채팅 창·안 읽은 수 초기화
     if (!session){ me = null; renderAccount(); renderRank(); return; }
 
     const email = session.user.email || "";
     const dom   = CFG.SCHOOL_DOMAIN;
     if (dom && !email.toLowerCase().endsWith("@" + dom.toLowerCase())){
+      sessionUid = null;
       await sb.auth.signOut();
       toast("학교 계정(@" + dom + ")으로 로그인해주세요.");
       return;
@@ -4500,7 +4509,7 @@
     // 폰 알림을 눌러서 들어온 경우 그 글로
     let jump = null;
     try { jump = sessionStorage.getItem("openPost"); sessionStorage.removeItem("openPost"); } catch(e){}
-    if (jump){ switchView("board"); setTimeout(()=> openPost(Number(jump)), 200); return; }
+    if (jump){ await switchView("board"); openPost(Number(jump)); return; }   // 폰 알림으로 들어온 글 — 목록을 다 받은 뒤에
 
     // 로그인하려고 커뮤니티에서 넘어온 경우 다시 커뮤니티로
     let rv = null;
@@ -5011,7 +5020,7 @@
     $("learnView").hidden = v !== "learn";
     $("dsView").hidden    = v !== "ds";
     renderMiniTimer();
-    if (v === "board" && !boardLoaded) openBoard();
+    if (v === "board" && !boardLoaded) await openBoard();   // await switchView("board") 하면 목록을 다 받은 뒤에 돌아옵니다
     if (v === "lab") labInit();
     if (v === "learn") learnInit();
     if (v === "ds") dsInit();
@@ -5187,7 +5196,7 @@
   /* ---------- 글 보기 ---------- */
   let lastAssignInfo = null;
 
-  async function openPost(id){
+  async function openPost(id, opts){
     const { data, error } = await rpcRetry("get_post", { p_id: id });
     const p = Array.isArray(data) ? data[0] : data;
     if (error && !isFriendly(cleanErr(error))){ showError(error, "글 열기"); return; }
@@ -5209,6 +5218,18 @@
     $("boardDetail").hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
     try { history.pushState({ app: "post" }, ""); } catch(e){}
+
+    if (opts && opts.focus === "cmts"){
+      // 가장 최근 댓글(보통 알림의 그 답글)을 찾아 그 자리로 내려가 잠깐 칠합니다
+      const latest = (cs || []).reduce((a, c)=> (!a || new Date(c.created_at) > new Date(a.created_at)) ? c : a, null);
+      setTimeout(()=>{
+        const el = (latest && document.querySelector('.cmt[data-cid="'+latest.id+'"]')) || document.querySelector(".cmts");
+        if (!el) return;
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("flash");
+        setTimeout(()=> el.classList.remove("flash"), 2600);
+      }, 450);
+    }
   }
 
   function renderDetail(p, cs){
@@ -5218,7 +5239,7 @@
     const asgPost = !!cats.find(c=> String(c.id) === String(p.category_id) && c.kind === "assign");   // 과제 글이면 댓글은 늘 비밀
 
     const cmtHtml = (c, isReply) =>
-      '<div class="cmt'+(isReply?" reply":"")+(c.secret?" secret":"")+'"><div class="c-body">'
+      '<div class="cmt'+(isReply?" reply":"")+(c.secret?" secret":"")+'" data-cid="'+c.id+'"><div class="c-body">'
       + '<div class="c-who">' + whoBtn(c.author, c.author_id)
       +   (c.secret ? ' <span class="lock">🔒</span>' : '')
       +   '<span class="c-when">'+fmtDate(c.created_at, true)+'</span></div>'
@@ -6978,7 +6999,7 @@ _imgs
     $("notiList").innerHTML = rows.length
       ? rows.map(n=>
           '<div class="noti-item'+(n.is_read ? "" : " new")+'" data-n="'+n.id+'"'
-          + ' data-lt="'+esc(n.link_type||"")+'" data-li="'+(n.link_id||"")+'">'
+          + ' data-lt="'+esc(n.link_type||"")+'" data-li="'+(n.link_id||"")+'" data-k="'+esc(n.kind||"")+'">'
           + '<span class="ic">'+(NOTI_ICON[n.kind] || "🔔")+'</span>'
           + '<span class="tx"><span class="t1">'+esc(n.title)+'</span>'
           + (n.body ? '<span class="t2">'+esc(n.body)+'</span>' : '') + '</span>'
@@ -6986,18 +7007,25 @@ _imgs
       : '<div class="noti-empty">새로운 알림이 없어요.</div>';
 
     $("notiList").querySelectorAll("[data-n]").forEach(el=>{
-      el.onclick = ()=> notiGo(Number(el.dataset.n), el.dataset.lt, Number(el.dataset.li));
+      el.onclick = ()=> notiGo(Number(el.dataset.n), el.dataset.lt, Number(el.dataset.li), el.dataset.k);
     });
     if (openPop) $("notiPop").hidden = false;
   }
 
   // 알림 하나를 읽음으로 하고 해당 쪽지·글로 이동 (알림 창과 팝업이 같이 씁니다)
-  async function notiGo(nid, linkType, linkId){
+  // 댓글·답글 알림이면 글을 연 뒤 댓글 자리로 내려가 새 댓글을 잠깐 표시합니다
+  // (폰에서는 글이 길어 댓글이 한참 아래라, 알림을 눌러도 답글이 '안 보인다'고 느꼈습니다)
+  async function notiGo(nid, linkType, linkId, kind){
     await sb.rpc("mark_notifications_read", { p_id: nid });
     $("notiPop").hidden = true;
     updateBadges();
     if (linkType === "message"){ openDM("in"); dmOpen(linkId); }
-    else if (linkType === "post"){ switchView("board"); setTimeout(()=> openPost(linkId), 120); }
+    else if (linkType === "post"){
+      // 게시판 목록을 다 받은 '뒤에' 글을 엽니다. 예전에는 0.12초 뒤에 바로 열어서, 폰처럼 느린 곳에서는
+      // 늦게 도착한 목록이 방금 연 글을 덮어 '알림만 뜨고 답글이 안 보였습니다'.
+      await switchView("board");
+      openPost(linkId, (kind === "comment" || kind === "reply") ? { focus: "cmts" } : null);
+    }
   }
 
   /* ---------- 새 알림 팝업 ----------
@@ -7117,7 +7145,7 @@ _imgs
       + '<span class="tx"><span class="t1">' + esc(n.title) + '</span>'
       + (n.body ? '<span class="t2">' + esc(n.body) + '</span>' : '')
       + '<span class="t3">' + where + '</span></span>',
-      ()=> notiGo(Number(n.id), n.link_type, Number(n.link_id)));
+      ()=> notiGo(Number(n.id), n.link_type, Number(n.link_id), n.kind));
   }
 
   // "12분 전" 같은 상대 시각 (하루 넘으면 날짜)
@@ -7152,7 +7180,7 @@ _imgs
       + '<div class="nr-list">'
       + list.slice(0, SHOW).map(n=>
           '<button class="nr-i" data-n="' + n.id + '" data-lt="' + esc(n.link_type || "")
-          + '" data-li="' + (n.link_id || "") + '">'
+          + '" data-li="' + (n.link_id || "") + '" data-k="' + esc(n.kind || "") + '">'
           + '<span class="ic">' + (NOTI_ICON[n.kind] || "🔔") + '</span>'
           + '<span class="tx"><span class="t1">' + esc(n.title) + '</span>'
           + (n.body ? '<span class="t2">' + esc(n.body) + '</span>' : '') + '</span>'
@@ -7170,7 +7198,7 @@ _imgs
       b.onclick = ()=>{
         b.remove();                                  // 본 것은 목록에서 빼고
         if (!el.querySelector(".nr-i")) close();     // 다 봤으면 닫습니다
-        notiGo(Number(b.dataset.n), b.dataset.lt, Number(b.dataset.li));
+        notiGo(Number(b.dataset.n), b.dataset.lt, Number(b.dataset.li), b.dataset.k);
       };
     });
     el.querySelector('[data-act="read"]').onclick = async ()=>{

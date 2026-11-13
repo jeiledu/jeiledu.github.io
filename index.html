@@ -29,13 +29,21 @@
 -->
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6fd0'/%3E%3Ccircle cx='32' cy='34' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M32 24v11h8' stroke='white' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<script>
+/* 계절 테마 — 봄에 되돌리려면 SEASON 을 "" 로 바꾸세요. SEASON_UNTIL 이 지나면 저절로 꺼집니다. */
+(function(){
+  var SEASON = "winter", SEASON_UNTIL = "2027-03-02";
+  if (SEASON && Date.now() < new Date(SEASON_UNTIL + "T00:00:00+09:00").getTime())
+    document.documentElement.setAttribute("data-season", SEASON);
+})();
+</script>
 <style>
   :root{
     --bg:#f2f6fb;
     --card:#ffffff;
     --ink:#1e2a3a;
-    --ink-soft:#5b7091;
-    --ink-faint:#93a6c0;
+    --ink-soft:#4f6485;      /* 2026-11-13: 흐린 글씨 두 단계를 진하게 (흰 바탕 대비 5.2→6.1, 2.5→4.6) */
+    --ink-faint:#637694;
     --line:#e2ebf6;
     --blue:#2f6fd0;
     --blue-dark:#245bad;
@@ -1889,6 +1897,8 @@
   .terms-body h4{margin:16px 0 4px; font-size:13px; color:var(--ink)}
   .terms-body h4:first-child{margin-top:0}
   .terms-body p{margin:0; font-size:12.5px}
+  .terms-body ul{margin:2px 0 4px; padding-left:18px; font-size:12.5px}
+  .terms-body li + li{margin-top:2px}
   .badges{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:4px}
   .badge{
     text-align:center; padding:13px 6px; border-radius:13px; border:1px solid var(--line);
@@ -2157,7 +2167,6 @@
     #toast{left:12px; right:12px; transform:translateY(16px); bottom:auto;
            top:auto; margin-bottom:0; text-align:center}
     #toast.on{transform:translateY(0)}
-    #tip{display:none}
   }
 
   @media (max-width:620px){
@@ -2181,6 +2190,276 @@
     .post-row.pinned:hover{background:#f2f7fe}
     .day:not(.blank):hover{transform:none}
   }
+
+  /* 휴대폰: 탭이 5개가 되면서 글씨가 두 줄로 꺾이거나 너무 작아졌습니다 → 글씨는 넉넉하게 두고 탭 줄을 옆으로 밀어서 봅니다.
+     · 줄을 화면 양 끝까지 넓혀서(음수 margin) 끝에 걸린 탭이 '더 있다'는 표시가 되게
+     · padding 은 켜진 탭의 그림자가 잘리지 않을 자리 */
+  @media (max-width:620px){
+    .main-tabs{
+      overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain;
+      margin:-6px -14px 8px; padding:6px 14px 10px;
+    }
+    .main-tabs::-webkit-scrollbar{display:none}
+    .main-tabs button{flex:none; padding:10px 16px; font-size:14.5px; letter-spacing:-.3px; white-space:nowrap}
+  }
+
+  /* ================= UX 손보기 (2026-11-13) ================= */
+  /* 머리글의 💬 단추 (채팅 · 쪽지함) */
+  .msg-btn{position:relative; padding:0 10px !important}
+  .msg-btn .ava{background:transparent; font-size:16px; width:24px}
+  .acc-menu#msgMenu{width:170px}
+  @media (max-width:620px){
+    .msg-btn{width:42px; padding:0 !important; justify-content:center; flex:none}
+    /* 단추가 하나 늘어서, 폰에서는 네 단추를 조금씩 좁혀 날짜 자리를 남깁니다 */
+    .theme-btn, .noti-btn, .msg-btn, .acc-btn:not(.guest){width:37px}
+    .clock-box{gap:6px}
+    .clock{padding:0 6px}
+    .noti-pop{right:-86px}        /* 종 오른쪽에 💬(37)+계정(37)+간격 둘(12) → 알림 창 오른쪽 끝을 화면 여백에 맞춤 */
+  }
+
+  /* 도움말 풍선: 폰에서도 보이게 (누르면 3초) — 화면 밖으로 나가지 않도록 줄바꿈 허용, 위에 자리가 없으면 아래로 */
+  #tip.below{transform:translate(-50%, 30%)}
+  @media (max-width:620px){
+    #tip{width:max-content; max-width:calc(100vw - 24px); white-space:normal; text-align:center; line-height:1.5}
+  }
+  @media (pointer:coarse){ [data-tip]{cursor:pointer} }
+
+  /* 처음 온 날에는 안내를 한꺼번에 띄우지 않습니다: 둘러보기 → (끝나면) 홈 화면 추가 안내만.
+     알림 권유·다른 타이머 앱 안내는 다음에 들어왔을 때부터 */
+  body.touring #pwaBar .banner:not(.off), body.touring #notiToasts{display:none}
+  body.firstvisit #pushBar, body.firstvisit #dualNote{display:none}
+
+  /* 좁은 화면 글 목록: 색 띠만으로 구분하던 게시판 이름을 글자로도 */
+  .p-cat-m{display:none; font-weight:600; color:var(--ink-soft)}
+  @media (max-width:900px){ .p-cat-m{display:inline} }
+
+  /* ---------- 글씨 꾸미기 (게시글) ---------- */
+  .rt-b{font-weight:700}
+  .rt-u{text-decoration:underline; text-underline-offset:3px}
+  .rt-s-s{font-size:.86em}
+  .rt-s-l{font-size:1.25em}
+  .rt-s-xl{font-size:1.6em; line-height:1.5}
+  .rt-f-serif{font-family:"Nanum Myeongjo", "AppleMyungjo", "Batang", "바탕", serif}
+  .rt-f-round{font-family:"Jua", var(--sans)}
+  .rt-f-hand{font-family:"Nanum Pen Script", var(--sans); font-size:1.3em; letter-spacing:0}
+  .rt-f-mono{font-family:var(--mono)}
+  .rt-c-red{color:#c7352d}    .rt-c-orange{color:#b85c06} .rt-c-green{color:#1f7a3b}
+  .rt-c-blue{color:#2460c8}   .rt-c-purple{color:#7443bf} .rt-c-pink{color:#bf3a82} .rt-c-gray{color:#66768c}
+  :root[data-theme="dark"] .rt-c-red{color:#ff8f86}    :root[data-theme="dark"] .rt-c-orange{color:#f5a85a}
+  :root[data-theme="dark"] .rt-c-green{color:#6fd092}  :root[data-theme="dark"] .rt-c-blue{color:#7fb1ff}
+  :root[data-theme="dark"] .rt-c-purple{color:#b99bf2} :root[data-theme="dark"] .rt-c-pink{color:#f191c4}
+  :root[data-theme="dark"] .rt-c-gray{color:#9fb0c6}
+
+  .fmt-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:6px}
+  .w-field .fmt-bar select{width:auto; padding:7px 8px; font-size:12.5px; border-radius:9px}
+  .fmt-colors{display:inline-flex; gap:3px}
+  .fmt-colors button, .fmt-btn{
+    height:34px; min-width:34px; padding:0 9px; border-radius:9px; border:1px solid var(--line); background:var(--card);
+    font-family:inherit; font-size:12.5px; cursor:pointer; color:var(--ink-soft);
+  }
+  .fmt-colors button{padding:0; font-weight:700; font-size:14px}
+  .fmt-colors button.rt-c-red{color:#c7352d}    .fmt-colors button.rt-c-orange{color:#b85c06}
+  .fmt-colors button.rt-c-green{color:#1f7a3b}  .fmt-colors button.rt-c-blue{color:#2460c8}
+  .fmt-colors button.rt-c-purple{color:#7443bf} .fmt-colors button.rt-c-pink{color:#bf3a82}
+  .fmt-colors button.rt-c-gray{color:#66768c}
+  .fmt-colors button:hover, .fmt-btn:hover{border-color:var(--blue); background:var(--blue-tint)}
+  .fmt-btn.on-right{margin-left:auto}
+  .fmt-tip{margin:0 0 8px !important}
+  .fmt-preview{margin-top:10px; padding:14px 16px; border:1px dashed var(--line); border-radius:12px; background:var(--blue-tint); min-height:0}
+  .fmt-preview[hidden]{display:none}
+  @media (max-width:620px){
+    .w-field .fmt-bar select{font-size:16px !important; padding:5px 6px}
+    .fmt-btn.on-right{margin-left:0}
+  }
+
+  /* 너무 작던 글씨 */
+  .clock-box .date .src, .noti-item .tm, .chat-meta, #miniTimer .mt-mode{font-size:11.5px}
+  .months, .wdays, .badge span{font-size:11px}
+  .mcell em{font-size:10.5px}
+  @media (max-width:620px){
+    .clock-box .date .src{font-size:11px}
+    .mcell em{font-size:10px}
+  }
+
+  /* 야간: '글쓰기·보내기' 단추가 밝은 파랑이라 흰 글씨가 흐렸고, 마우스를 올리면 더 밝아져 안 보였습니다 */
+  :root[data-theme="dark"] .btn-write{background:#2f6fd0}
+  :root[data-theme="dark"] .btn-write:hover{background:#2a62ba}
+
+  /* 손가락으로 쓰는 기기: 너무 작던 글자 단추의 누르는 범위만 넓힙니다 (보이는 자리는 그대로) */
+  @media (pointer:coarse){
+    .link-btn, .goal-txt button{padding:10px 8px; margin:-10px -8px}
+    .dual-note button{top:0; right:0; padding:12px 12px}
+    #pwaNo{min-height:36px}
+  }
+
+  /* 태블릿 세로 (700~900px): 한 줄로 길게 늘어나 휑하던 화면을 두 칸으로 나눠 씁니다
+       [ 타이머 | 오늘의 세션 ]
+       [        | 랭킹        ]
+       [        | 달력        ]
+       [      공부 잔디       ]                                              */
+  @media (min-width:700px) and (max-width:900px){
+    #timerView{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); grid-template-rows:auto auto 1fr; gap:16px}
+    #timerView > section{display:contents}
+    #timerView > section > .card{margin-top:0}
+    #timerView .timer-card{grid-column:1; grid-row:1 / span 3}
+    #timerView > section:first-child > .card:nth-child(2){grid-column:2; grid-row:1}
+    #timerView #rankCard{grid-column:2; grid-row:2}
+    #timerView > section:last-child > .card:last-child{grid-column:2; grid-row:3}
+    #timerView > section:last-child > .card:first-child{grid-column:1 / -1; grid-row:4}
+    #timerView .stats{grid-template-columns:repeat(2,1fr)}
+  }
+
+  /* =====================================================================
+     겨울 테마 (2026-11) — <html data-season="winter"> 일 때만 적용됩니다.
+     · 끄는 법: 맨 위 <head> 의 SEASON 을 "" 로 바꾸거나, SEASON_UNTIL 날짜가 지나면 저절로 꺼집니다.
+     · 주간 = 첫눈 온 아침 (눈 쌓인 카드) / 야간 = 겨울밤 자습실 (스탠드 불빛 · 불 켜진 창문 잔디)
+     · 야간의 단추·링크는 파란색 그대로 두고, '빛'에 해당하는 것만 --lamp 로 바꿉니다
+       (파란 단추 위 흰 글씨가 100곳이 넘어서, 전부 주황으로 바꾸면 글씨가 안 보이는 곳이 생깁니다)
+     ===================================================================== */
+  :root[data-season="winter"]:not([data-theme="dark"]){
+    --bg:#e4edf7; --line:#d9e5f3;
+  }
+  :root[data-season="winter"]:not([data-theme="dark"]) body{
+    background:radial-gradient(1200px 600px at 15% -10%, #f4f8fd 0%, rgba(244,248,253,0) 60%), var(--bg);
+  }
+  /* 3·4차: 타이머 단추 아래 한 줄 — 주간은 눈사람, 야간은 '지금 불 켜진 자리' (겨울 테마가 아니면 안 보임) */
+  .season-strip{
+    display:none; align-items:center; gap:13px; margin-top:16px; padding:10px 14px; text-align:left;
+    border-radius:13px; background:var(--blue-tint); border:1px solid var(--line);
+  }
+  .season-strip svg{flex:none; display:block}
+  .season-strip b{display:block; font-size:13px; font-weight:600; color:var(--ink); letter-spacing:-.2px}
+  .season-strip span{display:block; margin-top:2px; font-size:11.5px; color:var(--ink-faint); letter-spacing:-.2px}
+  :root[data-season="winter"]:not([data-theme="dark"]) .ss-snow{display:flex}
+  :root[data-season="winter"][data-theme="dark"] .ss-lamp:not(.empty){display:flex}
+  .ss-snow.pop svg{animation:smPop .6s ease-out}
+  @keyframes smPop{0%{transform:scale(1)} 40%{transform:scale(1.14)} 100%{transform:scale(1)}}
+  .ss-lamp .pane{fill:#ffd66b}
+  .ss-lamp .pane.dim{fill:#8c7434}
+  .ss-lamp.none .pane{fill:#2f3b52}
+  .ss-lamp b em{font-style:normal; color:var(--lamp)}
+  @media (prefers-reduced-motion: reduce){ .ss-snow.pop svg{animation:none} }
+
+  /* 로고 위에 쌓인 눈 · 야간 안내 한 줄 (겨울 테마가 아니면 안 보임) */
+  .lg-snow, .win-note{display:none}
+  :root[data-season="winter"] .lg-snow{display:inline}
+  /* 밝은 바탕에서는 흰 눈이 배경에 묻혀 로고가 깎인 것처럼 보여서 옅은 테두리를 둡니다 */
+  :root[data-season="winter"]:not([data-theme="dark"]) .lg-snow{stroke:#9fbfe6; stroke-width:1.2}
+
+  /* 카드 위에 쌓인 눈 (타이머 화면 카드 + 커뮤니티·시뮬레이터·시각화·자료구조의 큰 카드) */
+  :root[data-season="winter"]:not([data-theme="dark"]) #timerView .card,
+  :root[data-season="winter"]:not([data-theme="dark"]) .board-card,
+  :root[data-season="winter"]:not([data-theme="dark"]) .lab-card{position:relative}
+  :root[data-season="winter"]:not([data-theme="dark"]) .board-card::before,
+  :root[data-season="winter"]:not([data-theme="dark"]) .lab-card::before,
+  :root[data-season="winter"]:not([data-theme="dark"]) #timerView .card::before{
+    content:""; position:absolute; left:20px; right:20px; top:-8px; height:9px; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 9' preserveAspectRatio='none'%3E%3Cpath d='M0 9 Q7 1 19 5 T43 4 T68 6 T95 2 T120 9Z' fill='%23fff'/%3E%3C/svg%3E") 0 0 / 120px 9px round no-repeat;
+    background-repeat:round no-repeat;
+  }
+
+  :root[data-season="winter"][data-theme="dark"]{
+    --bg:#0e1524; --card:#1a2333; --ink:#eef1f8; --ink-soft:#aebbd0; --ink-faint:#8292ab; --line:#2a3648;
+    --lamp:#ffc857; --lamp-deep:#eeb23f; --on-lamp:#2a1c00;
+    --g0:#232d3f; --g1:#4d4832; --g2:#8c7434; --g3:#d4a73f; --g4:#ffd66b;      /* 잔디 = 불 켜진 창문 */
+  }
+  :root[data-season="winter"][data-theme="dark"] body{
+    background:radial-gradient(1100px 560px at 82% -12%, #1c2843 0%, rgba(28,40,67,0) 60%), var(--bg);
+  }
+  :root[data-season="winter"][data-theme="dark"] body:not(.breaking) .ring .bar{stroke:var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] .time{color:#ffecc4}
+  :root[data-season="winter"][data-theme="dark"] .clock .sec,
+  :root[data-season="winter"][data-theme="dark"] .main-tabs button.on{color:var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] body:not(.breaking) .mode-pill{background:rgba(255,200,87,.12); color:#ffd98a}
+  :root[data-season="winter"][data-theme="dark"] body:not(.breaking) .mode-pill .live{background:var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] body:not(.breaking) .btn-start{
+    background:var(--lamp); color:var(--on-lamp); box-shadow:0 6px 16px rgba(255,200,87,.16)}
+  :root[data-season="winter"][data-theme="dark"] body:not(.breaking) .btn-start:hover:not(:disabled){background:var(--lamp-deep)}
+  :root[data-season="winter"][data-theme="dark"] .preset.active,
+  :root[data-season="winter"][data-theme="dark"] .subj-row button.on{background:var(--lamp); border-color:var(--lamp); color:var(--on-lamp)}
+  :root[data-season="winter"][data-theme="dark"] .goal-bar i:not(.done){background:var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] .day.today{outline-color:var(--ink)}
+
+  /* 2차 장식 (야간): 로고는 밤 건물에 스탠드 불빛 · 잔디 칸은 창문 모양 · 넓은 화면 오른쪽 위에 초승달 */
+  :root[data-season="winter"][data-theme="dark"] .lg-bg{fill:#25334f}
+  :root[data-season="winter"][data-theme="dark"] .lg-snow{fill:#b4c2de}
+  :root[data-season="winter"][data-theme="dark"] .lg-b1{fill:#4b5e85}
+  :root[data-season="winter"][data-theme="dark"] .lg-b2{fill:#7286ae}
+  :root[data-season="winter"][data-theme="dark"] .lg-b3{fill:#d3dcf0}
+  :root[data-season="winter"][data-theme="dark"] .lg-clock{stroke:var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] .day{border-radius:2px}
+  :root[data-season="winter"][data-theme="dark"] .day.l3{box-shadow:0 0 4px rgba(255,214,107,.28)}
+  :root[data-season="winter"][data-theme="dark"] .day.l4{box-shadow:0 0 6px rgba(255,214,107,.5)}
+  :root[data-season="winter"][data-theme="dark"] .legend i{border-radius:2px}
+  /* 달력 칸도 같은 불빛색 — 밝은 주황 위에는 흰 글씨가 안 보여서 글자색을 칸마다 맞춥니다 */
+  :root[data-season="winter"][data-theme="dark"] .mcell.l1{color:#ffe6a8}
+  :root[data-season="winter"][data-theme="dark"] .mcell.l2{color:#fff}
+  :root[data-season="winter"][data-theme="dark"] .mcell.l3,
+  :root[data-season="winter"][data-theme="dark"] .mcell.l4{color:var(--on-lamp)}
+  :root[data-season="winter"][data-theme="dark"] .mcell.today{border-color:var(--ink)}
+  :root[data-season="winter"][data-theme="dark"] .win-note{
+    display:block; margin:-8px 0 12px; font-size:11.5px; color:var(--ink-faint); letter-spacing:-.2px}
+  @media (min-width:1280px){
+    :root[data-season="winter"][data-theme="dark"] body::before{
+      content:""; position:fixed; z-index:-1; top:24px; right:max(22px, calc(50vw - 690px));
+      width:44px; height:44px; border-radius:50%; pointer-events:none;
+      box-shadow:inset -11px -7px 0 0 #ffdf9c;
+    }
+  }
+
+  /* 스탠드 불빛 — 타이머 뒤에서 천천히 밝아졌다 어두워집니다.
+     투명도만 움직여서 화면을 다시 그리지 않습니다 (타이머·유튜브가 끊기지 않게). */
+  :root[data-season="winter"][data-theme="dark"] .ring-wrap{isolation:isolate}
+  :root[data-season="winter"][data-theme="dark"] .ring-wrap::before{
+    content:""; position:absolute; inset:-9%; z-index:-1; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,200,87,.26) 0%, rgba(255,200,87,.12) 38%, rgba(255,200,87,0) 68%);
+    opacity:.4; will-change:opacity; animation:lampIdle 9s ease-in-out infinite;
+  }
+  :root[data-season="winter"][data-theme="dark"] body.running .ring-wrap::before{animation:lampOn 8s ease-in-out infinite}
+  :root[data-season="winter"][data-theme="dark"] body.breaking .ring-wrap::before{animation:none; opacity:.22}
+  @keyframes lampIdle{0%,100%{opacity:.36} 50%{opacity:.56}}
+  @keyframes lampOn{
+    0%{opacity:.78} 14%{opacity:.95} 27%{opacity:.82} 41%{opacity:1}
+    56%{opacity:.86} 70%{opacity:.97} 84%{opacity:.8} 100%{opacity:.78}
+  }
+
+  /* 팝업 창(채팅·쪽지·로그인 등 모든 .modal)도 같은 겨울 옷으로
+     · 주간: 창 위쪽 가장자리에 눈 처마 (스크롤되는 창이 많아 창 '밖'으로는 그릴 수 없어서 안쪽에)
+     · 야간: 더 깊은 밤 배경 + 테두리, 내 말풍선과 주요 단추(.btn-write)는 불빛색 */
+  :root[data-season="winter"]:not([data-theme="dark"]) .modal{
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 11' preserveAspectRatio='none'%3E%3Cpath d='M0 0H120V4Q112 11 100 6T76 7T50 5T24 8T0 4Z' fill='%23dfe9f5'/%3E%3C/svg%3E") 0 0 / 120px 11px repeat-x;
+  }
+  :root[data-season="winter"]:not([data-theme="dark"]) .modal-back{background:rgba(38,62,98,.36)}
+  :root[data-season="winter"][data-theme="dark"] .modal-back{background:rgba(5,9,18,.62)}
+  :root[data-season="winter"][data-theme="dark"] .modal{box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 0 0 1px var(--line)}
+  :root[data-season="winter"][data-theme="dark"] .chat-msg.mine .chat-bub{background:var(--lamp); border-color:var(--lamp); color:var(--on-lamp)}
+  :root[data-season="winter"][data-theme="dark"] .chat-msg.mine .chat-bub a{color:var(--on-lamp)}
+  :root[data-season="winter"][data-theme="dark"] .chat-msg.mine .chat-bub.pic{background:none; border:0}
+  :root[data-season="winter"][data-theme="dark"] .btn-write,
+  :root[data-season="winter"][data-theme="dark"] #agSave{
+    background:var(--lamp); color:var(--on-lamp); box-shadow:0 4px 12px rgba(255,200,87,.14)}
+  :root[data-season="winter"][data-theme="dark"] .btn-write:hover,
+  :root[data-season="winter"][data-theme="dark"] #agSave:hover{background:var(--lamp-deep)}
+  :root[data-season="winter"][data-theme="dark"] .chat-attach:hover,
+  :root[data-season="winter"][data-theme="dark"] .chat-input textarea:focus{border-color:var(--lamp)}
+
+  /* 내리는 눈 — 화면 맨 뒤(카드 밑)에서만, 위치만 움직입니다 */
+  #snow{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none}
+  #snow i{
+    position:absolute; top:-12px; border-radius:50%; background:#fff; will-change:transform;
+    animation:snowFall linear infinite;
+  }
+  /* 주간은 바탕이 밝아 흰 눈이 묻히므로 파란 테두리·그림자로 또렷하게 (그림자는 움직이지 않으니 부담 없음) */
+  :root:not([data-theme="dark"]) #snow i{box-shadow:0 0 0 1px rgba(74,126,196,.28), 0 1px 5px 1px rgba(47,95,160,.42)}
+  :root[data-theme="dark"] #snow i{background:#b4c2de}
+  @keyframes snowFall{
+    from{transform:translate3d(0, -12px, 0)}
+    to{transform:translate3d(var(--dx, 0px), 105vh, 0)}
+  }
+  @media (prefers-reduced-motion: reduce){
+    #snow{display:none}
+    :root[data-season="winter"][data-theme="dark"] .ring-wrap::before{animation:none !important; opacity:.6}
+  }
 </style>
 </head>
 <body>
@@ -2189,12 +2468,13 @@
   <header class="top">
     <button class="brand" id="brandBtn" title="타이머 화면으로">
       <svg class="logo" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-        <rect width="48" height="48" rx="13" fill="#2f6fd0"/>
-        <rect x="11" y="26" width="5" height="10" rx="2" fill="#9dc4ee"/>
-        <rect x="19" y="21" width="5" height="15" rx="2" fill="#cfe0f6"/>
-        <rect x="27" y="16" width="5" height="20" rx="2" fill="#fff"/>
-        <circle cx="35" cy="15" r="7.5" fill="none" stroke="#fff" stroke-width="2.6"/>
-        <path d="M35 11v4.4l3 2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+        <rect class="lg-bg" width="48" height="48" rx="13" fill="#2f6fd0"/>
+        <path class="lg-snow" d="M0 0H48V5Q45 9 40 6T30 7T20 5T10 8T0 5Z" fill="#fff"/>   <!-- 겨울 테마에서만 보이는 눈 -->
+        <rect class="lg-b1" x="11" y="26" width="5" height="10" rx="2" fill="#9dc4ee"/>
+        <rect class="lg-b2" x="19" y="21" width="5" height="15" rx="2" fill="#cfe0f6"/>
+        <rect class="lg-b3" x="27" y="16" width="5" height="20" rx="2" fill="#fff"/>
+        <circle class="lg-clock" cx="35" cy="15" r="7.5" fill="none" stroke="#fff" stroke-width="2.6"/>
+        <path class="lg-clock" d="M35 11v4.4l3 2" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>
       </svg>
       <span>
         <h1>정보·데이터과학 학습관리</h1>
@@ -2230,16 +2510,25 @@
         </div>
       </div>
 
+      <!-- 채팅 · 쪽지 (예전에는 계정 메뉴 안에 있었습니다) -->
+      <div class="account msgs" id="msgWrap" hidden>
+        <button class="acc-btn msg-btn" id="msgBtn" title="채팅 · 쪽지" aria-label="채팅 · 쪽지">
+          <span class="ava">💬</span>
+          <span class="acc-dot" id="msgDot" hidden></span>
+        </button>
+        <div class="acc-menu" id="msgMenu" hidden>
+          <button id="mChat">채팅<span class="cnt" id="chatCnt" hidden></span></button>
+          <button id="mInbox">쪽지함<span class="cnt" id="dmCnt" hidden></span></button>
+        </div>
+      </div>
+
       <div class="account">
         <button class="acc-btn guest" id="accBtn">
           <span class="ava" id="accAva">?</span><span id="accName">로그인</span>
-          <span class="acc-dot" id="accDot" hidden title="안 읽은 채팅"></span>
         </button>
         <div class="acc-menu" id="accMenu" hidden>
           <div class="mail"><b id="accRole"></b><span id="accMail"></span></div>
           <button id="mRecord">내 기록 · 뱃지</button>
-          <button id="mChat">채팅<span class="cnt" id="chatCnt" hidden></span></button>
-          <button id="mInbox">쪽지함</button>
           <button id="mBlock">차단 목록</button>
           <button id="mNick">닉네임 변경</button>
           <button id="mRank">랭킹에 내 기록 표시<span class="sw on" id="rankSw"></span></button>
@@ -2301,6 +2590,38 @@
           <button class="btn btn-finish" id="finishBtn" disabled>Finish</button>
         </div>
 
+        <!-- 겨울 테마 전용 (다른 계절에는 안 보입니다)
+             주간: 오늘 공부한 시간만큼 눈사람이 완성됩니다 · 야간: 지금 공부 중인 사람 수 -->
+        <div class="season-strip ss-snow" id="ssSnow" data-stage="0">
+          <svg viewBox="0 0 44 56" width="48" height="61" aria-hidden="true">
+            <ellipse cx="22" cy="52.5" rx="19" ry="3.2" fill="#dfeaf7"/>
+            <circle data-ghost="0" cx="22" cy="39" r="12.5" fill="none" stroke="#a9c6ea" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <circle data-min="1" cx="22" cy="39" r="12.5" fill="#fff" stroke="#8fb4e2" stroke-width="1.5"/>
+            <circle data-ghost="1" cx="22" cy="19" r="8.5" fill="none" stroke="#a9c6ea" stroke-width="1.4" stroke-dasharray="3 3"/>
+            <circle data-min="2" cx="22" cy="19" r="8.5" fill="#fff" stroke="#8fb4e2" stroke-width="1.5"/>
+            <g data-min="3">
+              <circle cx="19" cy="17.5" r="1.2" fill="#1e2a3a"/><circle cx="25" cy="17.5" r="1.2" fill="#1e2a3a"/>
+              <path d="M22 19.5l6.5 1.6-6.5 1.2z" fill="#f08a1c"/>
+              <circle cx="22" cy="35" r="1.2" fill="#1e2a3a"/><circle cx="22" cy="40.5" r="1.2" fill="#1e2a3a"/>
+            </g>
+            <g data-min="4">
+              <path d="M14.5 26.2q7.5 3.6 15 0v3.4q-7.5 3.6-15 0z" fill="#e0574b"/>
+              <path d="M27 28.5l2.6 8.5-3.6.9-1.8-8.2z" fill="#e0574b"/>
+              <path d="M13.5 12.2h17" stroke="#1e2a3a" stroke-width="2.2" stroke-linecap="round"/>
+              <rect x="16.5" y="3.5" width="11" height="8.7" rx="1.5" fill="#1e2a3a"/>
+            </g>
+          </svg>
+          <div><b id="ssSnowT">오늘의 눈사람</b><span id="ssSnowS">30분 공부하면 몸통이 생겨요</span></div>
+        </div>
+        <div class="season-strip ss-lamp empty" id="ssLamp">
+          <svg viewBox="0 0 40 40" width="36" height="36" aria-hidden="true">
+            <rect x="3" y="3" width="34" height="34" rx="4" fill="#232d3f" stroke="#3a4a66" stroke-width="1.5"/>
+            <rect class="pane" x="7" y="7" width="12" height="12" rx="1.5"/><rect class="pane dim" x="21" y="7" width="12" height="12" rx="1.5"/>
+            <rect class="pane dim" x="7" y="21" width="12" height="12" rx="1.5"/><rect class="pane" x="21" y="21" width="12" height="12" rx="1.5"/>
+          </svg>
+          <div><b id="ssLampT"></b><span id="ssLampS"></span></div>
+        </div>
+
         <div class="dual-note" id="dualNote" hidden>
           <b>⏱ 열품타 같은 다른 타이머 앱과 같이 쓰나요?</b>
           <span>이 화면을 떠나 있어도 시간은 쌓여요. 다만 <b>1시간 15분에 한 번</b>은 돌아와
@@ -2336,6 +2657,8 @@
           <h2>공부 잔디</h2>
           <div class="cal-total">최근 1년 <b id="yearTotal">0시간</b></div>
         </div>
+        <p class="win-note">공부한 날마다 창문에 불이 켜져요</p>   <!-- 겨울 테마 야간에서만 보입니다 -->
+
         <div class="grid-scroll">
           <div class="grid-inner">
             <div class="months" id="months"></div>
@@ -2461,7 +2784,33 @@
             <button type="button" class="btn-ghost" id="wImgBtn">🖼 이미지 넣기</button>
             <span class="tip" style="margin:0">글자 사이에 사진을 넣을 수 있어요. 복사해서 붙여넣거나 끌어다 놓아도 돼요.</span>
           </div>
+          <!-- 글씨 꾸미기: 글자를 고른 뒤 누르면 [색:빨강]…[/색] 같은 표시로 감쌉니다 (richText 가 읽어서 그려 줌) -->
+          <div class="fmt-bar" id="wFmt">
+            <select id="fmtFont" aria-label="글씨체">
+              <option value="">글씨체</option><option value="명조">명조</option><option value="둥근">둥근</option>
+              <option value="손글씨">손글씨</option><option value="고정폭">고정폭</option>
+            </select>
+            <select id="fmtSize" aria-label="글씨 크기">
+              <option value="">크기</option><option value="작게">작게</option>
+              <option value="크게">크게</option><option value="아주크게">아주 크게</option>
+            </select>
+            <span class="fmt-colors" role="group" aria-label="글씨 색">
+              <button type="button" class="rt-c-red"    data-fmt="색:빨강" title="빨강" aria-label="빨강">가</button>
+              <button type="button" class="rt-c-orange" data-fmt="색:주황" title="주황" aria-label="주황">가</button>
+              <button type="button" class="rt-c-green"  data-fmt="색:초록" title="초록" aria-label="초록">가</button>
+              <button type="button" class="rt-c-blue"   data-fmt="색:파랑" title="파랑" aria-label="파랑">가</button>
+              <button type="button" class="rt-c-purple" data-fmt="색:보라" title="보라" aria-label="보라">가</button>
+              <button type="button" class="rt-c-pink"   data-fmt="색:분홍" title="분홍" aria-label="분홍">가</button>
+              <button type="button" class="rt-c-gray"   data-fmt="색:회색" title="회색" aria-label="회색">가</button>
+            </span>
+            <button type="button" class="fmt-btn" data-fmt="굵게" title="굵게"><b>굵게</b></button>
+            <button type="button" class="fmt-btn" data-fmt="밑줄" title="밑줄"><u>밑줄</u></button>
+            <button type="button" class="fmt-btn" id="fmtClear" title="고른 부분의 꾸미기를 지웁니다">꾸미기 지우기</button>
+            <button type="button" class="fmt-btn on-right" id="fmtPrev">미리보기</button>
+          </div>
+          <div class="tip fmt-tip">꾸밀 글자를 끌어서 고른 뒤 눌러주세요. 글쓰기 칸에는 <b>[색:빨강]글자[/색]</b>처럼 표시로 보이고, <b>미리보기</b>에서 실제 모습을 볼 수 있어요.</div>
           <textarea id="wBody" placeholder="내용을 입력하세요. 링크를 붙여넣으면 자동으로 연결돼요."></textarea>
+          <div class="post-body fmt-preview" id="wPreview" hidden></div>
           <input type="file" id="wImgInput" accept="image/*" multiple hidden>
           <div class="img-strip" id="wImgStrip" hidden></div>
         </div>
@@ -2953,21 +3302,76 @@
   <div class="modal dm" role="dialog" aria-modal="true">
     <div class="dm-head"><h3>이용 안내 · 개인정보</h3><button class="btn-ghost" id="termsClose">닫기</button></div>
     <div class="terms-body">
+      <h4>누가 운영하나요</h4>
+      <p>김포제일고등학교 정보·데이터과학 수업에서 운영하는 학습 사이트입니다.
+         학교 구글 계정이 있는 본교 학생과 선생님만 쓸 수 있습니다.</p>
+
       <h4>무엇을 저장하나요</h4>
-      <p>닉네임, 학교 구글 계정 이메일, 공부한 시간과 날짜, 직접 올린 글·댓글·쪽지·채팅·파일을 저장합니다.
-         실명·학번·연락처는 따로 받지 않습니다.</p>
+      <ul>
+        <li><b>로그인할 때</b> 학교 구글 계정에 등록된 이메일·이름·프로필 사진 주소를 받습니다.
+            비밀번호는 구글이 관리하며 이 사이트는 알 수 없습니다.</li>
+        <li><b>직접 정한 것</b> 닉네임, 하루 목표 시간, 가입한 그룹.</li>
+        <li><b>쓰면서 쌓이는 것</b> 공부한 시간·날짜·과목, 직접 올린 글·댓글·쪽지·채팅·사진·파일,
+            과제 제출물과 점수·피드백.</li>
+        <li><b>자동으로 남는 것</b> 접속·오류 기록(시각, 기기와 브라우저 종류).
+            앱 알림을 켰다면 그 기기로 알림을 보내기 위한 주소.</li>
+      </ul>
+      <p>학번·전화번호·집 주소·위치는 받지 않습니다.</p>
+
+      <h4>어디에 쓰나요</h4>
+      <p>공부 시간 기록과 랭킹, 수업자료와 과제 운영, 알림 보내기, 오류 고치기,
+         그리고 모두가 안전하게 쓰도록 부적절한 게시물과 사이버폭력을 막고 대응하는 데 씁니다.
+         광고나 판매, 그 밖의 목적으로는 쓰지 않습니다.</p>
+
       <h4>누가 볼 수 있나요</h4>
-      <p>랭킹과 게시판에는 <b>닉네임만</b> 보입니다. 이메일은 다른 학생에게 보이지 않습니다.
+      <p>랭킹과 게시판에는 <b>닉네임만</b> 보입니다. 이메일과 이름은 다른 학생에게 보이지 않습니다.
+         과제 제출물과 점수는 본인과 그 과제를 낸 선생님, 관리자만 봅니다.
          선생님(관리자)은 학교 운영과 안전을 위해 필요한 범위에서 기록을 확인할 수 있습니다.</p>
+
       <h4>비밀글·쪽지</h4>
       <p>비밀글과 비밀댓글은 다른 학생에게 보이지 않지만, 선생님은 확인할 수 있습니다.
          정말 알리고 싶지 않은 내용은 올리지 말아주세요.</p>
-      <h4>지우고 싶을 때</h4>
-      <p>내가 쓴 글과 댓글은 직접 지울 수 있습니다. 계정과 기록 전체를 지우고 싶으면 선생님께 말씀해주세요.
-         단, 부적절한 표현으로 표시된 글은 지도 목적상 본인이 지울 수 없습니다.</p>
+
+      <h4>밖으로 나가나요</h4>
+      <p>저장한 정보를 외부에 팔거나 넘기지 않습니다. 법에 따라 요청을 받거나,
+         학교폭력 사안처럼 학교가 반드시 처리해야 하는 경우에만 필요한 만큼 제공합니다.
+         정보는 클라우드 서비스(Supabase)의 서울 서버에 저장되고, 로그인은 구글, 화면 파일은 GitHub를 거칩니다.
+         광고·추적 도구는 쓰지 않습니다.</p>
+
+      <h4>얼마나 보관하나요</h4>
+      <p>이 사이트를 쓰는 동안 보관합니다. 졸업·전학 등으로 더 쓰지 않게 되거나 본인이 요청하면
+         계정과 기록을 지웁니다. 다만 학교폭력 등 사안이 진행 중인 기록은 처리가 끝날 때까지 보관할 수 있습니다.</p>
+
+      <h4>내 기기에 남는 것</h4>
+      <p>로그인 상태, 화면 설정, 진행 중인 타이머 기록이 이 브라우저에 저장됩니다.
+         여럿이 쓰는 기기에서는 다 쓴 뒤 꼭 <b>로그아웃</b>해 주세요.</p>
+
+      <h4>지켜야 할 것</h4>
+      <ul>
+        <li>욕설·비방·따돌림·성적인 표현, 다른 사람인 척하기를 하지 않습니다.</li>
+        <li>다른 사람의 이름·연락처·사진 같은 개인정보를 허락 없이 올리지 않습니다.</li>
+        <li>다른 사람의 사진·영상·목소리를 합성하거나 꾸며 낸 것(딥페이크 포함)을 만들거나 올리지 않습니다.</li>
+        <li>공부하지 않은 시간을 기록하거나 계정을 빌려주지 않습니다.</li>
+      </ul>
+      <p>어기면 글이 숨겨지거나 이용이 제한될 수 있고, 학교 규정에 따라 지도를 받습니다.</p>
+
+      <h4>불편하거나 피해를 봤을 때</h4>
+      <p>상대 닉네임을 눌러 <b>차단</b>할 수 있습니다. 혼자 참지 말고 선생님께 직접 또는 건의사항으로 알려주세요.
+         학교폭력 신고·상담은 국번 없이 <b>117</b>로도 할 수 있습니다.</p>
+
+      <h4>고치거나 지우고 싶을 때</h4>
+      <p>내 정보를 보여 달라거나 고쳐 달라, 지워 달라, 그만 써 달라고 언제든 선생님께 요청할 수 있습니다.
+         내가 쓴 글과 댓글은 직접 지울 수 있습니다.
+         쪽지와 채팅은 내 화면에서 지워도 상대방 화면과 기록에는 남을 수 있습니다.
+         부적절한 표현으로 표시된 글은 지도 목적상 본인이 지울 수 없습니다.</p>
+
       <h4>저작권</h4>
       <p>이 사이트의 수업자료와 게시물의 저작권은 김포제일고등학교에 있습니다.
          외부에 공유하거나 다시 올리지 말아주세요.</p>
+
+      <h4>문의 · 바뀔 때</h4>
+      <p>궁금한 점은 정보·데이터과학 담당 선생님께 물어보세요.
+         이 안내가 바뀌면 공지로 알립니다. (2026년 11월 고침)</p>
     </div>
   </div>
 </div>
@@ -3839,9 +4243,28 @@
     document.documentElement.dataset.theme = t;
     $("themeIcon").textContent = t === "dark" ? "☀️" : "🌙";
     const m = document.querySelector('meta[name="theme-color"]');
-    if (m) m.content = t === "dark" ? "#141a23" : "#2f6fd0";
+    const winter = document.documentElement.dataset.season === "winter";
+    if (m) m.content = t === "dark" ? (winter ? "#0e1524" : "#141a23") : "#2f6fd0";
     try { store.setItem("sungong.theme.v1", t); } catch(e){}
   }
+
+  /* 겨울 테마: 내리는 눈 (가볍게 — 눈송이 몇 개가 화면 맨 뒤에서 위치만 움직입니다) */
+  (function(){
+    if (document.documentElement.dataset.season !== "winter") return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const box = document.createElement("div");
+    box.id = "snow"; box.setAttribute("aria-hidden", "true");
+    const n = window.innerWidth < 620 ? 12 : (window.innerWidth < 1100 ? 18 : 26);
+    let h = "";
+    for (let i = 0; i < n; i++){
+      const size = 4 + Math.random() * 4, dur = 14 + Math.random() * 16;
+      h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;width:' + size.toFixed(1) + 'px;height:' + size.toFixed(1)
+         + 'px;opacity:' + (.6 + Math.random() * .35).toFixed(2) + ';--dx:' + Math.round(Math.random() * 80 - 40)
+         + 'px;animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + (Math.random() * dur).toFixed(1) + 's"></i>';
+    }
+    box.innerHTML = h;
+    document.body.insertBefore(box, document.body.firstChild);
+  })();
   $("themeBtn").onclick = ()=>
     applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
 
@@ -3869,9 +4292,11 @@
       + (i===tourAt ? "var(--blue)" : "var(--line)") + '"></span>').join("");
     $("tourNext").textContent = tourAt === TOUR.length-1 ? "시작하기" : "다음";
     $("tourModal").classList.add("on");
+    document.body.classList.add("touring", "firstvisit");   // 둘러보기가 끝날 때까지 다른 안내는 미룹니다 (CSS 참고)
   }
   function endTour(){
     $("tourModal").classList.remove("on");
+    document.body.classList.remove("touring");
     try { store.setItem("sungong.tour.v1", "1"); } catch(e){}
   }
   $("tourNext").onclick = ()=>{ if (tourAt < TOUR.length-1){ tourAt++; showTour(); } else endTour(); };
@@ -3923,9 +4348,44 @@
     $("mtToggle").textContent = state.running ? "⏸" : "▶";
   }
 
+  /* 겨울 테마 · 주간: 오늘 공부한 시간만큼 눈사람이 완성됩니다 (30분 몸통 → 1시간 머리 → 2시간 얼굴 → 3시간 목도리·모자) */
+  const SNOW_STEPS = [1800, 3600, 7200, 10800];
+  const SNOW_TEXT = [
+    ["오늘의 눈사람",       "30분 공부하면 몸통이 생겨요"],
+    ["몸통을 굴렸어요",     "1시간이 되면 머리가 올라가요"],
+    ["머리가 올라갔어요",   "2시간이 되면 얼굴이 생겨요"],
+    ["얼굴이 생겼어요",     "3시간이 되면 목도리와 모자를 씌워요"],
+    ["눈사람 완성",         "오늘 3시간을 넘겼어요. 내일 또 만들어요"]
+  ];
+  let snowStage = -1;
+  function renderSnowman(todaySec){
+    const stage = SNOW_STEPS.filter(s=> todaySec >= s).length;
+    if (stage === snowStage) return;                    // 단계가 바뀔 때만 다시 그립니다
+    const box = $("ssSnow"), grew = snowStage >= 0 && stage > snowStage;
+    snowStage = stage;
+    box.dataset.stage = stage;
+    box.querySelectorAll("[data-min]").forEach(p=> p.style.display = stage >= Number(p.dataset.min) ? "" : "none");
+    box.querySelectorAll("[data-ghost]").forEach(p=> p.style.display = stage === Number(p.dataset.ghost) ? "" : "none");
+    $("ssSnowT").textContent = SNOW_TEXT[stage][0];
+    $("ssSnowS").textContent = SNOW_TEXT[stage][1];
+    if (grew){ box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop"); }
+  }
+
+  /* 겨울 테마 · 야간: 지금 불 켜진 자리 (랭킹이 이미 받아 온 '지금 공부 중' 수를 그대로 씁니다 — 서버 요청 없음)
+     n === null 이면 로그인 전이라 줄을 숨깁니다 */
+  function renderLampCount(n){
+    const box = $("ssLamp");
+    box.classList.toggle("empty", n === null);
+    if (n === null) return;
+    box.classList.toggle("none", !n);
+    $("ssLampT").innerHTML = n ? '지금 불 켜진 자리 <em>' + n + '명</em>' : "지금은 불 켜진 자리가 없어요";
+    $("ssLampS").textContent = n ? "같이 공부하는 친구가 있어요" : "먼저 불을 켜 볼까요?";
+  }
+
   function renderStats(){
     const today = records[keyOf(now())] || 0;
     $("stToday").textContent = human(today);
+    renderSnowman(today);
 
     const today0 = now();
     const dow = (today0.getDay() + 6) % 7;           // 월요일 시작
@@ -4124,18 +4584,35 @@
 
   /* ================= tooltip ================= */
   const tip = $("tip");
+  let tipTimer = 0;
+  function showTip(t){
+    tip.textContent = t.dataset.tip;
+    const r = t.getBoundingClientRect(), half = tip.offsetWidth / 2;
+    // 화면 가장자리에서 잘리지 않게 좌우를 안쪽으로 당기고, 위에 자리가 없으면 아래에 띄웁니다
+    const x = Math.min(Math.max(r.left + r.width/2, half + 8), window.innerWidth - half - 8);
+    const below = r.top < tip.offsetHeight * 1.3 + 6;
+    tip.classList.toggle("below", below);
+    tip.style.left = x + "px";
+    tip.style.top  = (below ? r.bottom : r.top) + "px";
+    tip.classList.add("on");
+  }
+  const hideTip = ()=>{ clearTimeout(tipTimer); tip.classList.remove("on"); };
   document.addEventListener("mouseover", (e)=>{
     const t = e.target.closest("[data-tip]");
-    if (!t) return;
-    tip.textContent = t.dataset.tip;
-    const r = t.getBoundingClientRect();
-    tip.style.left = (r.left + r.width/2) + "px";
-    tip.style.top  = r.top + "px";
-    tip.classList.add("on");
+    if (t) showTip(t);
   });
   document.addEventListener("mouseout", (e)=>{
     if (e.target.closest("[data-tip]")) tip.classList.remove("on");
   });
+  // 폰·태블릿: 마우스가 없으니 누르면 잠깐 보였다 사라집니다 (예전에는 폰에서 '?' 를 눌러도 아무것도 안 나왔음)
+  document.addEventListener("click", (e)=>{
+    const t = e.target.closest("[data-tip]");
+    if (!t){ if (tip.classList.contains("on")) hideTip(); return; }
+    showTip(t);
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(hideTip, 3000);
+  });
+  window.addEventListener("scroll", ()=>{ if (tip.classList.contains("on")) hideTip(); }, { passive: true });
 
   /* =====================================================================
      오류 알리기
@@ -4763,12 +5240,14 @@
       $("loginBtn").onclick = ()=> CAN_SERVER ? signIn()
         : toast("아직 서버가 연결되지 않았어요. (config.js 설정 필요)");
       foot.innerHTML = '<span class="sync-dot"><i></i> 게스트 모드</span>';
+      renderLampCount(null);
       return;
     }
 
     if (errText){ list.innerHTML = '<div class="empty">'+errText+'</div>'; }
     else if (!rows || !rows.length){
       list.innerHTML = '<div class="empty">아직 기록한 사람이 없어요. 1등을 노려보세요!</div>';
+      if (rows) renderLampCount(0);         // 불러오는 중(rows 없음)·오류일 때는 앞의 숫자를 그대로 둡니다
     } else {
       const val = (r) => period === "streak" ? r.days + "일" : humanKo(r.seconds);
       list.innerHTML = rows.slice(0, RANK_MAX).map(r=>{
@@ -4824,6 +5303,7 @@
                                : "내 순위 "+mine.rk+"위 / "+total+"명")
         : (me.show_rank ? "오늘 기록이 쌓이면 순위에 올라가요" : "랭킹 표시를 꺼둔 상태예요");
       const liveN = rows.filter(r=> r.online).length;
+      renderLampCount(liveN);
       foot.innerHTML = '<span>'+where
                      + (liveN ? ' · <b class="live-n">지금 '+liveN+'명 공부 중</b>' : '')+'</span>'
                      + '<span><span id="cheerGot"></span> <span class="sync-dot ok"><i></i> 저장됨</span></span>';
@@ -4859,6 +5339,9 @@
       $("accAva").textContent = "?";
       $("accName").textContent = me ? "닉네임 설정" : "로그인";
     }
+    // '기록 초기화'는 이 기기에 저장된 기록만 지웁니다. 로그인한 학생은 서버 기록이 다시 내려와서
+    // 지워지지 않으므로(지워진 줄 알았다가 되살아남) 로그인 중에는 숨깁니다.
+    $("resetBtn").hidden = !!me;
     $("accMenu").hidden = true;
   }
 
@@ -4866,6 +5349,7 @@
     e.stopPropagation();
     if (!me){ CAN_SERVER ? signIn() : toast("아직 서버가 연결되지 않았어요. (config.js 설정 필요)"); return; }
     if (!me.nickname){ openNick(true); return; }
+    $("msgMenu").hidden = true;
     $("accMenu").hidden = !$("accMenu").hidden;
   };
   document.addEventListener("click", ()=>{ if (me) $("accMenu").hidden = true; });
@@ -4880,6 +5364,7 @@
     me = null; boardLoaded = false;
     pushRenderSwitch(); pushRenderBar();
     $("notiWrap").hidden = true; $("notiPop").hidden = true;
+    $("msgWrap").hidden = true; $("msgMenu").hidden = true;
     renderAccount(); renderRank();
     if (!$("boardView").hidden) openBoard();
     toast("로그아웃했어요.");
@@ -5003,6 +5488,14 @@
   let curPost = null, editingId = null, boardLoaded = false;
   let pendingFiles = [], attached = [];      // 글쓰기 화면의 첨부파일
 
+  // 폰에서는 탭 줄을 옆으로 밀어서 봅니다 — 고른 탭이 가려져 있으면 가운데로 데려옵니다
+  function tabsReveal(){
+    const bar = document.querySelector(".main-tabs"), on = bar && bar.querySelector("button.on");
+    if (!on || bar.scrollWidth <= bar.clientWidth) return;
+    const b = bar.getBoundingClientRect(), r = on.getBoundingClientRect();
+    bar.scrollTo({ left: bar.scrollLeft + (r.left - b.left) - (b.width - r.width) / 2, behavior: "smooth" });
+  }
+
   async function switchView(v){
     if (v !== "board" && !$("boardWrite").hidden && !(await confirmLeaveWrite())) return;
     // 커뮤니티는 로그인한 사람만
@@ -5019,6 +5512,7 @@
     }
     document.querySelectorAll(".main-tabs button")
       .forEach(b=> b.classList.toggle("on", b.dataset.view === v));
+    tabsReveal();
     $("timerView").hidden = v !== "timer";
     $("boardView").hidden = v !== "board";
     $("labView").hidden   = v !== "lab";
@@ -5175,6 +5669,7 @@
       +   (p.comment_count ? ' <span class="cc">['+p.comment_count+']</span>' : '')
       + '</span><span class="p-meta">'
       +   (p.tags || []).map(t=>'<span class="tag-chip" data-tag="'+esc(t)+'">#'+esc(t)+'</span>').join("")
+      +   '<b class="p-cat-m">'+esc(p.category_name)+' · </b>'      // 좁은 화면에서는 왼쪽 게시판 이름표가 숨으므로 여기에
       +   esc(p.author || "탈퇴한 사용자") + ' · ' + fmtDate(p.created_at)
       +   ' · 조회 ' + p.views + '</span></span></div>').join("");
 
@@ -5200,6 +5695,7 @@
 
   /* ---------- 글 보기 ---------- */
   let lastAssignInfo = null;
+  let lastAssignRender = null;          // 과제 칸을 그리는 중인 약속 (다 그려진 뒤 그 자리로 내려가려고)
 
   async function openPost(id, opts){
     const { data, error } = await rpcRetry("get_post", { p_id: id });
@@ -5221,8 +5717,16 @@
     $("boardList").hidden = true;
     $("boardWrite").hidden = true;
     $("boardDetail").hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    try { history.pushState({ app: "post" }, ""); } catch(e){}
+    if (opts && opts.focus === "assign"){
+      // 과제를 방금 냈을 때는 맨 위로 올리지 않고 제출 칸에 그대로 둡니다 (제출됐는지 바로 보이게)
+      Promise.resolve(lastAssignRender).then(()=>{
+        const el = document.querySelector("#boardDetail .assign-box");
+        if (el) el.scrollIntoView({ block: "center" });
+      });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      try { history.pushState({ app: "post" }, ""); } catch(e){}
+    }
 
     if (opts && opts.focus === "cmts"){
       // 가장 최근 댓글(보통 알림의 그 답글)을 찾아 그 자리로 내려가 잠깐 칠합니다
@@ -5350,7 +5854,7 @@
     });
     bindCodeCells($("boardDetail"));
     fillInlineImages($("boardDetail"));
-    renderAssign(p);
+    lastAssignRender = renderAssign(p);
     $("boardDetail").querySelectorAll(".post-img").forEach(im=>{
       im.onclick = ()=>{ if (im.src) window.open(im.src, "_blank"); };
     });
@@ -5486,7 +5990,22 @@
      · 선생님 : 과제 설정 / 점수 공개 스위치
      ===================================================================== */
   let subPending = [];          // 아직 올리지 않은 제출 파일
+  let subPendingPost = null;    // 그 파일을 고른 과제 글 번호
   let subFiles   = [];          // 이미 올라간 내 제출 파일 (미리보기용)
+
+  /* 쓰던 제출 내용은 이 기기에 적어 둡니다 (뒤로 가기·새로고침·화면이 다시 그려져도 사라지지 않게).
+     과제 하나 분량만, 내 계정 것만. 제출에 성공하면 지웁니다. */
+  const AS_DRAFT = "sungong.asdraft.v1";
+  function asDraftGet(postId){
+    try {
+      const d = JSON.parse(store.getItem(AS_DRAFT) || "null");
+      return (d && me && d.u === me.id && d.p === postId && typeof d.t === "string") ? d.t : null;
+    } catch(e){ return null; }
+  }
+  function asDraftSet(postId, t){
+    try { store.setItem(AS_DRAFT, JSON.stringify({ u: me.id, p: postId, t })); } catch(e){}
+  }
+  function asDraftClear(){ try { store.removeItem(AS_DRAFT); } catch(e){} }
 
   // 85.00 -> 85 , 85.50 -> 85.5
   const scoreTxt = (n)=> (n === null || n === undefined || n === "") ? "" : String(Number(n));
@@ -5498,7 +6017,9 @@
     lastAssignInfo = a.is_assign ? a : null;
     if (error || !a.is_assign) return;
 
-    subPending = [];
+    // 같은 과제 글이 다시 그려져도 고른 파일은 남깁니다.
+    // (태블릿·폰은 파일 고르는 창에 다녀오면 화면이 다시 그려질 수 있어서, 고른 파일이 사라지곤 했습니다)
+    if (subPendingPost !== p.id){ subPending = []; subPendingPost = p.id; }
     subFiles   = Array.isArray(a.my_files) ? a.my_files : [];
 
     const due    = a.due_at ? new Date(a.due_at) : null;
@@ -5629,6 +6150,14 @@
       $("asPick").onclick = ()=> $("asFileInput").click();
       $("asFileInput").onchange = (e)=>{ addSubPending(e.target.files); e.target.value = ""; };
 
+      // 쓰다 만 내용이 있으면 되살립니다
+      const draft = asDraftGet(p.id);
+      if (draft !== null && draft !== (a.my_body || "")){
+        $("asBody").value = draft;
+        if (draft) toast("쓰던 내용을 다시 불러왔어요.");
+      }
+      $("asBody").oninput = ()=> asDraftSet(p.id, $("asBody").value);
+
       $("asSend").onclick = async ()=>{
         const btn   = $("asSend");
         const label = btn.textContent;          // '제출하기' 또는 '다시 제출'
@@ -5640,9 +6169,11 @@
         const { data: sid, error: se } = await sb.rpc("submit_assignment",
           { p_post: p.id, p_body: text });
         if (!handled(se, "과제 제출")){ btn.disabled = false; btn.textContent = label; return; }
+        asDraftClear();                                   // 적은 내용은 서버에 저장됐습니다
+        const upStep = (i, n)=>{ btn.textContent = "파일 올리는 중… (" + i + "/" + n + ")"; };
         if (subPending.length){
           btn.textContent = "파일 올리는 중…";
-          let failed = await uploadSubFiles(Number(sid), p.id);
+          let failed = await uploadSubFiles(Number(sid), p.id, upStep);
           // 하나라도 못 올렸으면 '제출했어요'라고 하지 않습니다 (와이파이가 끊겨도 낸 줄 알던 문제)
           while (failed.length){
             const why = [...new Set(failed.map(x=> x.msg))].slice(0, 2).join(" / ");
@@ -5652,13 +6183,13 @@
               { title:"파일 제출 실패", yes:"다시 올리기", no:"나중에 할게요" });
             if (!again){
               toast("⚠️ 파일 " + failed.length + "개는 제출되지 않았어요. 다시 첨부해서 '다시 제출'을 눌러주세요.");
-              openPost(p.id); return;
+              openPost(p.id, { focus: "assign" }); return;
             }
             btn.textContent = "파일 올리는 중…";
-            failed = await uploadSubFiles(Number(sid), p.id);
+            failed = await uploadSubFiles(Number(sid), p.id, upStep);
           }
         }
-        toast("제출했어요!"); openPost(p.id);
+        toast("제출했어요!"); openPost(p.id, { focus: "assign" });
       };
     }
   }
@@ -5906,21 +6437,33 @@
   }
 
   // 올리지 못한 파일은 subPending 에 남기고 [{f, msg}] 로 돌려줍니다 (다시 시도할 수 있게)
-  async function uploadSubFiles(subId, postId){
+  async function uploadSubFiles(subId, postId, onStep){
+    renderSubFiles(true);               // 다시 올릴 때도 줄 순서가 올릴 파일 순서와 같게
     const failed = [];
     const why = (e)=> isNetErr(e) ? "인터넷 연결이 끊겼어요" : cleanErr(e);
-    for (const f of subPending){
+    // 올리는 동안 파일 줄마다 지금 상태를 보여 줍니다 (몇 번째를 올리는 중인지 · 끝났는지)
+    const rows = [...document.querySelectorAll("#asFiles [data-spi]")].map(b=> b.closest(".file-row"));
+    const mark = (i, txt)=>{
+      const r = rows[i]; if (!r) return;
+      const s = r.querySelectorAll(".fs")[1]; if (s) s.textContent = txt;
+      const x = r.querySelector(".fx"); if (x) x.disabled = true;
+    };
+    const list = subPending.slice();
+    for (let i = 0; i < list.length; i++){
+      const f = list[i];
+      mark(i, "올리는 중…");
+      if (onStep) onStep(i + 1, list.length);
       // 저장소 경로 규칙: sub/<글번호>/<내 uuid>/<영문·숫자 이름>
       const path = "sub/" + postId + "/" + me.id + "/" + Date.now() + "_" + rand7() + fileExt(f.name);
       const { error } = await sb.storage.from("attachments").upload(path, f, { upsert: false });
-      if (error){ failed.push({ f, msg: why(error) }); continue; }
+      if (error){ failed.push({ f, msg: why(error) }); mark(i, "실패"); continue; }
       const { error: ae } = await sb.rpc("add_submission_file",
         { p_sub: subId, p_path: path, p_name: safeName(f.name),
           p_size: f.size, p_mime: f.type || null });
       if (ae){
         sb.storage.from("attachments").remove([path]).then(()=>{}, ()=>{});   // 제출물에 못 붙인 파일은 저장소에서도 지웁니다
-        failed.push({ f, msg: why(ae) });
-      }
+        failed.push({ f, msg: why(ae) }); mark(i, "실패");
+      } else mark(i, "✓ 올렸어요");
     }
     if (failed.length) logErrorQuiet("과제 파일 올리기", failed.map(x=> x.f.name + ": " + x.msg).join(" | "));
     subPending = failed.map(x=> x.f);
@@ -6350,8 +6893,55 @@ _imgs
     return html || '<div>' + withImages(body) + '</div>';
   }
 
+  /* ---------- 글씨 꾸미기 (글씨체 · 크기 · 색 · 굵게 · 밑줄) ----------
+     본문은 그냥 글자로 저장합니다. 꾸민 부분은 [색:빨강]…[/색] 같은 표시로 감싸 두고, 보여 줄 때만 <span class> 으로 바꿉니다.
+     · 값은 아래 표에 있는 것만 받습니다 (class 이름으로만 바뀌므로 글에 HTML·style 을 넣을 방법이 없습니다)
+     · 짝이 안 맞는 표시는 글자 그대로 두고, 닫지 않은 것은 끝에서 닫아 줍니다 */
+  const RT_COLOR = { "빨강":"red", "주황":"orange", "초록":"green", "파랑":"blue", "보라":"purple", "분홍":"pink", "회색":"gray" };
+  const RT_SIZE  = { "작게":"s", "크게":"l", "아주크게":"xl" };
+  const RT_FONT  = { "명조":"serif", "둥근":"round", "손글씨":"hand", "고정폭":"mono" };
+  const RT_TAG   = /\[(\/?)(색|크기|글꼴|굵게|밑줄)(?::([^\]\s:]{1,8}))?\]/g;
+  function rtClass(name, val){
+    if (name === "굵게") return val ? null : "rt-b";
+    if (name === "밑줄") return val ? null : "rt-u";
+    const map = name === "색" ? RT_COLOR : name === "크기" ? RT_SIZE : RT_FONT;
+    const pre = name === "색" ? "rt-c-" : name === "크기" ? "rt-s-" : "rt-f-";
+    return (val && Object.prototype.hasOwnProperty.call(map, val)) ? pre + map[val] : null;
+  }
+  // plain: 표시 사이의 보통 글자를 HTML 로 바꾸는 함수 (esc 를 반드시 거치는 것)
+  function richText(text, plain){
+    const src = String(text || ""), stack = [];
+    let out = "", last = 0, m;
+    RT_TAG.lastIndex = 0;
+    while ((m = RT_TAG.exec(src))){
+      const close = m[1], name = m[2], val = m[3];
+      let html = null;
+      if (!close){
+        const cls = rtClass(name, val);
+        if (cls){ stack.push(name); html = '<span class="' + cls + '">'; }
+      } else if (!val){
+        const at = stack.lastIndexOf(name);
+        if (at >= 0){ html = "</span>".repeat(stack.length - at); stack.length = at; }
+      }
+      if (html === null) continue;                    // 모르는 표시 · 짝 없는 닫기는 글자 그대로
+      out += plain(src.slice(last, m.index)) + html;
+      last = m.index + m[0].length;
+    }
+    out += plain(src.slice(last)) + "</span>".repeat(stack.length);
+    // 둥근·손글씨는 그 글씨체를 쓴 글을 볼 때만 내려받습니다 (평소 화면은 느려지지 않게)
+    if (/rt-f-(round|hand)/.test(out) && !document.getElementById("rtFonts")){
+      const l = document.createElement("link");
+      l.id = "rtFonts"; l.rel = "stylesheet";
+      l.href = "https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Pen+Script&display=swap";
+      document.head.appendChild(l);
+    }
+    return out;
+  }
+  const rtStrip = (s)=> String(s || "").replace(RT_TAG,
+    (all, close, name, val)=> (close ? !val : rtClass(name, val)) ? "" : all);
+
   // ![사진](경로) 표시를 그림 자리로 바꿉니다
-  function withImages(text){
+  function withImagesPlain(text){
     const parts = String(text || "").split(/!\[[^\]]*\]\(([^)\s]+)\)/g);
     let out = "";
     parts.forEach((p, i)=>{
@@ -6360,6 +6950,45 @@ _imgs
     });
     return out;
   }
+  const withImages = (text)=> richText(text, withImagesPlain);
+
+  /* 글쓰기 칸의 꾸미기 단추 */
+  function fmtWrap(tag){                             // tag: "색:빨강" · "굵게" 등
+    const ta = $("wBody"), a = ta.selectionStart, b = ta.selectionEnd;
+    const open = "[" + tag + "]", close = "[/" + tag.split(":")[0] + "]";
+    const sel = ta.value.slice(a, b) || "글자";       // 고른 글자가 없으면 본보기 글자를 넣고 그걸 골라 둡니다
+    ta.value = ta.value.slice(0, a) + open + sel + close + ta.value.slice(b);
+    ta.focus();
+    ta.setSelectionRange(a + open.length, a + open.length + sel.length);
+    ta.dispatchEvent(new Event("input", { bubbles: true }));     // 임시 저장 · 미리보기 갱신
+  }
+  function fmtPreviewDraw(){
+    if ($("wPreview").hidden) return;
+    const html = richText($("wBody").value,
+      (p)=> linkify(p.replace(/!\[[^\]]*\]\([^)\s]+\)/g, "🖼 (사진)")));
+    $("wPreview").innerHTML = html.trim() ? html : '<span style="color:var(--ink-faint)">아직 쓴 내용이 없어요.</span>';
+  }
+  function fmtPreviewSet(on){
+    $("wPreview").hidden = !on;
+    $("fmtPrev").textContent = on ? "미리보기 닫기" : "미리보기";
+    fmtPreviewDraw();
+  }
+  $("wFmt").addEventListener("click", (e)=>{
+    const b = e.target.closest("button[data-fmt]");
+    if (b) fmtWrap(b.dataset.fmt);
+  });
+  $("fmtFont").onchange = (e)=>{ if (e.target.value) fmtWrap("글꼴:" + e.target.value); e.target.value = ""; };
+  $("fmtSize").onchange = (e)=>{ if (e.target.value) fmtWrap("크기:" + e.target.value); e.target.value = ""; };
+  $("fmtClear").onclick = ()=>{
+    const ta = $("wBody"), a = ta.selectionStart, b = ta.selectionEnd;
+    if (a === b){ toast("꾸미기를 지울 글자를 먼저 끌어서 골라주세요."); return; }
+    const done = rtStrip(ta.value.slice(a, b));
+    ta.value = ta.value.slice(0, a) + done + ta.value.slice(b);
+    ta.focus(); ta.setSelectionRange(a, a + done.length);
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  $("fmtPrev").onclick = ()=> fmtPreviewSet($("wPreview").hidden);
+  $("wBody").addEventListener("input", fmtPreviewDraw);
 
   function bindCodeCells(root){
     root.querySelectorAll("[data-cell]").forEach(cell=>{
@@ -6752,6 +7381,7 @@ _imgs
     $("wTitle").value = post ? post.title : "";
     const split = splitBodyCode(post ? post.body : "");
     $("wBody").value = split.text;
+    fmtPreviewSet(false);
     $("wCodeArea").value = split.code;
     $("wCode").checked = !!split.code;
     $("wCodeWrap").hidden = !split.code;
@@ -7229,8 +7859,8 @@ _imgs
   }
 
   async function updateBadges(){
-    if (!sb || !me || !me.nickname){ $("notiWrap").hidden = true; return; }
-    $("notiWrap").hidden = false;
+    if (!sb || !me || !me.nickname){ $("notiWrap").hidden = true; $("msgWrap").hidden = true; return; }
+    $("notiWrap").hidden = false; $("msgWrap").hidden = false;
 
     const [{ data: nn }, { data: mm }, cc] = await Promise.all([
       sb.rpc("unread_notifications"),
@@ -7240,6 +7870,9 @@ _imgs
     const n = Number(nn || 0), m = Number(mm || 0);
     $("notiDot").hidden = !(n > 0 || m > 0);
     $("notiBtn").title = m > 0 ? "안 읽은 쪽지 " + m + "개" : "알림";
+    $("dmCnt").hidden = !m;                                  // 머리글 💬 단추 메뉴의 쪽지함 옆 숫자
+    $("dmCnt").textContent = m > 99 ? "99+" : String(m);
+    msgBadge();
     ntCheck(n);                        // 새로 온 게 있으면 오른쪽 위에 팝업
     if (cc.error){ if (chatMissing(cc.error)) chatSetReady(false); }   // schema24 전이면 채팅 메뉴를 숨김
     else chatBadge(Number(cc.data || 0));                              // 계정 단추의 빨간 점 + 새 채팅 카드
@@ -7249,9 +7882,19 @@ _imgs
     e.stopPropagation();
     const pop = $("notiPop");
     if (!pop.hidden){ pop.hidden = true; return; }
-    $("accMenu").hidden = true;
+    $("accMenu").hidden = true; $("msgMenu").hidden = true;
     loadNotifications(true);
   };
+
+  /* 머리글의 💬 단추 — 채팅 · 쪽지함 (안 읽은 게 있으면 빨간 점, 메뉴 안에 개수) */
+  function msgBadge(){ $("msgDot").hidden = $("chatCnt").hidden && $("dmCnt").hidden; }
+  $("msgBtn").onclick = (e)=>{
+    e.stopPropagation();
+    $("accMenu").hidden = true; $("notiPop").hidden = true;
+    $("msgMenu").hidden = !$("msgMenu").hidden;
+  };
+  $("msgMenu").onclick = (e)=> e.stopPropagation();
+  document.addEventListener("click", ()=>{ $("msgMenu").hidden = true; });
   $("notiPop").onclick = (e)=> e.stopPropagation();
   $("notiAllRead").onclick = async (e)=>{
     e.stopPropagation();
@@ -7569,7 +8212,7 @@ _imgs
   // 바깥을 눌러도 쓰던 게 있으면 바로 닫지 않습니다
   $("dmModal").onclick  = (e)=>{ if (e.target.id === "dmModal") dmTryClose(); };
   ["dmSubject", "dmBody"].forEach(id=>{ $(id).oninput = dmSaveDraft; });
-  $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; openDM("in"); };
+  $("mInbox").onclick    = ()=>{ $("accMenu").hidden = true; $("msgMenu").hidden = true; openDM("in"); };
 
   /* =====================================================================
      채팅 — 1:1 + 단체방 + 사진 (schema24-a~e)
@@ -7654,7 +8297,7 @@ _imgs
     [chatDrafts, chatToldAt].forEach(o=>{ for (const k in o) delete o[k]; });
     chatUrls.clear(); chatPicked.clear();
     $("chatModal").classList.remove("on");
-    $("chatCnt").hidden = true; $("accDot").hidden = true;
+    $("chatCnt").hidden = true; msgBadge();
   }
 
   // 닉네임 메뉴(랭킹·게시판)에서 바로 1:1 대화방 열기
@@ -8078,7 +8721,7 @@ _imgs
   };
   $("chatClose").onclick = closeChat;
   $("chatModal").onclick = (e)=>{ if (e.target.id === "chatModal") closeChat(); };   // 쓰던 글은 방마다 남겨 둡니다
-  $("mChat").onclick = ()=>{ $("accMenu").hidden = true; openChat(); };
+  $("mChat").onclick = ()=>{ $("accMenu").hidden = true; $("msgMenu").hidden = true; openChat(); };
   document.addEventListener("visibilitychange", ()=>{        // 돌아오면 바로 한 번 받아옵니다
     if (document.hidden || !chatIsOpen()) return;
     if (chatRoom) chatPull(); else if (chatView === "list") chatLoadRooms(false);
@@ -8088,7 +8731,7 @@ _imgs
   function chatBadge(c){
     $("chatCnt").hidden = !c;
     $("chatCnt").textContent = c > 99 ? "99+" : String(c);
-    $("accDot").hidden = !c;
+    msgBadge();
     if (chatUnreadPrev >= 0 && c > chatUnreadPrev) chatNotify();
     chatUnreadPrev = c;
   }
@@ -8162,7 +8805,7 @@ _imgs
   };
 
   $("resetBtn").onclick = async ()=>{
-    if (!await ask("모든 공부 기록이 삭제됩니다.\n되돌릴 수 없어요. 계속할까요?",
+    if (!await ask("이 기기에 저장된 공부 기록이 모두 삭제됩니다.\n되돌릴 수 없어요. 계속할까요?",
                    { title:"기록 초기화", yes:"모두 삭제", danger:true })) return;
     records = {}; sessions = {};
     store.removeItem(KEY); store.removeItem(SKEY);
@@ -8171,28 +8814,36 @@ _imgs
   };
 
   document.addEventListener("keydown", (e)=>{
-    // 글을 쓰는 중에는 단축키를 쓰지 않습니다 (스페이스·엔터가 먹히지 않던 문제)
+    // 글을 쓰는 중에는 단축키를 쓰지 않습니다 (스페이스가 먹히지 않던 문제)
     const t = e.target;
     if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return;
     if (!$("boardView").hidden) return;      // 커뮤니티 화면에서도 끔
-    const openModals = document.querySelectorAll(".modal-back.on");
-    if (e.key === "Escape"){
-      if (openModals.length) openModals.forEach(m=>{
-        // 자리 비움 확인은 Esc 로 못 닫습니다.
-        // (닫혀도 코드는 살아 있어서 타이머가 멈춘 채 입력할 방법이 사라졌었음)
-        if (m.id === "checkModal") return;
-        if (m.id === "nickModal" && nickFirst) return;
-        if (m.id === "labProModal"){ labProClose(); return; }   // 쓰던 코드가 있으면 물어봅니다
-        if (m.id === "dmModal"){ dmTryClose(); return; }        // 쓰던 쪽지가 있으면 물어봅니다
-        if (m.id === "chatModal"){ closeChat(); return; }       // 받아오기도 같이 멈춥니다
-        m.classList.remove("on");
-      });
-      else if (pickerOpen) togglePicker(false);
-      return;
-    }
-    if (openModals.length) return;
+    if (document.querySelector(".modal-back.on")) return;
     if (e.code === "Space"){ e.preventDefault(); state.running ? pause() : start(); }
-    if (e.key === "Enter" && !$("finishBtn").disabled) finish();
+    // Enter 로 Finish 하던 단축키는 뺐습니다 — 실수로 눌러 세션이 끝나는 일이 있었습니다
+  });
+
+  /* Esc 로 창 닫기 — 어느 화면에서든, 글을 쓰는 중이어도 (한글 조합 중일 때만 빼고).
+     예전에는 커뮤니티 화면이거나 입력창에 커서가 있으면 Esc 가 먹지 않았습니다. */
+  document.addEventListener("keydown", (e)=>{
+    if (e.key !== "Escape" || e.isComposing) return;
+    // 확인창이 떠 있으면 그것만 '취소'로 닫습니다 (밑에 있는 창까지 같이 닫히지 않게)
+    if ($("askModal").classList.contains("on")){ $("askNo").click(); return; }
+    const openModals = document.querySelectorAll(".modal-back.on");
+    if (!openModals.length){ if (pickerOpen) togglePicker(false); return; }
+    openModals.forEach(m=>{
+      // 자리 비움 확인은 Esc 로 못 닫습니다.
+      // (닫혀도 코드는 살아 있어서 타이머가 멈춘 채 입력할 방법이 사라졌었음)
+      if (m.id === "checkModal") return;
+      if (m.id === "nickModal" && nickFirst) return;
+      if (m.id === "labProModal"){ labProClose(); return; }   // 쓰던 코드가 있으면 물어봅니다
+      if (m.id === "dmModal"){ dmTryClose(); return; }        // 쓰던 쪽지가 있으면 물어봅니다
+      if (m.id === "chatModal"){ closeChat(); return; }       // 받아오기도 같이 멈춥니다
+      if (m.id === "asGradeModal"){ closeAsGrade(); return; } // 저장 안 한 점수·피드백이 있으면 물어봅니다
+      if (m.id === "loginModal"){ $("loginClose").click(); return; }   // 커뮤니티 잠금 화면에서 타이머로 돌려보냅니다
+      if (m.id === "tourModal"){ endTour(); return; }
+      m.classList.remove("on");
+    });
   });
 
   let resizeTimer;

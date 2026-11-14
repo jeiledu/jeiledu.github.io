@@ -2480,6 +2480,86 @@
     #snow{display:none}
     :root[data-season="winter"][data-theme="dark"] .ring-wrap::before{animation:none !important; opacity:.6}
   }
+
+  /* ---------- 겨울 테마 5차 (2026-11-14): 디데이 · 밤하늘 별 · 쉬는 시간 · 목표 달성 · 오늘의 한마디 · 빈 화면 ---------- */
+  /* 디데이 칸: 주간은 위에 눈, 야간은 왼쪽에 불빛 띠 */
+  :root[data-season="winter"]:not([data-theme="dark"]) .dday .dd{position:relative}
+  :root[data-season="winter"]:not([data-theme="dark"]) .dday .dd::before{
+    content:""; position:absolute; left:12px; right:12px; top:-6px; height:7px; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 90 7' preserveAspectRatio='none'%3E%3Cpath d='M0 7 Q6 1 15 4 T33 3 T52 5 T72 2 T90 7Z' fill='%23fff'/%3E%3C/svg%3E") 0 0 / 90px 7px round no-repeat;
+  }
+  :root[data-season="winter"][data-theme="dark"] .dday .dd{box-shadow:inset 3px 0 0 var(--lamp)}
+  :root[data-season="winter"][data-theme="dark"] .dday .dd.soon{box-shadow:inset 3px 0 0 #ff9a8a}
+  @media (max-width:640px){       /* 옆으로 미는 줄은 위가 잘리므로 눈이 보일 자리를 줍니다 */
+    :root[data-season="winter"]:not([data-theme="dark"]) .dday{padding-top:7px; margin-top:-7px}
+  }
+
+  /* 밤하늘 별 — 초승달은 넓은 화면에서만 보여서, 폰·태블릿에도 별 몇 개 (투명도만 움직임) */
+  :root[data-season="winter"][data-theme="dark"] body::after{
+    content:""; position:fixed; z-index:-1; left:0; right:0; top:0; height:46vh; pointer-events:none;
+    background-image:
+      radial-gradient(circle 1.4px at 6% 18%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1px at 17% 52%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1.6px at 29% 9%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1px at 41% 34%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1.3px at 53% 14%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1px at 64% 44%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1.5px at 73% 21%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1px at 86% 58%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1.2px at 94% 30%, #dfe7fb 99%, transparent),
+      radial-gradient(circle 1px at 12% 80%, #dfe7fb 99%, transparent);
+    opacity:.7; will-change:opacity; animation:starTw 7s ease-in-out infinite;
+  }
+  @keyframes starTw{0%,100%{opacity:.45} 50%{opacity:.85}}
+
+  /* 쉬는 시간: 눈사람·창문 자리에 김 나는 코코아 (김은 위치·투명도만 움직임) */
+  :root[data-season="winter"]:not([data-theme="dark"]) body.breaking .ss-snow,
+  :root[data-season="winter"][data-theme="dark"] body.breaking .ss-lamp:not(.empty){display:none}
+  :root[data-season="winter"] body.breaking .ss-cocoa{display:flex}
+  .ss-cocoa .mug{position:relative; flex:none; width:44px; height:44px}
+  .ss-cocoa .mug i{
+    position:absolute; top:3px; width:2.5px; height:9px; border-radius:2px; background:#9fb4d2; opacity:0;
+    will-change:transform, opacity; animation:steam 3s ease-in-out infinite;
+  }
+  .ss-cocoa .mug i:nth-child(2){left:11px}
+  .ss-cocoa .mug i:nth-child(3){left:18px; animation-delay:-1s}
+  .ss-cocoa .mug i:nth-child(4){left:25px; animation-delay:-2s}
+  @keyframes steam{0%{opacity:0; transform:translate3d(0, 5px, 0)} 45%{opacity:.85} 100%{opacity:0; transform:translate3d(0, -5px, 0)}}
+
+  /* 목표 달성: 야간은 창문 네 칸이 모두 켜짐 · 눈 결정이 한 번 흩어짐 (주간 눈사람 만세는 JS 가 팔을 올립니다) */
+  .ss-lamp.goal .pane.dim{fill:#ffd66b}
+  #flakes{position:fixed; inset:0; z-index:60; pointer-events:none; overflow:hidden}
+  #flakes i{
+    position:absolute; opacity:0; will-change:transform, opacity; animation:flakeOut 2.2s cubic-bezier(.2,.7,.3,1) forwards;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236f9fda' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 5.6l-2.2-2M12 5.6l2.2-2M12 18.4l-2.2 2M12 18.4l2.2 2'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  :root[data-theme="dark"] #flakes i{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffdf9c' stroke-width='1.8' stroke-linecap='round'%3E%3Cpath d='M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M12 5.6l-2.2-2M12 5.6l2.2-2M12 18.4l-2.2 2M12 18.4l2.2 2'/%3E%3C/svg%3E");
+  }
+  @keyframes flakeOut{
+    0%{opacity:0; transform:translate3d(0,0,0) scale(.3)}
+    12%,65%{opacity:1}
+    100%{opacity:0; transform:translate3d(var(--bx), var(--by), 0) rotate(var(--br)) scale(1)}
+  }
+
+  /* 오늘의 한마디 (수능 · 동지 · 성탄 · 새해 · 입춘 · 설날 — 그날에만) */
+  .ss-day{display:none; margin-top:10px; font-size:12px; color:var(--ink-soft); letter-spacing:-.2px; text-align:center}
+  :root[data-season="winter"] .ss-day:not(:empty){display:block}
+
+  /* 빈 화면: 아직 아무도 밟지 않은 눈밭 */
+  :root[data-season="winter"] .empty.snowy{display:block; text-align:center; padding:14px 2px 16px; list-style:none}
+  :root[data-season="winter"] .empty.snowy::before{
+    content:""; display:block; height:44px; margin:2px auto 8px;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 44'%3E%3Cpath d='M84 33V17M84 24l-6-5M84 21l5-5' stroke='%238a6a4a' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M4 41Q30 23 60 31T116 41Z' fill='%23fff' stroke='%23a9c6ea' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cg fill='%23a9c6ea'%3E%3Ccircle cx='22' cy='12' r='1.6'/%3E%3Ccircle cx='46' cy='6' r='1.3'/%3E%3Ccircle cx='62' cy='17' r='1.6'/%3E%3Ccircle cx='101' cy='9' r='1.4'/%3E%3Ccircle cx='34' cy='22' r='1.2'/%3E%3C/g%3E%3C/svg%3E") center / auto 44px no-repeat;
+  }
+  :root[data-season="winter"][data-theme="dark"] .empty.snowy::before{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 44'%3E%3Cpath d='M84 33V17M84 24l-6-5M84 21l5-5' stroke='%238292ab' stroke-width='1.6' stroke-linecap='round' fill='none'/%3E%3Cpath d='M4 41Q30 23 60 31T116 41Z' fill='%232a3648' stroke='%2345567a' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cg fill='%23b4c2de'%3E%3Ccircle cx='22' cy='12' r='1.6'/%3E%3Ccircle cx='46' cy='6' r='1.3'/%3E%3Ccircle cx='62' cy='17' r='1.6'/%3E%3Ccircle cx='101' cy='9' r='1.4'/%3E%3Ccircle cx='34' cy='22' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    :root[data-season="winter"][data-theme="dark"] body::after{animation:none; opacity:.7}
+    .ss-cocoa .mug i{animation:none; opacity:.6}
+  }
 </style>
 </head>
 <body>
@@ -2620,6 +2700,15 @@
             <circle data-min="1" cx="22" cy="39" r="12.5" fill="#fff" stroke="#8fb4e2" stroke-width="1.5"/>
             <circle data-ghost="1" cx="22" cy="19" r="8.5" fill="none" stroke="#a9c6ea" stroke-width="1.4" stroke-dasharray="3 3"/>
             <circle data-min="2" cx="22" cy="19" r="8.5" fill="#fff" stroke="#8fb4e2" stroke-width="1.5"/>
+            <!-- 팔: 목표를 채우면 만세(data-up 만큼 돌림) · 4시간부터는 장갑을 끼고 늘 보임 -->
+            <g class="sm-arm" data-up="rotate(62 11 35)" style="display:none">
+              <path d="M11 35L3.5 39M6.2 37.6l-2.7-2.3" stroke="#8a6a4a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <circle data-min="5" cx="3.2" cy="39.2" r="2.4" fill="#e0574b"/>
+            </g>
+            <g class="sm-arm" data-up="rotate(-62 33 35)" style="display:none">
+              <path d="M33 35l7.5 4M37.8 37.6l2.7-2.3" stroke="#8a6a4a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <circle data-min="5" cx="40.8" cy="39.2" r="2.4" fill="#e0574b"/>
+            </g>
             <g data-min="3">
               <circle cx="19" cy="17.5" r="1.2" fill="#1e2a3a"/><circle cx="25" cy="17.5" r="1.2" fill="#1e2a3a"/>
               <path d="M22 19.5l6.5 1.6-6.5 1.2z" fill="#f08a1c"/>
@@ -2628,8 +2717,30 @@
             <g data-min="4">
               <path d="M14.5 26.2q7.5 3.6 15 0v3.4q-7.5 3.6-15 0z" fill="#e0574b"/>
               <path d="M27 28.5l2.6 8.5-3.6.9-1.8-8.2z" fill="#e0574b"/>
-              <path d="M13.5 12.2h17" stroke="#1e2a3a" stroke-width="2.2" stroke-linecap="round"/>
-              <rect x="16.5" y="3.5" width="11" height="8.7" rx="1.5" fill="#1e2a3a"/>
+              <g class="sm-hat">
+                <path d="M13.5 12.2h17" stroke="#1e2a3a" stroke-width="2.2" stroke-linecap="round"/>
+                <rect x="16.5" y="3.5" width="11" height="8.7" rx="1.5" fill="#1e2a3a"/>
+              </g>
+            </g>
+            <!-- 성탄 이틀(12.24·25)에는 머리가 생기면 빨간 모자 -->
+            <g class="sm-santa" style="display:none">
+              <path d="M14 12.4C16 3 24 .6 31 5.6c-4 1-3 4-1.5 6.8z" fill="#e0574b"/>
+              <rect x="12.6" y="10.8" width="18.8" height="3.6" rx="1.8" fill="#fff" stroke="#8fb4e2" stroke-width=".8"/>
+              <circle cx="31.6" cy="5.4" r="2.3" fill="#fff" stroke="#8fb4e2" stroke-width=".8"/>
+            </g>
+            <!-- 4시간: 빗자루 -->
+            <g data-min="5">
+              <path d="M.4 16l2 29" stroke="#a9743a" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M-1.6 44.5h8l2.2 8.3H-3.8z" fill="#e3b04b"/>
+              <path d="M-1.9 46.7h8.6" stroke="#a9743a" stroke-width="1.2"/>
+            </g>
+            <!-- 5시간: 꼬마 눈사람 -->
+            <g data-min="6">
+              <ellipse cx="51" cy="52.8" rx="8.5" ry="2.4" fill="#dfeaf7"/>
+              <circle cx="51" cy="45.5" r="6.5" fill="#fff" stroke="#8fb4e2" stroke-width="1.3"/>
+              <circle cx="51" cy="35.5" r="4.6" fill="#fff" stroke="#8fb4e2" stroke-width="1.3"/>
+              <circle cx="49.5" cy="34.8" r=".8" fill="#1e2a3a"/><circle cx="52.5" cy="34.8" r=".8" fill="#1e2a3a"/>
+              <path d="M46.8 39.4q4.2 2 8.4 0v2q-4.2 2-8.4 0z" fill="#3f7fd6"/>
             </g>
           </svg>
           <div><b id="ssSnowT">오늘의 눈사람</b><span id="ssSnowS">30분 공부하면 몸통이 생겨요</span></div>
@@ -2642,6 +2753,20 @@
           </svg>
           <div><b id="ssLampT"></b><span id="ssLampS"></span></div>
         </div>
+        <!-- 쉬는 시간(포모도로 휴식)에는 위 두 줄 대신 코코아 -->
+        <div class="season-strip ss-cocoa">
+          <div class="mug" aria-hidden="true">
+            <svg viewBox="0 0 44 44" width="44" height="44">
+              <path d="M31 21h3.5a5 5 0 0 1 0 10H31" fill="none" stroke="#e0574b" stroke-width="3"/>
+              <path d="M6 16h26v15a8 8 0 0 1-8 8H14a8 8 0 0 1-8-8z" fill="#e0574b"/>
+              <ellipse cx="19" cy="16.5" rx="12" ry="2.6" fill="#7a4b2b"/>
+              <rect x="14" y="14.2" width="5.4" height="3.6" rx="1.2" fill="#fff"/><rect x="21" y="15.2" width="4.6" height="3.2" rx="1.1" fill="#fff"/>
+            </svg>
+            <i></i><i></i><i></i>
+          </div>
+          <div><b>따뜻하게 쉬어 가요</b><span>코코아 한 잔 마시고 다시 집중해요</span></div>
+        </div>
+        <div class="ss-day" id="ssDay"></div>
 
         <div class="dual-note" id="dualNote" hidden>
           <b>⏱ 열품타 같은 다른 타이머 앱과 같이 쓰나요?</b>
@@ -4145,6 +4270,7 @@
   /* ---------- 하루 목표 ---------- */
   const GOALS = [60, 120, 180, 240, 300, 360, 480, 600];
   let dailyGoal = 0;
+  let goalSeen = { g: -1, done: null };     // 직전에 그린 목표·달성 여부 (겨울 테마 장면을 바뀔 때만 고치려고)
 
   function renderGoal(){
     const wrap = $("goalWrap");
@@ -4155,6 +4281,7 @@
       $("goalBarWrap").hidden = true;
       $("goalTxt").textContent = "오늘 목표를 정하면 진행률이 보여요";
       $("goalEdit").textContent = "목표 정하기";
+      if (goalSeen.g !== 0){ goalSeen = { g: 0, done: false }; seasonGoal(false, false); }
       return;
     }
     $("goalBarWrap").hidden = false;
@@ -4166,6 +4293,13 @@
     $("goalTxt").textContent = pct >= 100
       ? "오늘 목표 달성! " + humanKo(done*60) + " 🎉"
       : humanKo(done*60) + " / " + humanKo(dailyGoal*60) + " · " + pct + "%";
+    const isDone = pct >= 100;
+    if (goalSeen.g !== dailyGoal || goalSeen.done !== isDone){
+      // 같은 목표로 공부하다가 방금 넘긴 경우에만 '채운 순간'으로 칩니다 (새로고침·목표 변경·기록 불러오기는 제외)
+      const fresh = isDone && goalSeen.g === dailyGoal && goalSeen.done === false && state.running && state.phase === "study";
+      goalSeen = { g: dailyGoal, done: isDone };
+      seasonGoal(isDone, fresh);
+    }
   }
 
   function openGoal(){
@@ -4370,26 +4504,99 @@
   }
 
   /* 겨울 테마 · 주간: 오늘 공부한 시간만큼 눈사람이 완성됩니다 (30분 몸통 → 1시간 머리 → 2시간 얼굴 → 3시간 목도리·모자) */
-  const SNOW_STEPS = [1800, 3600, 7200, 10800];
+  const SNOW_STEPS = [1800, 3600, 7200, 10800, 14400, 18000];
   const SNOW_TEXT = [
-    ["오늘의 눈사람",       "30분 공부하면 몸통이 생겨요"],
-    ["몸통을 굴렸어요",     "1시간이 되면 머리가 올라가요"],
-    ["머리가 올라갔어요",   "2시간이 되면 얼굴이 생겨요"],
-    ["얼굴이 생겼어요",     "3시간이 되면 목도리와 모자를 씌워요"],
-    ["눈사람 완성",         "오늘 3시간을 넘겼어요. 내일 또 만들어요"]
+    ["오늘의 눈사람",         "30분 공부하면 몸통이 생겨요"],
+    ["몸통을 굴렸어요",       "1시간이 되면 머리가 올라가요"],
+    ["머리가 올라갔어요",     "2시간이 되면 얼굴이 생겨요"],
+    ["얼굴이 생겼어요",       "3시간이 되면 목도리와 모자를 씌워요"],
+    ["목도리와 모자를 썼어요", "4시간이 되면 장갑을 끼고 빗자루를 들어요"],
+    ["빗자루를 들었어요",     "5시간이 되면 꼬마 눈사람 친구가 생겨요"],
+    ["눈사람 가족 완성",       "오늘 5시간을 넘겼어요. 내일 또 만들어요"]
   ];
-  let snowStage = -1;
+  /* 겨울 테마: 날짜에 맞춘 한마디 — [문구, 소품]. 이번 겨울(2026~27) 날짜라서 다음 겨울에 다시 쓰려면 날짜를 고쳐야 합니다.
+     수능 2026-11-19 · 동지 2026-12-22 · 입춘 2027-02-04 · 설날 2027-02-07 (한국천문연구원 달력 기준) */
+  const SEASON_DAYS = {
+    "2026-11-18": ["내일은 수능 날이에요. 수험생 모두 응원합니다"],
+    "2026-11-19": ["오늘은 수능 날이에요. 수험생 모두 끝까지 힘내요"],
+    "2026-12-22": ["오늘은 동지, 밤이 가장 긴 날이에요. 팥죽 한 그릇 어때요"],
+    "2026-12-24": ["크리스마스이브예요. 따뜻한 저녁 보내요", "santa"],
+    "2026-12-25": ["메리 크리스마스! 오늘도 한 걸음만 가 볼까요", "santa"],
+    "2026-12-31": ["올해의 마지막 날이에요. 한 해 동안 수고 많았어요"],
+    "2027-01-01": ["새해 복 많이 받으세요. 올해 첫 공부를 시작해 볼까요"],
+    "2027-02-04": ["오늘은 입춘이에요. 봄이 오고 있어요"],
+    "2027-02-07": ["설날이에요. 새해 복 많이 받으세요"]
+  };
+  const isWinter = ()=> document.documentElement.dataset.season === "winter";
+  const seasonToday = ()=> isWinter() ? (SEASON_DAYS[keyOf(now())] || null) : null;
+  let seasonDayKey = "";
+  function renderSeasonDay(){                           // 날짜가 바뀔 때만 다시 그립니다
+    const k = keyOf(now());
+    if (k === seasonDayKey) return;
+    seasonDayKey = k;
+    const d = seasonToday();
+    $("ssDay").textContent = d ? d[0] : "";
+    if (snowStage >= 0) snowExtras();
+  }
+
+  let snowStage = -1, snowGoal = false;
   function renderSnowman(todaySec){
     const stage = SNOW_STEPS.filter(s=> todaySec >= s).length;
     if (stage === snowStage) return;                    // 단계가 바뀔 때만 다시 그립니다
     const box = $("ssSnow"), grew = snowStage >= 0 && stage > snowStage;
     snowStage = stage;
     box.dataset.stage = stage;
+    // 빗자루(왼쪽)·꼬마 눈사람(오른쪽)이 생기면 그림 폭을 넓힙니다
+    const svg = box.querySelector("svg"), vb = stage >= 6 ? [-9, 68] : stage === 5 ? [-9, 53] : [0, 44];
+    svg.setAttribute("viewBox", vb[0] + " 0 " + vb[1] + " 56");
+    svg.setAttribute("width", Math.round(48 * vb[1] / 44));
     box.querySelectorAll("[data-min]").forEach(p=> p.style.display = stage >= Number(p.dataset.min) ? "" : "none");
     box.querySelectorAll("[data-ghost]").forEach(p=> p.style.display = stage === Number(p.dataset.ghost) ? "" : "none");
     $("ssSnowT").textContent = SNOW_TEXT[stage][0];
     $("ssSnowS").textContent = SNOW_TEXT[stage][1];
+    snowExtras();
     if (grew){ box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop"); }
+  }
+  /* 눈사람 팔(목표를 채우면 만세 · 4시간부터는 늘 보임)과 성탄 모자 */
+  function snowExtras(){
+    const box = $("ssSnow"), up = snowGoal && snowStage >= 1, show = up || snowStage >= 5;
+    box.querySelectorAll(".sm-arm").forEach(a=>{
+      a.style.display = show ? "" : "none";
+      if (up) a.setAttribute("transform", a.dataset.up); else a.removeAttribute("transform");
+    });
+    const d = seasonToday(), santa = !!d && d[1] === "santa" && snowStage >= 2;
+    box.querySelector(".sm-santa").style.display = santa ? "" : "none";
+    box.querySelector(".sm-hat").style.display = santa ? "none" : "";
+  }
+
+  /* 겨울 테마: 오늘 목표를 채웠을 때 — 주간 눈사람 만세 · 야간 창문 전부 점등. fresh = 방금 공부하다가 채운 순간(눈 결정 한 번) */
+  function seasonGoal(done, fresh){
+    if (!isWinter()) return;
+    snowGoal = done;
+    snowExtras();
+    $("ssLamp").classList.toggle("goal", done);
+    if (!fresh) return;
+    const box = $("ssSnow");
+    box.classList.remove("pop"); void box.offsetWidth; box.classList.add("pop");
+    toast("오늘 목표를 채웠어요!");
+    flakeBurst();
+  }
+  function flakeBurst(){
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const r = document.querySelector(".ring-wrap").getBoundingClientRect();
+    if (!r.width) return;                               // 타이머 화면을 보고 있지 않을 때
+    const box = document.createElement("div");
+    box.id = "flakes"; box.setAttribute("aria-hidden", "true");
+    let h = "";
+    for (let i = 0; i < 16; i++){
+      const a = Math.PI * 2 * i / 16 + Math.random() * .3, dist = 90 + Math.random() * 110, s = Math.round(14 + Math.random() * 12);
+      h += '<i style="left:' + Math.round(r.left + r.width / 2 - s / 2) + 'px;top:' + Math.round(r.top + r.height / 2 - s / 2)
+         + 'px;width:' + s + 'px;height:' + s + 'px;--bx:' + Math.round(Math.cos(a) * dist) + 'px;--by:' + Math.round(Math.sin(a) * dist + 40)
+         + 'px;--br:' + Math.round(Math.random() * 240 - 120) + 'deg;animation-delay:' + (Math.random() * .25).toFixed(2) + 's"></i>';
+    }
+    box.innerHTML = h;
+    document.body.appendChild(box);
+    setTimeout(()=> box.remove(), 3200);
   }
 
   /* 겨울 테마 · 야간: 지금 불 켜진 자리 (랭킹이 이미 받아 온 '지금 공부 중' 수를 그대로 씁니다 — 서버 요청 없음)
@@ -4407,6 +4614,7 @@
     const today = records[keyOf(now())] || 0;
     $("stToday").textContent = human(today);
     renderSnowman(today);
+    renderSeasonDay();
 
     const today0 = now();
     const dow = (today0.getDay() + 6) % 7;           // 월요일 시작
@@ -4436,7 +4644,7 @@
     const list = $("sessionList");
     const arr  = sessions[keyOf(now())] || [];
     if (!arr.length){
-      list.innerHTML = '<li class="empty">아직 완료한 세션이 없어요.</li>';
+      list.innerHTML = '<li class="empty snowy">아직 완료한 세션이 없어요.</li>';
       return;
     }
     const hm = (d) => pad(d.getHours())+":"+pad(d.getMinutes());
@@ -5303,7 +5511,7 @@
 
     if (errText){ list.innerHTML = '<div class="empty">'+errText+'</div>'; }
     else if (!rows || !rows.length){
-      list.innerHTML = '<div class="empty">아직 기록한 사람이 없어요. 1등을 노려보세요!</div>';
+      list.innerHTML = '<div class="empty snowy">아직 기록한 사람이 없어요. 1등을 노려보세요!</div>';
       if (rows) renderLampCount(0);         // 불러오는 중(rows 없음)·오류일 때는 앞의 숫자를 그대로 둡니다
     } else {
       const val = (r) => period === "streak" ? r.days + "일" : humanKo(r.seconds);
@@ -5709,7 +5917,7 @@
 
   function renderPosts(rows){
     if (!rows.length){
-      $("posts").innerHTML = '<div class="empty">'
+      $("posts").innerHTML = '<div class="empty snowy">'
         + (query || tagFilter ? "결과가 없어요." : "아직 글이 없어요.") + '</div>';
       $("pager").innerHTML = "";
       return;
@@ -5845,7 +6053,7 @@
       + '<div class="cmts"><h4>댓글 '+cs.length+'</h4>'
       +   (roots.length
             ? roots.map(c=> cmtHtml(c, false) + kids(c.id).map(k=> cmtHtml(k, true)).join("")).join("")
-            : '<div class="empty">첫 댓글을 남겨보세요.</div>')
+            : '<div class="empty snowy">첫 댓글을 남겨보세요.</div>')
       +   '<div class="cmt-form"><textarea id="cInput" placeholder="'+(asgPost ? "선생님께 질문 (다른 학생에게는 안 보여요)" : "댓글 입력")+'"></textarea>'
       +   '<button class="btn-write" id="cSend">등록</button></div>'
       +   (asgPost

@@ -273,6 +273,26 @@
   .banner b{flex:none}
   .banner.off{background:#fdf3e8; border-color:#f0dfc4; color:#8a6a22}
 
+  /* 디데이 — 시험·행사까지 남은 날 (백오피스 > 사이트 설정 > 디데이, 타이머 화면 맨 위) */
+  .dday{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px}
+  .dday[hidden]{display:none}
+  .dday .dd{
+    display:flex; align-items:baseline; gap:9px; min-width:0; max-width:100%;
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 15px;
+  }
+  .dday .dd-n{flex:none; font-size:17px; font-weight:800; letter-spacing:-.3px; color:var(--blue-dark); font-variant-numeric:tabular-nums}
+  .dday .dd-t{min-width:0; font-size:13.5px; font-weight:600; color:var(--ink); letter-spacing:-.2px;
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .dday .dd-d{flex:none; font-size:12px; color:var(--ink-faint)}
+  .dday .dd.soon .dd-n{color:#c8402f}                      /* 7일 안쪽 */
+  :root[data-theme="dark"] .dday .dd.soon .dd-n{color:#ff9a8a}
+  :root[data-season="winter"][data-theme="dark"] .dday .dd:not(.soon) .dd-n{color:var(--lamp)}
+  @media (max-width:640px){          /* 폰: 여러 개여도 한 줄 — 옆으로 밀어서 봅니다 (타이머가 아래로 밀리지 않게) */
+    .dday{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; margin-bottom:14px}
+    .dday::-webkit-scrollbar{display:none}
+    .dday .dd{flex:none; max-width:86%; padding:9px 13px}
+  }
+
   /* 당겨서 새로고침 표시 (홈 화면 앱) */
   .ptr{position:fixed; top:calc(env(safe-area-inset-top, 0px) - 46px); left:50%;
        transform:translateX(-50%); z-index:60; background:#fff; color:var(--ink-soft);
@@ -2552,6 +2572,7 @@
   <div id="pwaBar"></div>
   <div id="pushBar"></div>
   <div id="banners"></div>
+  <div id="ddayBar" class="dday" hidden></div>
 
   <div class="layout" id="timerView">
 
@@ -4922,9 +4943,45 @@
     return String(v).trim() ? [String(v).trim()] : [];
   }
 
+  // 디데이: 백오피스 > 사이트 설정에서 넣은 시험·행사 날짜 ([{name, date:"YYYY-MM-DD"}], schema30).
+  // 지난 날짜는 내놓지 않고, 가까운 순서로 5개까지. 타이머 화면에서만 보인다.
+  let ddays = [];
+  function parseDdays(v){
+    try {
+      const a = JSON.parse(v || "[]");
+      if (!Array.isArray(a)) return [];
+      const real = (s)=>{                                   // 2026-13-45 같은 없는 날짜는 버린다
+        const p = s.split("-").map(Number), d = new Date(p[0], p[1]-1, p[2]);
+        return d.getFullYear() === p[0] && d.getMonth() === p[1]-1 && d.getDate() === p[2];
+      };
+      return a.filter(x=> x && /^\d{4}-\d{2}-\d{2}$/.test(x.date) && real(x.date) && String(x.name || "").trim())
+              .map(x=> ({ name: String(x.name).trim(), date: x.date }));
+    } catch(e){ return []; }
+  }
+  function renderDday(){
+    const el = $("ddayBar");
+    if (!el) return;
+    const t = now(), t0 = Date.UTC(t.getFullYear(), t.getMonth(), t.getDate());   // 서버 시계 기준 오늘
+    const rows = ddays.map(x=>{
+      const p = x.date.split("-").map(Number);
+      return { name: x.name,
+               left: Math.round((Date.UTC(p[0], p[1]-1, p[2]) - t0) / 86400000),
+               day: p[1] + "." + p[2] + "(" + "일월화수목금토"[new Date(p[0], p[1]-1, p[2]).getDay()] + ")" };
+    }).filter(x=> x.left >= 0).sort((a,b)=> a.left - b.left).slice(0, 5);
+    el.innerHTML = rows.map(x=>
+      '<div class="dd' + (x.left <= 7 ? " soon" : "") + '">'
+      + '<span class="dd-n">' + (x.left === 0 ? "D-DAY" : "D-" + x.left) + '</span>'
+      + '<span class="dd-t">' + esc(x.name) + '</span>'
+      + '<span class="dd-d">' + x.day + '</span></div>').join("");
+    el.hidden = !rows.length || $("timerView").hidden;
+  }
+  setInterval(()=>{ if (!document.hidden) renderDday(); }, 600000);   // 자정을 넘겨 켜 둔 화면도 숫자가 바뀌게
+
   function applySettings(st){
     $("banners").innerHTML = parseBanners(st.notice_banner).slice(0, 5)
       .map(t=> '<div class="banner"><b>📢</b><span>'+esc(t)+'</span></div>').join("");
+    ddays = parseDdays(st.dday);
+    renderDday();
 
     if (st.board_enabled === "false"){
       const tab = document.querySelector('.main-tabs button[data-view="board"]');
@@ -5504,6 +5561,7 @@
         .forEach(b=> b.classList.toggle("on", b.dataset.view === v));
       $("timerView").hidden = true;
       $("boardView").hidden = false;
+      renderDday();
       boardLocked();
       if (!CAN_SERVER) toast("아직 서버가 연결되지 않았어요. (config.js 설정 필요)");
       else if (me && !me.nickname) openNick(true);
@@ -5518,6 +5576,7 @@
     $("labView").hidden   = v !== "lab";
     $("learnView").hidden = v !== "learn";
     $("dsView").hidden    = v !== "ds";
+    renderDday();
     renderMiniTimer();
     if (v === "board" && !boardLoaded) await openBoard();   // await switchView("board") 하면 목록을 다 받은 뒤에 돌아옵니다
     if (v === "lab") labInit();
@@ -5573,19 +5632,21 @@
     }
     cats = data || [];
 
-    // 섹션(학년 등)별로 묶고, 보관된 게시판은 맨 아래 '지난 학기' 줄로 모은다
-    const secs = [], old = [];
+    // 섹션(학년 등)별로 묶는다. '지난 학기'로 옮긴(보관한) 게시판은 커뮤니티에 내놓지 않는다 (2026-11-14 선생님 요청).
+    // cats 에는 그대로 남겨 둔다 — 알림·검색으로 옛 글을 열었을 때 게시판 색(ccById)을 찾아야 해서.
+    // 다시 보이게 하려면 백오피스 게시판 설정에서 보관을 풀면 된다.
+    if (catId !== null && cats.some(c=> c.id === catId && c.archived)) catId = null;
+    const secs = [];
     cats.forEach(c=>{
-      if (c.archived){ old.push(c); return; }
+      if (c.archived) return;
       const key = c.section || "";
       let s = secs.find(x=> x.key === key);
       if (!s){ s = { key, items: [] }; secs.push(s); }
       s.items.push(c);
     });
 
-    const chip = (c) => '<button data-c="'+c.id+'" class="'+(catId===c.id?"on":"")
-      + (c.archived?" old":"") + ccOf(c)+'">'
-      + esc(c.archived && c.section ? c.section + " " + c.name : c.name)
+    const chip = (c) => '<button data-c="'+c.id+'" class="'+(catId===c.id?"on":"") + ccOf(c)+'">'
+      + esc(c.name)
       + (c.posts ? '<span class="cnt">'+c.posts+'</span>' : '') + '</button>';
 
     // 가로 한 줄로 이어 붙이고, 구분(학년)마다 라벨과 구분선을 넣는다
@@ -5594,11 +5655,7 @@
       + secs.map(s=>
           '<span class="cat-sep"></span>'
           + (s.key ? '<span class="cat-label">'+esc(s.key)+'</span>' : '')
-          + s.items.map(chip).join("")).join("")
-      + (old.length
-          ? '<span class="cat-sep"></span><span class="cat-label old">지난 학기</span>'
-            + old.map(chip).join("")
-          : "");
+          + s.items.map(chip).join("")).join("");
 
     const writable = cats.filter(c=>
       c.can_write && !(c.kind === "assign" && me && me.role === "student"));
@@ -8892,6 +8949,7 @@ _imgs
       idleSaved = 0;
     }
     wakeSync();                       // 다른 앱 갔다 오면 브라우저가 풀어둔 화면 켜두기를 다시 잡습니다
+    renderDday();                     // 날이 바뀌었으면 디데이 숫자도
   }
   document.addEventListener("visibilitychange", ()=>{
     if (document.hidden){ closeIfIdle(); save(); flush(); ntMarkAway(); }          // 떠난 시각을 적어 둡니다

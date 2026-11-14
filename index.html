@@ -30,11 +30,16 @@
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232f6fd0'/%3E%3Ccircle cx='32' cy='34' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M32 24v11h8' stroke='white' stroke-width='5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
 <script>
-/* 계절 테마 — 봄에 되돌리려면 SEASON 을 "" 로 바꾸세요. SEASON_UNTIL 이 지나면 저절로 꺼집니다. */
+/* 계절 테마 — 봄에 되돌리려면 SEASON 을 "" 로 바꾸세요. SEASON_UNTIL 이 지나면 저절로 꺼집니다.
+   크리스마스 옷(XMAS_UNTIL): 겨울 테마 위에 덧입히는 장식. 1월 말까지만 — 2월 1일부터는 저절로 원래 겨울 테마로 돌아갑니다.
+   바로 끄려면 XMAS_UNTIL 을 "" 로 바꾸세요. */
 (function(){
-  var SEASON = "winter", SEASON_UNTIL = "2027-03-02";
-  if (SEASON && Date.now() < new Date(SEASON_UNTIL + "T00:00:00+09:00").getTime())
+  var SEASON = "winter", SEASON_UNTIL = "2027-03-02", XMAS_UNTIL = "2027-02-01";
+  var before = function(d){ return Date.now() < new Date(d + "T00:00:00+09:00").getTime(); };
+  if (SEASON && before(SEASON_UNTIL)){
     document.documentElement.setAttribute("data-season", SEASON);
+    if (SEASON === "winter" && XMAS_UNTIL && before(XMAS_UNTIL)) document.documentElement.setAttribute("data-xmas", "1");
+  }
 })();
 </script>
 <style>
@@ -2560,6 +2565,69 @@
     :root[data-season="winter"][data-theme="dark"] body::after{animation:none; opacity:.7}
     .ss-cocoa .mug i{animation:none; opacity:.6}
   }
+
+  /* =====================================================================
+     크리스마스 옷 (2026-11-14) — <html data-xmas="1"> 일 때만. 겨울 테마 위에 덧입힙니다.
+     · 켜지는 기간: 맨 위 <head> 의 XMAS_UNTIL (2027-02-01) 전까지. 지나면 저절로 원래 겨울 테마.
+     · 주간 = 크리스마스 아침 (전나무 초록 · 빨강, 지팡이 사탕 타이머) / 야간 = 크리스마스이브 자습실 (꼬마전구)
+     · 움직임은 투명도만 (타이머·유튜브가 끊기지 않게)
+     ===================================================================== */
+  /* ---------- 공통: 타이머 카드 모서리의 호랑가시 · 로고 위 산타 모자 ---------- */
+  :root[data-xmas][data-season="winter"] #timerView .timer-card{position:relative}
+  :root[data-xmas][data-season="winter"] #timerView .timer-card::after{
+    content:""; position:absolute; top:-15px; right:14px; width:64px; height:52px; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 54 44'%3E%3Cpath d='M27 16C22 10 18 12 15 8C14 13 10 13 6 12C8 16 6 19 4 22C9 22 11 25 12 29C15 26 19 27 22 28C21 24 25 21 27 16Z' fill='%231f7a55'/%3E%3Cpath d='M27 16C32 10 36 12 39 8C40 13 44 13 48 12C46 16 48 19 50 22C45 22 43 25 42 29C39 26 35 27 32 28C33 24 29 21 27 16Z' fill='%232c9468'/%3E%3Cpath d='M27 16L9 21M27 16L45 21' stroke='%23155c3e' stroke-width='1.1' stroke-linecap='round' fill='none'/%3E%3Ccircle cx='22.5' cy='10.5' r='3.7' fill='%23cf3a34'/%3E%3Ccircle cx='31.5' cy='10.5' r='3.7' fill='%23cf3a34'/%3E%3Ccircle cx='27' cy='14.5' r='4.3' fill='%23e04a43'/%3E%3Ccircle cx='25.6' cy='13' r='1.1' fill='%23fff' opacity='.7'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  :root[data-xmas][data-season="winter"] .brand{position:relative}
+  :root[data-xmas][data-season="winter"] .brand::after{
+    content:""; position:absolute; left:-5px; top:-8px; width:30px; height:26px; pointer-events:none; transform:rotate(-16deg);
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 26'%3E%3Cpath d='M3 20C5 8 14 2 24 6C20 8 22 14 25 20Z' fill='%23cf3a34'/%3E%3Crect x='1' y='18' width='26' height='6.4' rx='3.2' fill='%23fff' stroke='%23c3d3e8' stroke-width='.8'/%3E%3Ccircle cx='25' cy='6' r='3.5' fill='%23fff' stroke='%23c3d3e8' stroke-width='.8'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  @media (max-width:640px){
+    :root[data-xmas][data-season="winter"] .brand::after{left:-9px; top:-12px; width:27px; height:23px}
+  }
+
+  /* ---------- 주간: 크리스마스 아침 ---------- */
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]){
+    --blue:#1f7a55; --blue-dark:#17603f; --blue-soft:#e2f1e9; --blue-tint:#f3f9f5;
+    --g0:#e9f0ec; --g1:#cde6d7; --g2:#93cbab; --g3:#4ea878; --g4:#1f7a55;      /* 잔디 = 전나무 */
+  }
+  /* 타이머 링 바탕 = 지팡이 사탕 줄무늬. 공부한 만큼 초록이 덮어 갑니다 (둘레 911 을 42 등분) */
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) .ring .track{
+    stroke:#e8524b; stroke-linecap:butt; stroke-dasharray:10.846 10.846;
+  }
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) body:not(.breaking) .btn-start{
+    background:#cf3a34; box-shadow:0 6px 16px rgba(207,58,52,.24)}
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) body:not(.breaking) .btn-start:hover:not(:disabled){background:#b52f2a}
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) .btn-stop{border-color:#cfe3d8}
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) .banner{border-color:#cfe3d8}
+  :root[data-xmas][data-season="winter"]:not([data-theme="dark"]) .brand:hover{background:#e8f2ec}
+
+  /* ---------- 야간: 크리스마스이브 자습실 ---------- */
+  /* 타이머 링 바탕 = 꺼진 꼬마전구 줄. 공부한 만큼 불빛(주황)이 덮어 갑니다 (둘레 911 을 40 등분) */
+  :root[data-xmas][data-season="winter"][data-theme="dark"] .ring .track{
+    stroke:#6b5a2c; stroke-width:5; stroke-linecap:round; stroke-dasharray:.1 22.676;
+  }
+  /* 카드 위에 걸린 꼬마전구 (빨강 · 노랑 · 초록 · 파랑) — 천천히 밝아졌다 어두워집니다 */
+  :root[data-xmas][data-season="winter"][data-theme="dark"] #timerView .card,
+  :root[data-xmas][data-season="winter"][data-theme="dark"] .board-card,
+  :root[data-xmas][data-season="winter"][data-theme="dark"] .lab-card{position:relative}
+  :root[data-xmas][data-season="winter"][data-theme="dark"] #timerView .card::before,
+  :root[data-xmas][data-season="winter"][data-theme="dark"] .board-card::before,
+  :root[data-xmas][data-season="winter"][data-theme="dark"] .lab-card::before{
+    content:""; position:absolute; left:14px; right:14px; top:-4px; height:20px; pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 20'%3E%3Cpath d='M0 3Q24 11 48 3Q72 11 96 3' fill='none' stroke='%234a5a78' stroke-width='1.1'/%3E%3Cg fill='%234a5a78'%3E%3Crect x='10.5' y='5.6' width='3' height='2.6'/%3E%3Crect x='34.5' y='5.6' width='3' height='2.6'/%3E%3Crect x='58.5' y='5.6' width='3' height='2.6'/%3E%3Crect x='82.5' y='5.6' width='3' height='2.6'/%3E%3C/g%3E%3Ccircle cx='12' cy='12.2' r='7.5' fill='%23ff6b6b' opacity='.2'/%3E%3Ccircle cx='36' cy='12.2' r='7.5' fill='%23ffd166' opacity='.2'/%3E%3Ccircle cx='60' cy='12.2' r='7.5' fill='%234fd6a0' opacity='.2'/%3E%3Ccircle cx='84' cy='12.2' r='7.5' fill='%237db8ff' opacity='.2'/%3E%3Cellipse cx='12' cy='12.2' rx='3' ry='4.2' fill='%23ff6b6b'/%3E%3Cellipse cx='36' cy='12.2' rx='3' ry='4.2' fill='%23ffd166'/%3E%3Cellipse cx='60' cy='12.2' rx='3' ry='4.2' fill='%234fd6a0'/%3E%3Cellipse cx='84' cy='12.2' rx='3' ry='4.2' fill='%237db8ff'/%3E%3C/svg%3E") 0 0 / 96px 20px round no-repeat;
+    background-repeat:round no-repeat;
+    will-change:opacity; animation:xmasTw 4.5s ease-in-out infinite;
+  }
+  /* 타이머 카드는 오른쪽 모서리에 호랑가시가 있어서 전구 줄을 그 앞에서 끊습니다 */
+  :root[data-xmas][data-season="winter"][data-theme="dark"] #timerView .timer-card::before{right:82px}
+  @keyframes xmasTw{0%,100%{opacity:1} 50%{opacity:.6}}
+  @media (prefers-reduced-motion: reduce){
+    :root[data-xmas][data-season="winter"][data-theme="dark"] #timerView .card::before,
+    :root[data-xmas][data-season="winter"][data-theme="dark"] .board-card::before,
+    :root[data-xmas][data-season="winter"][data-theme="dark"] .lab-card::before{animation:none}
+  }
 </style>
 </head>
 <body>
@@ -4399,7 +4467,8 @@
     $("themeIcon").textContent = t === "dark" ? "☀️" : "🌙";
     const m = document.querySelector('meta[name="theme-color"]');
     const winter = document.documentElement.dataset.season === "winter";
-    if (m) m.content = t === "dark" ? (winter ? "#0e1524" : "#141a23") : "#2f6fd0";
+    const xmas = document.documentElement.hasAttribute("data-xmas");      // 크리스마스 옷일 때 주간 주소창 색은 전나무 초록
+    if (m) m.content = t === "dark" ? (winter ? "#0e1524" : "#141a23") : (xmas ? "#1f7a55" : "#2f6fd0");
     try { store.setItem("sungong.theme.v1", t); } catch(e){}
   }
 

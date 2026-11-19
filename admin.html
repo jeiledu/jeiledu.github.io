@@ -445,6 +445,7 @@
       <button data-p="errors">오류 기록</button>
       <button data-p="blocks">차단 현황</button>
       <button data-p="talks">대화 기록</button>
+      <button data-p="status">랭킹 한마디</button>
       <button data-p="words">금지어</button>
       <button data-p="settings">사이트 설정</button>
       <button data-p="push">푸시 알림</button>
@@ -662,6 +663,7 @@
     errors:   ["오류 기록",    pageErrors],
     blocks:   ["차단 현황",    pageBlocks],
     talks:    ["대화 기록",    pageTalks],
+    status:   ["랭킹 한마디",  pageStatus],
     words:    ["금지어 관리",  pageWords],
     settings: ["사이트 설정",  pageSettings],
     push:     ["푸시 알림",    pagePush]
@@ -780,7 +782,7 @@
   async function pageUsers(){
     $("page").innerHTML =
       '<div class="card">'
-      + '<div class="tools"><input id="uSearch" placeholder="닉네임·이메일 검색" value="'+esc(uQ)+'">'
+      + '<div class="tools"><input id="uSearch" placeholder="닉네임·이름·이메일 검색" value="'+esc(uQ)+'">'
       + '<button class="b" id="uGo">검색</button><span class="grow"></span>'
       + '<button class="b" id="uCsv">공부기록 CSV</button> '
       + '<button class="b" id="uSess">세션 CSV</button>'
@@ -789,7 +791,7 @@
       + '<span class="muted">기간</span> <input type="date" id="uFrom"> ~ <input type="date" id="uTo">'
       + '<span class="muted" id="uCount"></span></div>'
       + '<div class="tbl-wrap"><table><thead><tr>'
-      + '<th>닉네임</th><th>이메일</th><th>역할</th><th>오늘</th><th>누적</th>'
+      + '<th>닉네임</th><th>이름</th><th>이메일</th><th>역할</th><th>오늘</th><th>누적</th>'
       + '<th>마지막 기록</th><th>가입</th><th></th></tr></thead><tbody id="uBody"></tbody></table></div>'
       + '<div class="pager" id="uPager"></div></div>';
 
@@ -870,13 +872,17 @@
     await loadUsers();
   }
 
+  // 이름 = 학교 구글 계정에 등록된 이름 (schema32 부터 admin_users 가 같이 내려줌. 그 전에는 빈 칸)
+  const userName = {};                      // id → 이름 (상세 창에서도 쓰려고 기억해 둠)
   async function loadUsers(){
     const rows = await rpc("admin_users", { p_q: uQ, p_limit: 30, p_offset: uPage*30 });
     const total = rows.length ? Number(rows[0].total) : 0;
+    rows.forEach(u=>{ if (u.name) userName[u.id] = u.name; });
     $("uCount").textContent = total + "명";
     $("uBody").innerHTML = rows.length ? rows.map(u=>
-      '<tr><td><b>'+esc(u.nickname)+'</b>'+(u.banned?' <span class="tag ban">정지</span>':'')
+      '<tr><td style="white-space:nowrap"><b>'+esc(u.nickname)+'</b>'+(u.banned?' <span class="tag ban">정지</span>':'')
       + (u.show_rank ? '' : ' <span class="tag hid">랭킹숨김</span>')+'</td>'
+      + '<td style="white-space:nowrap">'+esc(u.name || "")+'</td>'      // 좁은 화면에서 한 글자씩 세로로 꺾이지 않게 (표는 옆으로 밀림)
       + '<td class="muted">'+esc(u.email)+'</td>'
       + '<td><span class="tag '+u.role+'">'+u.role+'</span></td>'
       + '<td class="num">'+hhm(u.today_seconds)+'</td>'
@@ -886,7 +892,7 @@
       + '<td class="act"><button class="b sm" data-det="'+u.id+'">상세</button> '
       + '<button class="b sm" data-edit="'+u.id+'">관리</button> '
       + '<button class="b sm" data-rec="'+u.id+'">기록</button></td></tr>'
-    ).join("") : '<tr><td colspan="8" class="empty">사용자가 없어요.</td></tr>';
+    ).join("") : '<tr><td colspan="9" class="empty">사용자가 없어요.</td></tr>';
 
     pager($("uPager"), total, 30, uPage, p=>{ uPage = p; loadUsers(); });
 
@@ -903,7 +909,7 @@
 
   function editUser(u){
     openDlg(
-      '<h3>'+esc(u.nickname)+' 관리</h3><p class="sub">'+esc(u.email)+'</p>'
+      '<h3>'+esc(u.nickname)+' 관리</h3><p class="sub">'+(u.name ? esc(u.name)+' · ' : '')+esc(u.email)+'</p>'
       + '<div class="f"><label>닉네임</label><input id="eNick" value="'+esc(u.nickname)+'" maxlength="12"></div>'
       + '<div class="row2">'
       +   '<div class="f"><label>역할</label><select id="eRole">'
@@ -949,14 +955,14 @@
     if (!recUser){
       $("page").innerHTML =
         '<div class="card"><div class="tools">'
-        + '<input id="rSearch" placeholder="학생 닉네임·이메일로 찾기" class="grow">'
+        + '<input id="rSearch" placeholder="학생 닉네임·이름·이메일로 찾기" class="grow">'
         + '<button class="b pri" id="rGo">찾기</button></div>'
         + '<div id="rList"><div class="empty">학생을 검색하면 날짜별 기록을 보고 고칠 수 있어요.</div></div></div>';
       $("rGo").onclick = async ()=>{
         const rows = await rpc("admin_users", { p_q: $("rSearch").value.trim(), p_limit: 20 });
         $("rList").innerHTML = rows.length
           ? '<div class="tbl-wrap"><table><tbody>' + rows.map(u=>
-              '<tr><td><b>'+esc(u.nickname)+'</b> <span class="muted">'+esc(u.email)+'</span></td>'
+              '<tr><td><b>'+esc(u.nickname)+'</b> '+(u.name ? esc(u.name)+' ' : '')+'<span class="muted">'+esc(u.email)+'</span></td>'
               + '<td class="num">'+hhm(u.total_seconds)+'</td>'
               + '<td class="act"><button class="b sm" data-pick="'+u.id+'">기록 보기</button></td></tr>').join("")
             + '</tbody></table></div>'
@@ -1493,7 +1499,7 @@
 
     openDlg(
       '<h3>'+esc(d.nickname)+' <span class="tag '+d.role+'">'+d.role+'</span></h3>'
-      + '<p class="sub">'+esc(d.email)+' · 가입 '+ymd(d.joined)+'</p>'
+      + '<p class="sub">'+(userName[id] ? esc(userName[id])+' · ' : '')+esc(d.email)+' · 가입 '+ymd(d.joined)+'</p>'
       + '<div class="kpis" style="margin-bottom:14px">'
       +   kpi(hm2(d.today_seconds), "오늘", true) + kpi(hm2(d.week_seconds), "이번 주")
       +   kpi(Math.floor(Number(d.total_seconds||0)/3600)+"시간", "누적")
@@ -2335,6 +2341,33 @@
     $("tkPager").innerHTML = "";
   }
 
+  /* ===================== 랭킹 한마디 (schema31) ===================== */
+  async function pageStatus(){
+    const rows = await rpc("admin_status_msgs");
+    $("page").innerHTML =
+      '<div class="card"><div class="tools">'
+      + '<span class="muted">학생이 랭킹의 자기 이름 옆에 적어 둔 한마디입니다.</span>'
+      + '<span class="grow"></span><span class="muted">' + rows.length + '개</span></div>'
+      + '<div class="tbl-wrap"><table><thead><tr><th>닉네임</th><th>한마디</th><th>쓴 때</th><th></th></tr></thead><tbody>'
+      + (rows.length ? rows.map(r=>
+          '<tr><td><b>'+esc(r.nickname)+'</b>'+(r.banned ? ' <span class="tag flag">정지</span>' : '')+'</td>'
+          + '<td>'+esc(r.status_msg)+'</td>'
+          + '<td class="num muted">'+(r.status_at ? dt(r.status_at) : "")+'</td>'
+          + '<td class="act"><button class="b sm danger" data-sx="'+esc(r.id)+'" data-sn="'+esc(r.nickname)+'">지우기</button></td></tr>').join("")
+        : '<tr><td colspan="4" class="empty">적어 둔 한마디가 없어요.</td></tr>')
+      + '</tbody></table></div>'
+      + '<p class="muted" style="margin:14px 0 0;font-size:12px;line-height:1.9">'
+      + '· 한마디는 20자까지이고, <b>금지어</b>가 들어 있으면 저장되지 않습니다.<br>'
+      + '· <span class="tag flag">정지</span> 표시가 있는 학생의 한마디는 랭킹에 보이지 않습니다.<br>'
+      + '· 기능을 통째로 끄려면 <b>사이트 설정 &gt; 기능 켜고 끄기 &gt; 랭킹 한마디</b> 를 \'사용 안 함\'으로 바꾸세요.</p></div>';
+
+    $("page").querySelectorAll("[data-sx]").forEach(b=> b.onclick = async ()=>{
+      if (!await ask(b.dataset.sn + ' 님의 한마디를 지울까요?', { title:"한마디 지우기", yes:"지우기", danger:true })) return;
+      try { await rpc("admin_clear_status_msg", { p_user: b.dataset.sx }); toast("지웠어요."); pageStatus(); }
+      catch(e){ toast(cleanErr(e)); }
+    });
+  }
+
   /* ===================== 금지어 관리 ===================== */
   async function pageWords(){
     const rows = await rpc("admin_banned_words");
@@ -2463,6 +2496,8 @@
            "끄면 학생 화면에서 커뮤니티 탭이 사라집니다. 글과 자료는 지워지지 않습니다.")
       + yn("ranking_enabled", "랭킹",
            "끄면 랭킹 카드가 숨겨집니다. 공부 기록은 계속 쌓입니다.")
+      + yn("status_enabled",  "랭킹 한마디",
+           "끄면 랭킹에서 한마디가 사라지고 새로 쓸 수도 없습니다. 적어 둔 내용은 지워지지 않습니다.")
       + '</div>'
       + '<div class="card"><div class="dlg-btns" style="margin:0">'
       + '<button class="b pri" id="sSave">전체 저장</button></div></div>'
@@ -2499,6 +2534,7 @@
       await rpc("admin_set_setting", { p_key: "notice_banner", p_value: JSON.stringify(clean) });
       await rpc("admin_set_setting", { p_key: "board_enabled",   p_value: $("board_enabled").value });
       await rpc("admin_set_setting", { p_key: "ranking_enabled", p_value: $("ranking_enabled").value });
+      await rpc("admin_set_setting", { p_key: "status_enabled",  p_value: $("status_enabled").value });
       banners = clean; renderBanners();
       toast("저장했어요. 학생 화면은 새로고침하면 반영됩니다.");
     };

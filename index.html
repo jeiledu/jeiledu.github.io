@@ -1579,6 +1579,21 @@
   .rank-list .nm{flex:1; color:var(--ink); letter-spacing:-.2px; overflow:hidden;
                  text-overflow:ellipsis; white-space:nowrap}
   .rank-list li.me .nm{font-weight:700; color:var(--blue-dark)}
+  /* 랭킹 한마디 (schema31) — 이름 옆의 짧은 글 · 목록 아래의 '내 한마디' 줄 */
+  .rank-list .nm .st{margin-left:8px; font-style:normal; font-size:12px; font-weight:400; color:var(--ink-faint); letter-spacing:-.2px}
+  .rank-msg{display:flex; align-items:center; gap:8px; margin-top:10px; font-size:12.5px; color:var(--ink-soft); letter-spacing:-.2px}
+  .rank-msg[hidden]{display:none}
+  .rank-msg .cur{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .rank-msg .cur.none{color:var(--ink-faint)}
+  .rank-msg input{flex:1; min-width:0; height:34px; padding:0 11px; border:1px solid var(--line); border-radius:10px;
+                  font:inherit; font-size:13px; background:var(--card); color:var(--ink); outline:0}
+  .rank-msg input:focus{border-color:var(--blue)}
+  .rank-msg button{flex:none; height:34px; padding:0 12px; border-radius:10px; border:1px solid var(--line); background:var(--card);
+                   color:var(--blue-dark); font:inherit; font-size:12.5px; font-weight:600; cursor:pointer}
+  .rank-msg button.pri{background:var(--blue); border-color:var(--blue); color:#fff}
+  @media (max-width:620px){       /* 폰: 이름 아래 줄로 내려서 잘리지 않게 */
+    .rank-list .nm .st{display:block; margin:1px 0 0; overflow:hidden; text-overflow:ellipsis}
+  }
   .rank-list .cheer{
     background:none; border:0; cursor:pointer; font-size:14px; opacity:.35; padding:2px 4px;
     transition:.15s; flex:none;
@@ -3011,6 +3026,7 @@
           <button data-p="streak">연속 <i class="help" data-tip="하루 30분 이상 공부한 날만 인정돼요. 오늘 30분을 채우면 이어집니다">?</i></button>
         </div>
         <ol class="rank-list" id="rankList"></ol>
+        <div class="rank-msg" id="rankMsg" hidden></div>
         <div class="rank-foot" id="rankFoot"></div>
       </div>
 
@@ -3631,7 +3647,7 @@
       <ul>
         <li><b>로그인할 때</b> 학교 구글 계정에 등록된 이메일·이름·프로필 사진 주소를 받습니다.
             비밀번호는 구글이 관리하며 이 사이트는 알 수 없습니다.</li>
-        <li><b>직접 정한 것</b> 닉네임, 하루 목표 시간, 가입한 그룹.</li>
+        <li><b>직접 정한 것</b> 닉네임, 하루 목표 시간, 가입한 그룹, 랭킹에 적어 둔 한마디.</li>
         <li><b>쓰면서 쌓이는 것</b> 공부한 시간·날짜·과목, 직접 올린 글·댓글·쪽지·채팅·사진·파일,
             과제 제출물과 점수·피드백.</li>
         <li><b>자동으로 남는 것</b> 접속·오류 기록(시각, 기기와 브라우저 종류).
@@ -5424,11 +5440,13 @@
   }
   setInterval(()=>{ if (!document.hidden) renderDday(); }, 600000);   // 자정을 넘겨 켜 둔 화면도 숫자가 바뀌게
 
+  let statusOn = true;                              // 랭킹 한마디를 쓰는지 (사이트 설정 status_enabled)
   function applySettings(st){
     $("banners").innerHTML = parseBanners(st.notice_banner).slice(0, 5)
       .map(t=> '<div class="banner"><b>📢</b><span>'+esc(t)+'</span></div>').join("");
     ddays = parseDdays(st.dday);
     renderDday();
+    statusOn = st.status_enabled !== "false";       // 랭킹 한마디: 백오피스 > 사이트 설정에서 끌 수 있음
 
     if (st.board_enabled === "false"){
       const tab = document.querySelector('.main-tabs button[data-view="board"]');
@@ -5468,6 +5486,7 @@
     me.show_rank = prof.show_rank;
     me.role      = prof.role || "student";
     me.daily_goal = prof.daily_goal || 0;
+    me.status_msg = prof.status_msg || "";          // 랭킹 한마디 (schema31 전에는 칸이 없어 빈 값)
     if (prof.banned) toast("이 계정은 글쓰기가 제한된 상태예요.");
     renderAccount();
     await afterLogin();
@@ -5730,8 +5749,50 @@
     renderRank(data || []);
   }
 
+  /* 랭킹 한마디 (schema31) — 랭킹의 내 이름 옆에 보이는 20자 이내의 글. 목록 아래 줄에서 쓰고 바꿉니다.
+     금지어가 있으면 서버가 저장을 거절하고, 선생님은 백오피스 > 랭킹 한마디 에서 지울 수 있습니다 */
+  function renderMyMsg(edit){
+    const box = $("rankMsg");
+    const ok = CAN_SERVER && me && me.nickname && statusOn && me.show_rank !== false;
+    box.hidden = !ok;
+    if (!ok){ box.innerHTML = ""; return; }
+    if (!edit && $("myMsg")) return;                     // 쓰는 중에는 45초마다 오는 새로 그리기에 지워지지 않게
+    const cur = me.status_msg || "";
+    if (!edit){
+      box.innerHTML = '<span class="cur' + (cur ? "" : " none") + '">💬 ' + (cur ? esc(cur) : "랭킹에 보일 한마디를 써 보세요") + '</span>'
+                    + '<button type="button" id="myMsgEdit">' + (cur ? "바꾸기" : "쓰기") + '</button>';
+      $("myMsgEdit").onclick = ()=> renderMyMsg(true);
+      return;
+    }
+    box.innerHTML = '<input id="myMsg" maxlength="20" autocomplete="off" placeholder="친구들에게 보일 한마디 (20자까지 · 비우면 지워져요)" value="' + esc(cur) + '">'
+                  + '<button type="button" class="pri" id="myMsgSave">저장</button><button type="button" id="myMsgCancel">취소</button>';
+    const inp = $("myMsg");
+    const close = ()=>{ box.innerHTML = ""; renderMyMsg(); };
+    const save = async ()=>{
+      const v = inp.value.replace(/\s+/g, " ").trim();
+      if (v === cur){ close(); return; }
+      $("myMsgSave").disabled = true;
+      const { data, error } = await sb.rpc("set_status_msg", { p_text: v });
+      if (error){ toast(cleanErr(error)); if ($("myMsgSave")) $("myMsgSave").disabled = false; return; }
+      me.status_msg = data || "";
+      toast(me.status_msg ? "한마디를 저장했어요." : "한마디를 지웠어요.");
+      close();
+      refreshRank();
+    };
+    $("myMsgSave").onclick = save;
+    $("myMsgCancel").onclick = close;
+    inp.onkeydown = (e)=>{
+      if (e.isComposing) return;                         // 한글 조합 중의 Enter 는 넘깁니다
+      if (e.key === "Enter"){ e.preventDefault(); save(); }
+      else if (e.key === "Escape"){ e.stopPropagation(); close(); }
+    };
+    inp.focus();
+    inp.setSelectionRange(inp.value.length, inp.value.length);
+  }
+
   function renderRank(rows, errText){
     const list = $("rankList"), foot = $("rankFoot");
+    renderMyMsg();
     const keepScroll = list.scrollTop;        // 45초마다 다시 그리므로 보던 위치를 기억해 둡니다
     list.style.maxHeight = ""; list.classList.remove("scrolly", "more");   // (높이 제한을 풀면 scrollTop 이 0이 되므로 순서가 중요)
 
@@ -5760,7 +5821,8 @@
              + '<span class="rk">'+medal+'</span>'
              + (r.online ? '<span class="live" title="지금 공부 중"></span>' : '')
              + '<span class="nm">'+(r.is_me ? esc(r.nickname)
-                 : '<button class="who-btn" data-nick="'+esc(r.nickname)+'" title="쪽지·채팅 보내기">'+esc(r.nickname)+'</button>')+'</span>'
+                 : '<button class="who-btn" data-nick="'+esc(r.nickname)+'" title="쪽지·채팅 보내기">'+esc(r.nickname)+'</button>')
+             + (statusOn && r.msg ? '<em class="st">'+esc(r.msg)+'</em>' : '')+'</span>'
              + (r.is_me ? '' : '<button class="cheer" data-cheer="'+esc(r.nickname)+'" title="응원 보내기">👏</button>')
              + '<span class="vl">'+val(r)+'</span></li>';
       }).join("");

@@ -2332,20 +2332,13 @@
     #pwaNo{min-height:36px}
   }
 
-  /* 태블릿 세로 (700~900px): 한 줄로 길게 늘어나 휑하던 화면을 두 칸으로 나눠 씁니다
-       [ 타이머 | 오늘의 세션 ]
-       [        | 랭킹        ]
-       [        | 달력        ]
-       [      공부 잔디       ]                                              */
+  /* 태블릿 세로 (700~900px): 한 줄로 길게 늘어나 휑하던 화면을 PC 처럼 두 줄기로 나눠 씁니다
+       타이머 화면   [ 타이머 → 오늘의 세션 | 오늘 할 일 → 랭킹 → 공부 잔디 → 달력 ]
+       플래너 탭     [ 할 일 → 과제 → 반복 할 일 | 타임테이블 → 이번 주 돌아보기 → 내보내기 ]
+     (플래너가 생기기 전에는 카드 다섯 장을 칸마다 지정해 두었습니다. '오늘 할 일' 카드가 생겨 여섯 장이 되면서
+      칸 지정을 풀었습니다 — 칸을 지정하면 한쪽 카드가 길어질 때 옆 줄에 빈자리가 생깁니다) */
   @media (min-width:700px) and (max-width:900px){
-    #timerView{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); grid-template-rows:auto auto 1fr; gap:16px}
-    #timerView > section{display:contents}
-    #timerView > section > .card{margin-top:0}
-    #timerView .timer-card{grid-column:1; grid-row:1 / span 3}
-    #timerView > section:first-child > .card:nth-child(2){grid-column:2; grid-row:1}
-    #timerView #rankCard{grid-column:2; grid-row:2}
-    #timerView > section:last-child > .card:last-child{grid-column:2; grid-row:3}
-    #timerView > section:last-child > .card:first-child{grid-column:1 / -1; grid-row:4}
+    #timerView, #planView{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr); gap:16px}
     #timerView .stats{grid-template-columns:repeat(2,1fr)}
   }
 
@@ -2738,6 +2731,171 @@
   /* ⑥ 빈 화면: 눈밭에 작은 트리 */
   :root[data-xdeco][data-season="winter"] .empty.snowy::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 44'%3E%3Crect x='82.6' y='27' width='2.8' height='7' fill='%238a6a4a'/%3E%3Cpath d='M84 8l-7 10h4l-6 9h18l-6-9h4z' fill='%231f7a55'/%3E%3Ccircle cx='84' cy='7' r='2' fill='%23f6c445'/%3E%3Cpath d='M4 41Q30 23 60 31T116 41Z' fill='%23fff' stroke='%23a9c6ea' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cg fill='%23a9c6ea'%3E%3Ccircle cx='22' cy='12' r='1.6'/%3E%3Ccircle cx='46' cy='6' r='1.3'/%3E%3Ccircle cx='62' cy='17' r='1.6'/%3E%3Ccircle cx='101' cy='9' r='1.4'/%3E%3Ccircle cx='34' cy='22' r='1.2'/%3E%3C/g%3E%3C/svg%3E")}
   :root[data-xdeco][data-season="winter"][data-theme="dark"] .empty.snowy::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 44'%3E%3Crect x='82.6' y='27' width='2.8' height='7' fill='%238a6a4a'/%3E%3Cpath d='M84 8l-7 10h4l-6 9h18l-6-9h4z' fill='%231f7a55'/%3E%3Ccircle cx='84' cy='7' r='2' fill='%23f6c445'/%3E%3Cpath d='M4 41Q30 23 60 31T116 41Z' fill='%232a3648' stroke='%2345567a' stroke-width='1.4' stroke-linejoin='round'/%3E%3Cg fill='%23b4c2de'%3E%3Ccircle cx='22' cy='12' r='1.6'/%3E%3Ccircle cx='46' cy='6' r='1.3'/%3E%3Ccircle cx='62' cy='17' r='1.6'/%3E%3Ccircle cx='101' cy='9' r='1.4'/%3E%3Ccircle cx='34' cy='22' r='1.2'/%3E%3C/g%3E%3C/svg%3E")}
+
+  /* ---------- 플래너 (2026-11-20) — 타이머 화면의 '오늘 할 일' 카드 + 플래너 탭 ---------- */
+  #planView[hidden]{display:none}
+  .pl-head{display:flex; align-items:center; gap:8px; margin-bottom:12px}
+  .pl-head .card-title{margin:0}
+  .pl-count{font-size:12px; font-weight:600; color:var(--ink-faint); font-variant-numeric:tabular-nums}
+  .pl-nav{margin-left:auto; display:flex; align-items:center}
+  .pl-day{border:0; background:none; padding:0 6px; font:inherit; font-size:13px; font-weight:700; color:var(--ink); cursor:pointer; white-space:nowrap}
+  .pl-day em{font-style:normal; font-weight:400; font-size:11.5px; color:var(--ink-faint); margin-left:5px}
+  .pl-more{flex:none; margin-left:auto; height:28px; padding:0 10px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink-soft);
+           font:inherit; font-size:12px; cursor:pointer; white-space:nowrap}
+  .pl-bar{height:4px; border-radius:99px; background:var(--blue-tint); overflow:hidden}
+  .pl-bar i{display:block; height:100%; width:0; border-radius:99px; background:var(--blue); transition:width .3s}
+  .pl-bar i.done{background:var(--rest)}
+  .pl-goal{display:block; width:100%; height:38px; margin-top:6px; padding:0 2px; border:0; border-bottom:1px dashed var(--line); border-radius:0; background:none;
+           font:inherit; font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-.2px; outline:0}
+  .pl-goal::placeholder{font-weight:400; color:var(--ink-faint)}
+  .pl-goal:focus{border-bottom-color:var(--blue)}
+
+  .pl-list, .pl-as{list-style:none; margin:0; padding:0}
+  .pl-list li{display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:10px 4px; border-bottom:1px solid var(--line)}
+  .pl-list li.none{display:block; border:0; padding:20px 2px 8px; text-align:center; font-size:13px; color:var(--ink-faint)}
+  .pl-list li.on{background:var(--blue-soft); border-radius:11px; border-bottom-color:transparent; padding-left:9px; padding-right:6px}
+  .pl-list li.mv{opacity:.45}
+  .pl-ck{position:relative; flex:none; width:22px; height:22px; padding:0; border-radius:7px; border:1.6px solid var(--ink-faint); background:var(--card);
+         color:#fff; font:inherit; font-size:12px; font-weight:800; line-height:1; cursor:pointer}
+  .pl-list li.d1 .pl-ck{background:var(--rest); border-color:var(--rest)}
+  .pl-list li.d2 .pl-ck{background:#e8a33a; border-color:#e8a33a}
+  .pl-tx{flex:1 1 0; min-width:0; font-size:14px; line-height:1.4; color:var(--ink); letter-spacing:-.2px; overflow-wrap:anywhere}
+  .pl-list li.d1 .pl-tx > span{text-decoration:line-through; color:var(--ink-faint)}
+  .pl-tx small{display:block; margin-top:2px; font-size:11.5px; color:var(--ink-faint)}
+  .pl-tx small i{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--c); margin-right:5px; vertical-align:1px}
+  .pl-tx small b{font-weight:600; color:var(--ink-soft)}
+  .pl-go{flex:none; width:32px; height:32px; padding:0 0 0 2px; border-radius:50%; border:1px solid var(--blue); background:var(--card);
+         color:var(--blue-dark); font:inherit; font-size:11px; line-height:1; cursor:pointer}
+  .pl-list li.on .pl-go{background:var(--blue); color:#fff}
+  .pl-dots{flex:none; width:26px; height:32px; padding:0; border:0; background:none; color:var(--ink-faint); font:inherit; font-size:17px; line-height:1; cursor:pointer}
+  .pl-acts{flex:1 1 100%; display:none; flex-wrap:wrap; justify-content:flex-end; gap:6px}
+  .pl-list li.open .pl-acts{display:flex}
+  .pl-mini{flex:none; height:30px; padding:0 11px; border-radius:9px; border:1px solid var(--line); background:var(--card); color:var(--ink-soft);
+           font:inherit; font-size:12px; cursor:pointer; white-space:nowrap}
+  .pl-mini.go{color:var(--blue-dark); font-weight:700; border-color:var(--blue)}
+  .pl-mini.x{padding:0 8px; color:var(--ink-faint)}
+  .pl-mini:disabled{opacity:.55; cursor:default}
+
+  .pl-add{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px}
+  .pl-add select, .pl-add input{height:38px; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink);
+                                font:inherit; font-size:13px; padding:0 9px; outline:0; min-width:0}
+  .pl-add select{flex:none}
+  .pl-add input{flex:1 1 0}
+  .pl-add select:focus, .pl-add input:focus, .pl-memo:focus{border-color:var(--blue)}
+  .pl-add button[type=submit]{flex:none; height:38px; padding:0 15px; border-radius:10px; border:1px solid var(--blue); background:var(--blue);
+                              color:#fff; font:inherit; font-size:13px; font-weight:700; cursor:pointer}
+  .pl-line{display:flex; align-items:center; gap:10px; width:100%; margin-top:10px; padding:9px 12px; border-radius:11px; border:1px solid var(--line);
+           background:var(--blue-tint); font:inherit; font-size:12.5px; color:var(--ink-soft); text-align:left}
+  .pl-line[hidden]{display:none}
+  .pl-line > span:first-child{flex:1; min-width:0}
+  .pl-line b{color:var(--ink); white-space:nowrap}
+  .pl-line small{display:block; margin-top:1px; font-size:11px; color:var(--ink-faint)}
+  button.pl-line{cursor:pointer}
+  .pl-as[hidden]{display:none}
+  .pl-as li{display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; padding:9px 2px; border-bottom:1px solid var(--line); font-size:13px}
+  .pl-as li:last-child{border-bottom:0}
+  .pl-as li.none{display:block; border:0; padding:12px 2px; text-align:center; color:var(--ink-faint)}
+  .pl-as .t{flex:1 1 150px; min-width:0; color:var(--ink); overflow-wrap:anywhere}
+  .pl-as .d{flex:none; font-size:11.5px; color:var(--ink-faint)}
+  .pl-as .d.soon{color:#c8402f; font-weight:700}
+  :root[data-theme="dark"] .pl-as .d.soon{color:#ff9a8a}
+  #plTodoCard .pl-as{margin-top:4px}
+
+  /* '오늘의 세션' 카드 맨 위: 하루를 한 줄로 */
+  .pl-tl{position:relative; height:14px; border-radius:7px; background:var(--g0); overflow:hidden}
+  .pl-tl i{position:absolute; top:0; bottom:0; min-width:2px; background:var(--c)}
+  .pl-tlx{display:flex; justify-content:space-between; margin:4px 0 12px; font-size:10.5px; color:var(--ink-faint); font-variant-numeric:tabular-nums}
+
+  /* 타이머 화면: 지금 하는 일 */
+  .plan-now{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; font-size:12.5px; color:var(--ink-soft)}
+  .plan-now[hidden]{display:none}
+  .plan-now b{max-width:56%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink)}
+  .plan-now button{border:0; background:none; padding:0; color:var(--ink-faint); font:inherit; font-size:11.5px; text-decoration:underline; cursor:pointer}
+
+  /* 플래너 탭 */
+  .pl-hint{margin:-8px 0 12px; font-size:12px; color:var(--ink-faint); line-height:1.6}
+  .pl-sync{margin:12px 0 0; font-size:11.5px; color:var(--ink-faint); line-height:1.6}
+  .pl-memo{display:block; width:100%; height:38px; margin-top:12px; padding:0 11px; border:1px solid var(--line); border-radius:10px; background:var(--card);
+           color:var(--ink); font:inherit; font-size:13px; outline:0}
+  .pl-tt{display:grid; grid-template-columns:28px repeat(6, 1fr); gap:2px; font-size:10.5px; color:var(--ink-faint)}
+  .pl-tt span{line-height:15px; text-align:right; padding-right:5px; font-variant-numeric:tabular-nums}
+  .pl-tt i{display:block; height:15px; border-radius:3px; background:var(--g0)}
+  .pl-tt i.f{background:var(--c)}
+  .pl-tt i.now{box-shadow:inset 0 0 0 1.5px var(--ink)}
+  .pl-tt i.p{background:none; box-shadow:inset 0 0 0 1.5px var(--c)}       /* 계획만 하고 아직 안 한 칸 = 테두리만 */
+  .pl-tt i.p.now{box-shadow:inset 0 0 0 1.5px var(--ink)}
+  .pl-leg{display:flex; flex-wrap:wrap; gap:6px 12px; margin-top:12px; font-size:12px; color:var(--ink-soft)}
+  .pl-leg span::before{content:""; display:inline-block; width:9px; height:9px; border-radius:3px; background:var(--c); margin-right:5px}
+  .pl-leg em{font-style:normal; margin-left:auto; color:var(--ink-faint)}
+  .pl-wk{display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; height:110px; margin-bottom:6px}
+  .pl-wk button{display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:4px; height:100%; padding:0; border:0; background:none; font:inherit; cursor:pointer}
+  .pl-wk i{display:block; width:100%; max-width:34px; min-height:2px; border-radius:6px 6px 2px 2px; background:var(--blue)}
+  .pl-wk em{font-style:normal; font-size:10.5px; color:var(--ink-faint); white-space:nowrap}
+  .pl-wk .sel i{outline:2px solid var(--ink); outline-offset:1px}
+  .pl-wkl{display:grid; grid-template-columns:repeat(7, 1fr); gap:6px; text-align:center; font-size:11px; color:var(--ink-faint)}
+  .pl-wkl b{display:block; font-weight:600; color:var(--ink)}
+  .pl-sum{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:14px 0 10px}
+  .pl-sum div{padding:10px 6px; border-radius:11px; background:var(--blue-tint); border:1px solid var(--line); text-align:center}
+  .pl-sum b{display:block; font-size:16px; color:var(--ink); letter-spacing:-.3px}
+  .pl-sum span{font-size:11px; color:var(--ink-faint)}
+  .pl-sb{display:grid; grid-template-columns:52px 1fr 76px; gap:8px; align-items:center; font-size:12px; color:var(--ink-soft); margin-top:6px}
+  .pl-sb i{display:block; height:8px; border-radius:99px; background:var(--c)}
+  .pl-sb span:last-child{text-align:right; font-variant-numeric:tabular-nums}
+  .pl-memos{margin:10px 0 0; padding:0; list-style:none; font-size:12.5px; color:var(--ink-soft)}
+  .pl-memos li{padding:6px 0; border-top:1px dashed var(--line); overflow-wrap:anywhere}
+  .pl-memos b{color:var(--ink); margin-right:6px}
+  .pl-dows{display:flex; gap:4px; margin:8px 0}
+  .pl-dows button{flex:1; height:30px; padding:0; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink-soft); font:inherit; font-size:12px; cursor:pointer}
+  .pl-dows button.on{background:var(--blue); border-color:var(--blue); color:#fff; font-weight:700}
+
+  /* 시간 배정 — 언제(시작 시각) · 얼마나(걸릴 시간). 플래너 탭의 추가 칸 아랫줄과, ⋯ 의 '시간 정하기' 에서 씁니다 */
+  .pl-when{flex:1 1 100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:12px; color:var(--ink-faint)}
+  .pl-when input[type=time], .pl-when select{flex:none; height:32px; padding:0 8px; border:1px solid var(--line); border-radius:9px; background:var(--card);
+                                             color:var(--ink); font:inherit; font-size:12.5px; outline:0}
+  .pl-when input[type=time]:focus, .pl-when select:focus{border-color:var(--blue)}
+  .pl-acts .pl-when{flex:1 1 auto; justify-content:flex-end}
+  .pl-ex{display:flex; flex-wrap:wrap; align-items:center; gap:6px}
+  .pl-ex select{height:30px; padding:0 8px; border:1px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink); font:inherit; font-size:12.5px; outline:0}
+
+  /* 폰(한 줄): 화면마다 카드 순서를 --o 로 정합니다.
+       타이머 화면  타이머 → 오늘 할 일 → 오늘의 세션 → 랭킹 → 공부 잔디 → 달력
+       플래너 탭    할 일 → 선생님이 낸 과제 → 타임테이블 → 이번 주 돌아보기 → 반복 할 일 → 내보내기 */
+  @media (max-width:699px){
+    #timerView, #planView{gap:16px}
+    #timerView > section, #planView > section{display:contents}
+    #timerView > section > .card, #planView > section > .card{order:var(--o, 9); margin-top:0}
+    .pl-sum b{font-size:14px}
+    .pl-sum span{font-size:10.5px}
+  }
+  /* 휴대폰: 입력칸 글자가 16px 로 커지므로(아이폰 확대 방지) 칸 너비를 다시 맞춥니다 */
+  @media (max-width:620px){
+    .pl-add select{max-width:96px; padding:0 4px}
+    .pl-add button[type=submit]{padding:0 13px}
+    .pl-add input, .pl-add select, .pl-add button[type=submit], .pl-memo{height:42px}
+    .pl-goal{height:42px}
+    .pl-when input[type=time], .pl-when select, .pl-ex select{height:38px}
+    .pl-when .pl-tip{display:none}
+    .pl-acts .pl-when{flex:1 1 100%}
+    .pl-tt{grid-template-columns:24px repeat(6, 1fr)}
+    .pl-tt i, .pl-tt span{height:17px; line-height:17px}
+    .pl-sb{grid-template-columns:44px 1fr 70px}
+  }
+  /* 손가락으로 쓰는 기기(폰·태블릿): 보이는 크기는 조금만, 누르는 범위는 넉넉하게 */
+  @media (pointer:coarse){
+    .pl-list li{padding:11px 4px}
+    .pl-ck{width:26px; height:26px; border-radius:8px; font-size:13px}
+    .pl-ck::after{content:""; position:absolute; inset:-9px}
+    .pl-go{width:38px; height:38px; font-size:12px}
+    .pl-dots{width:38px; height:38px; font-size:19px}
+    .pl-mini{height:36px; padding:0 13px; font-size:12.5px}
+    .pl-mini.x{padding:0 11px}
+    .pl-more{height:34px; padding:0 12px}
+    .pl-nav .nav-btn{width:36px; height:36px}
+    .pl-day{padding:8px 8px}
+    .pl-dows button{height:38px; font-size:13px}
+    .plan-now button{padding:8px 4px; margin:-8px -4px}
+    button.pl-line{padding:12px 12px}
+  }
 </style>
 </head>
 <body>
@@ -2821,6 +2979,7 @@
 
   <nav class="main-tabs">
     <button data-view="timer" class="on">타이머</button>
+    <button data-view="plan">플래너</button>
     <button data-view="board">커뮤니티</button>
     <button data-view="lab">시뮬레이터</button>
     <button data-view="learn">시각화</button>
@@ -2861,6 +3020,7 @@
         </div>
 
         <div class="subj-row" id="subjRow"></div>
+        <div class="plan-now" id="planNow" hidden></div>
         <div class="break-row" id="breakRow"></div>
 
         <div class="controls">
@@ -3053,6 +3213,97 @@
     </section>
 
   </div><!-- /timerView -->
+
+  <!-- ================= 플래너 ================= -->
+  <div id="planParts" hidden>
+    <div class="card" id="plTodoCard">
+      <div class="pl-head">
+        <h2 class="card-title">오늘 할 일</h2><span class="pl-count" id="plCount"></span>
+        <button class="pl-more" id="plMore" type="button" title="다른 날 계획 · 타임테이블 · 이번 주 돌아보기">플래너 ›</button>
+      </div>
+      <div class="pl-bar"><i id="plBar"></i></div>
+      <input class="pl-goal" id="plGoal" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="오늘의 목표를 한 줄로 적어 보세요">
+      <ul class="pl-list" id="plList"></ul>
+      <form class="pl-add" id="plAdd">
+        <select id="plSubj" title="과목" aria-label="과목"></select>
+        <input id="plText" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="할 일 추가" aria-label="할 일">
+        <button type="submit">추가</button>
+      </form>
+      <div class="pl-line" id="plCarry" hidden></div>
+      <button class="pl-line" id="plAsLine" type="button" hidden></button>
+      <ul class="pl-as" id="plAs" hidden></ul>
+    </div>
+    <div id="plTlBox"><div class="pl-tl" id="plTl"></div><div class="pl-tlx" id="plTlx"></div></div>
+  </div>
+
+  <div class="layout" id="planView" hidden>
+    <section>
+      <div class="card lab-card" style="--o:1">
+        <div class="pl-head">
+          <h2 class="card-title">할 일</h2><span class="pl-count" id="ppCount"></span>
+          <div class="pl-nav">
+            <button class="nav-btn" id="ppPrev" type="button" title="전날" aria-label="전날">‹</button>
+            <button class="pl-day" id="ppDay" type="button" title="오늘로 돌아가기"></button>
+            <button class="nav-btn" id="ppNext" type="button" title="다음 날" aria-label="다음 날">›</button>
+          </div>
+        </div>
+        <div class="pl-bar"><i id="ppBar"></i></div>
+        <input class="pl-goal" id="ppGoal" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="이날의 목표를 한 줄로 적어 보세요">
+        <ul class="pl-list" id="ppList"></ul>
+        <form class="pl-add" id="ppAdd">
+          <select id="ppSubj" title="과목" aria-label="과목"></select>
+          <input id="ppText" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="할 일 추가" aria-label="할 일">
+          <button type="submit">추가</button>
+          <div class="pl-when"><span>시간 배정</span>
+            <input type="time" id="ppAt" step="600" title="시작 시각 (비워 두어도 돼요)" aria-label="시작 시각">
+            <select id="ppEst" title="걸릴 시간" aria-label="걸릴 시간"></select>
+            <span class="pl-tip">비워 두면 시간 없이 추가돼요</span></div>
+        </form>
+        <input class="pl-memo" id="plMemo" maxlength="60" autocomplete="off" enterkeyhint="done" placeholder="이날 돌아보기 한 줄 (잘한 점, 내일 고칠 점)">
+        <p class="pl-sync" id="plSync"></p>
+      </div>
+      <div class="card lab-card" id="ppAsCard" style="--o:2" hidden>
+        <h2 class="card-title">선생님이 낸 과제</h2>
+        <ul class="pl-as" id="ppAs"></ul>
+      </div>
+      <div class="card lab-card" style="--o:5">
+        <h2 class="card-title">반복 할 일</h2>
+        <p class="pl-hint">매주 같은 요일에 하는 일을 적어 두면 그날 할 일에 저절로 들어가요.</p>
+        <form class="pl-add" id="plRtAdd" style="margin-top:0">
+          <select id="plRtSubj" title="과목" aria-label="과목"></select>
+          <input id="plRtText" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="예) 영어 단어 30개" aria-label="반복할 일">
+          <button type="submit">추가</button>
+        </form>
+        <div class="pl-dows" id="plRtDows"></div>
+        <ul class="pl-as" id="plRt"></ul>
+      </div>
+    </section>
+    <section>
+      <div class="card lab-card" style="--o:3">
+        <h2 class="card-title">타임테이블</h2>
+        <p class="pl-hint">타이머로 공부한 시간이 과목 색으로 저절로 칠해져요. 한 칸은 10분이에요.</p>
+        <div class="pl-tt" id="plTt"></div>
+        <div class="pl-leg" id="plLeg"></div>
+      </div>
+      <div class="card lab-card" style="--o:4">
+        <h2 class="card-title">이번 주 돌아보기</h2>
+        <div id="plWeek"></div>
+      </div>
+      <div class="card lab-card" style="--o:6">
+        <h2 class="card-title">내보내기</h2>
+        <p class="pl-hint">적어 둔 내용을 엑셀에서 바로 열리는 파일(CSV)로 내려받아요.</p>
+        <div class="pl-ex" id="plEx">
+          <select id="plExRange" title="기간" aria-label="기간">
+            <option value="week">보고 있는 주</option><option value="month">보고 있는 달</option>
+            <option value="30">최근 30일</option><option value="all">전체</option>
+          </select>
+          <button class="pl-mini go" type="button" data-ex="todo">할 일</button>
+          <button class="pl-mini go" type="button" data-ex="tt">타임테이블</button>
+          <button class="pl-mini go" type="button" data-ex="day">하루 요약</button>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <!-- ================= 커뮤니티 ================= -->
   <section id="boardView" hidden>
@@ -3647,7 +3898,8 @@
       <ul>
         <li><b>로그인할 때</b> 학교 구글 계정에 등록된 이메일·이름·프로필 사진 주소를 받습니다.
             비밀번호는 구글이 관리하며 이 사이트는 알 수 없습니다.</li>
-        <li><b>직접 정한 것</b> 닉네임, 하루 목표 시간, 가입한 그룹, 랭킹에 적어 둔 한마디.</li>
+        <li><b>직접 정한 것</b> 닉네임, 하루 목표 시간, 가입한 그룹, 랭킹에 적어 둔 한마디,
+            플래너에 적은 목표·할 일·돌아보기.</li>
         <li><b>쓰면서 쌓이는 것</b> 공부한 시간·날짜·과목, 직접 올린 글·댓글·쪽지·채팅·사진·파일,
             과제 제출물과 점수·피드백.</li>
         <li><b>자동으로 남는 것</b> 접속·오류 기록(시각, 기기와 브라우저 종류).
@@ -3663,6 +3915,7 @@
       <h4>누가 볼 수 있나요</h4>
       <p>랭킹과 게시판에는 <b>닉네임만</b> 보입니다. 이메일과 이름은 다른 학생에게 보이지 않습니다.
          과제 제출물과 점수는 본인과 그 과제를 낸 선생님, 관리자만 봅니다.
+         플래너에 적은 내용과 타임테이블은 다른 학생에게 보이지 않고, 본인과 담당 선생님(관리자)만 봅니다.
          선생님(관리자)은 학교 운영과 안전을 위해 필요한 범위에서 기록을 확인할 수 있습니다.</p>
 
       <h4>비밀글·쪽지</h4>
@@ -4208,7 +4461,7 @@
 
     state.lastActive = t + clock.offset;   // 서버 시계 기준
     state.elapsed += d;
-    if (state.phase === "study"){ addStudy(d); addSubjectTime(d); rollSegment(d); }   // 휴식은 순공에 포함 안 함
+    if (state.phase === "study"){ addStudy(d); addSubjectTime(d); rollSegment(d); planAddTime(d); }   // 휴식은 순공에 포함 안 함
 
     // 한도에 닿았으면 여기서 확인을 띄우고 멈춥니다 (아래 목표 검사보다 먼저)
     if (hitLimit){ render(); openCheck(); return; }
@@ -5059,7 +5312,886 @@
     setInterval(renderClock, 1000);
   }
 
+  /* =====================================================================
+     플래너 (2026-11-20 · schema33) — 타이머 화면의 '오늘 할 일' 카드 + 플래너 탭(날짜별 할 일 · 과제 · 반복 · 타임테이블 · 이번 주 · 내보내기)
+
+       plan.days["2026-11-20"] = { goal, memo, gm(목표·돌아보기를 고친 시각), items:[…], del:[지운 id], rt:[넣은 반복 id], sv(서버 번호) }
+       할 일 하나 = { id, text, subj, done(0 안 함·1 완료·2 덜 함), sec, moved, at("19:00"), est(분), rt, as, m(고친 시각 ms) }
+       plan.routines = [{ id, text, subj, dows:[1,3,5] }]      plan.active = { day, id }  (타이머가 시간을 쌓아 주는 할 일 — 기기마다 따로)
+       plan.dirty = { 날짜: 1 }  아직 서버에 못 올린 날
+
+     저장하는 곳
+       · 기기: 로그인 안 했으면 sungong.planner.v1, 로그인했으면 sungong.planner.v1.<계정 id> (같은 기기를 여럿이 써도 섞이지 않게)
+       · 서버: 로그인하면 하루 단위로 올리고(plan_save_day) 받아 옵니다(plan_load).
+         폰과 PC 에서 같은 날을 따로 고쳐도 통째로 덮어쓰지 않고, 할 일 하나하나를 '나중에 고친 쪽'으로 합칩니다(planMergeDay).
+         지운 것은 del 에 id 를 남겨 다른 기기에서 되살아나지 않게 합니다.
+       · schema33.sql 을 아직 안 돌린 서버에서는 조용히 기기에만 저장합니다(planNoServer).
+     ===================================================================== */
+  const PKEY = "sungong.planner.v1";
+  const POWN = "sungong.planner.owner";            // 이 기기에서 마지막으로 플래너를 쓴 계정 (앱을 열자마자 그 사람 것을 보여 주려고)
+  const SUBJ_COLOR = { "국어":"#e0574b", "영어":"#f2a93b", "수학":"#3f7fd6", "과학":"#2c9468", "사회":"#8a63d2", "정보":"#17a2b8", "예체능":"#e57ab0", "기타":"#8292ab" };
+  const subjColor = (s)=> SUBJ_COLOR[s] || "#9fb0c8";
+  const P_DOW = "일월화수목금토";
+  const PLAN_MAX = 60;                             // 하루에 적을 수 있는 할 일
+  const PLAN_RT_MAX = 30;                          // 반복 할 일
+  const PLAN_DAY_RE = /^\d{4}-\d\d-\d\d$/, PLAN_ID_RE = /^[A-Za-z0-9_.:-]{1,60}$/;
+
+  const dOf = (k)=>{ const p = k.split("-").map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+  const addDays = (k, n)=>{ const d = dOf(k); d.setDate(d.getDate() + n); return keyOf(d); };
+  const dayGap = (a, b)=> Math.round((dOf(a) - dOf(b)) / 86400000);
+
+  function planRead(key){                          // 기기에 저장된 것을 읽습니다 (깨진 값이 있어도 앱이 멈추지 않게 모양을 맞춤)
+    const p = load(key), cut = addDays(keyOf(now()), -400);
+    p.days = p.days && typeof p.days === "object" ? p.days : {};
+    p.routines = Array.isArray(p.routines) ? p.routines.filter(r=> r && r.id && Array.isArray(r.dows)) : [];
+    p.active = p.active && p.active.day && p.active.id ? p.active : null;
+    p.dirty = p.dirty && typeof p.dirty === "object" ? p.dirty : {};
+    for (const k in p.days){
+      const d = p.days[k];
+      if (!d || typeof d !== "object" || !PLAN_DAY_RE.test(k) || k < cut){ delete p.days[k]; delete p.dirty[k]; continue; }   // 400일 넘은 것은 기기에서 정리
+      d.items = Array.isArray(d.items) ? d.items.filter(x=> x && typeof x === "object" && x.id) : [];
+    }
+    return p;
+  }
+  let planUid = null;                              // 지금 플래너의 주인 (null = 로그인 안 함)
+  try { planUid = store.getItem(POWN) || null; } catch(e){}
+  const planKey = ()=> planUid ? PKEY + "." + planUid : PKEY;
+  let plan = planRead(planKey());
+  let planDay = keyOf(now());                      // 플래너 탭에서 보고 있는 날 (타이머 화면의 카드는 늘 오늘)
+  let planToday = planDay;                         // 자정을 넘겼는지 알아보려고
+  let planOpen = null;                             // ⋯ 를 눌러 단추를 펼친 할 일
+  let planEdit = null;                             // '시간 정하기' 를 연 할 일
+  let planAsOpen = false;                          // 타이머 카드에서 과제 목록을 펼쳤는지
+  let planRtDows = [1, 2, 3, 4, 5];                // 반복 할 일을 새로 만들 때 고른 요일
+  let planSaveT = null;
+  const planSave = ()=>{ clearTimeout(planSaveT); planSaveT = null; try { store.setItem(planKey(), JSON.stringify(plan)); } catch(e){} };
+  const planSaveSoon = ()=>{ if (!planSaveT) planSaveT = setTimeout(planSave, 4000); };
+  const planMs = ()=> now().getTime();             // 서버 시계에 맞춘 '지금' — 기기끼리 누가 나중에 고쳤는지 견줄 때 씁니다
+  const planId = ()=> Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function planOf(k, make){
+    if (!plan.days[k] && make) plan.days[k] = { goal: "", memo: "", items: [] };
+    return plan.days[k] || { goal: "", memo: "", items: [] };
+  }
+  const planLive = (x)=> !x.moved;                  // 다른 날로 미룬 것은 그날 집계에서 뺍니다
+  function planDayLabel(k){
+    const d = dOf(k), gap = dayGap(k, keyOf(now()));
+    const word = gap === 0 ? "오늘" : gap === 1 ? "내일" : gap === -1 ? "어제" : "";
+    const md = (d.getFullYear() !== now().getFullYear() ? d.getFullYear() + "." : "") + (d.getMonth() + 1) + "." + d.getDate();   // 해가 다르면 연도도
+    return (word || md) + '<em>' + (word ? md + " " : "") + "(" + P_DOW[d.getDay()] + ')</em>';
+  }
+  // 글자 수(이모지도 한 글자)로 자르고, 서버가 못 받는 글자(깨진 이모지 반쪽 · 제어 문자)는 뺍니다
+  function planClip(s, n){
+    const out = [];
+    for (const ch of String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim()){
+      if (ch.length === 1 && ch >= "\uD800" && ch <= "\uDFFF") continue;
+      out.push(ch);
+      if (out.length >= n) break;
+    }
+    return out.join("").trim();
+  }
+
+  // 시간 배정: it.at = "19:00"(시작 시각, 없으면 "") · it.est = 걸릴 시간(분, 없으면 0)
+  const PLAN_EST = [30, 60, 90, 120, 180];
+  const planEstOpts = (v)=> '<option value="0">걸릴 시간</option>' + PLAN_EST.map(m=> '<option value="' + m + '"' + (Number(v) === m ? " selected" : "") + '>' + humanKo(m * 60) + '</option>').join("");
+  const planAtOk = (s)=> /^([01]\d|2[0-3]):[0-5]\d$/.test(s || "");
+  const hmMin = (s)=> planAtOk(s) ? Number(s.slice(0, 2)) * 60 + Number(s.slice(3)) : -1;
+  const minHm = (n)=> pad(Math.floor(n / 60) % 24) + ":" + pad(n % 60);
+  function planWhen(it){                            // "19:00~20:00" · "19:00부터" · "1시간 예정"
+    const a = hmMin(it.at), est = Number(it.est) || 0;
+    if (a >= 0) return est ? it.at + "~" + minHm(a + est) : it.at + "부터";
+    return est ? humanKo(est * 60) + " 예정" : "";
+  }
+  // 시각을 정한 것은 시각 순으로 위에, 나머지는 적은 순서대로 아래에 (화면과 내보내기가 같은 순서를 씁니다)
+  const planSorted = (items)=> items.map((x, i)=> [x, i]).sort((p, q)=>{
+    const a = hmMin(p[0].at), b = hmMin(q[0].at);
+    return (a < 0 ? 1e6 + p[1] : a) - (b < 0 ? 1e6 + q[1] : b);
+  }).map(p=> p[0]);
+
+  /* ---------- 서버와 맞추기 ---------- */
+  let planNoServer = false;                        // 서버에 플래너 함수가 없음(schema33 실행 전) → 기기에만 저장
+  let planHard = false;                            // 직접 고친 것이 있음 → 곧 올립니다 (타이머가 쌓는 시간만 바뀐 것은 2분에 한 번)
+  let planFlushT = null, planPushAt = 0, planPullAt = 0, planHoldUntil = 0, planErrTold = false;
+  let planLo = null, planHi = null;                // 서버에서 받아 둔 날짜 범위
+  let planPulled = false;                          // 이 계정 것을 서버에서 한 번이라도 받아 왔는지
+  const planN = {};                                // 날짜마다 고친 횟수 — 올리는 사이에 또 고쳤는지 알아보려고
+  const planCan = ()=> !!(sb && me && me.id && me.nickname && planUid === me.id && !planNoServer);
+  const planMissing = (e)=> /PGRST202|could not find the function|does not exist|schema cache/i.test(String((e && e.message) || "") + " " + String((e && e.code) || ""));
+  const planHasDirty = ()=> !!plan.rtDirty || Object.keys(plan.dirty).length > 0;
+  const planEmpty = (d)=> !d || (!(d.goal || "").trim() && !(d.memo || "").trim() && !(d.items || []).length && !(d.del || []).length && !(d.rt || []).length);
+
+  // 서버로 보내는 모양 (= 서버가 다듬어서 돌려주는 모양과 똑같아야, 받은 것과 견줘 '같다'를 알 수 있습니다)
+  function planItemOut(x){
+    const o = { id: String(x.id), text: planClip(x.text, 60), subj: SUBJECTS.indexOf(x.subj) >= 0 ? x.subj : "",
+                done: x.done === 1 ? 1 : x.done === 2 ? 2 : 0,
+                sec: Math.min(86400, Math.max(0, Math.floor(Number(x.sec) || 0))),
+                at: planAtOk(x.at) ? x.at : "",
+                est: Math.min(600, Math.max(0, Math.floor(Number(x.est) || 0))),
+                m: Math.min(1e15 - 1, Math.max(0, Math.floor(Number(x.m) || 0))) };
+    if (x.moved) o.moved = true;
+    if (typeof x.rt === "string" && /^[A-Za-z0-9_.:-]{1,30}$/.test(x.rt)) o.rt = x.rt;
+    if (x.as != null && /^\d{1,15}$/.test(String(x.as))) o.as = Number(x.as);
+    return o;
+  }
+  const planIds = (a, n)=> (Array.isArray(a) ? a : []).filter(v=> typeof v === "string" && PLAN_ID_RE.test(v)).slice(-n);
+  function planDayOut(d){
+    return { goal: planClip(d.goal, 40), memo: planClip(d.memo, 60), gm: Math.max(0, Math.floor(Number(d.gm) || 0)),
+             items: (d.items || []).filter(x=> x && PLAN_ID_RE.test(String(x.id)) && planClip(x.text, 60)).slice(0, 80).map(planItemOut),
+             del: planIds(d.del, 100), rt: planIds(d.rt, 40) };
+  }
+  const planRtOut = (r)=> ({ id: String(r.id), text: planClip(r.text, 40), subj: SUBJECTS.indexOf(r.subj) >= 0 ? r.subj : "",
+                             dows: [0, 1, 2, 3, 4, 5, 6].filter(d=> (r.dows || []).indexOf(d) >= 0) });
+  const planSame = (a, b)=> JSON.stringify(a) === JSON.stringify(b);
+
+  // 같은 날의 두 벌(a = 이 기기, b = 서버나 다른 탭)을 합칩니다.
+  //   · 지운 것(del)은 어느 쪽에 있든 지웁니다  · 양쪽에 다 있는 할 일은 나중에 고친 쪽(m) · 쌓인 시간은 큰 쪽
+  //   · 순서는 b 것 먼저, a 에만 있는 것(새로 적은 것)은 뒤에  · 목표·돌아보기는 나중에 고친 쪽(gm)
+  function planMergeDay(a, b){
+    a = a || {}; b = b || {};
+    const del = Array.from(new Set(planIds(b.del, 100).concat(planIds(a.del, 100)))).slice(-100), dead = new Set(del);
+    const mine = {}; (a.items || []).forEach(x=>{ if (x && x.id) mine[x.id] = x; });
+    const seen = new Set(), items = [];
+    (b.items || []).forEach(y=>{
+      if (!y || !y.id || dead.has(y.id) || seen.has(y.id)) return;
+      seen.add(y.id);
+      const x = mine[y.id], w = Object.assign({}, x && (Number(x.m) || 0) >= (Number(y.m) || 0) ? x : y);
+      if (x) w.sec = Math.max(Number(x.sec) || 0, Number(y.sec) || 0);
+      items.push(w);
+    });
+    (a.items || []).forEach(x=>{ if (x && x.id && !dead.has(x.id) && !seen.has(x.id)){ seen.add(x.id); items.push(x); } });
+    const useA = (Number(a.gm) || 0) >= (Number(b.gm) || 0);
+    return { goal: (useA ? a.goal : b.goal) || "", memo: (useA ? a.memo : b.memo) || "", gm: Math.max(Number(a.gm) || 0, Number(b.gm) || 0),
+             items: items, del: del, rt: Array.from(new Set(planIds(b.rt, 40).concat(planIds(a.rt, 40)))).slice(-40) };
+  }
+
+  // k 날을 고쳤을 때 부릅니다. soft = 타이머가 쌓는 시간처럼 자주 바뀌는 것(서버에는 천천히 올림)
+  function planTouch(k, soft){
+    planN[k] = (planN[k] || 0) + 1;
+    if (Math.abs(dayGap(k, keyOf(now()))) <= 390) plan.dirty[k] = 1;      // 서버는 앞뒤 400일까지만 받습니다
+    if (soft){ planSaveSoon(); return; }
+    planSave(); planHard = true; planFlushSoon(2500);
+  }
+  function planTouchRt(){ plan.rtm = planMs(); plan.rtDirty = true; planSave(); planHard = true; planFlushSoon(2500); }
+
+  // 서버 요청은 한 번에 하나씩 차례로 (받는 것과 올리는 것이 엇갈리지 않게)
+  let planQ = Promise.resolve();
+  const planRun = (fn)=> (planQ = planQ.then(fn).catch(()=>{}));
+  const planFlush = ()=> planRun(planFlushNow);
+  function planFlushSoon(ms){ clearTimeout(planFlushT); planFlushT = setTimeout(planFlush, ms || 2500); }
+
+  function planSyncNote(){
+    const el = $("plSync"); if (!el) return;
+    el.textContent = !sb || !me || !me.nickname
+      ? "로그인하지 않으면 이 기기에만 저장돼요. 로그인하면 폰과 PC 어디서나 이어서 볼 수 있어요."
+      : planNoServer ? "지금은 이 기기에만 저장되고 있어요."
+      : "자동으로 저장돼서 다른 기기에서도 보여요. 플래너는 다른 학생에게 보이지 않고, 담당 선생님은 확인할 수 있어요.";
+  }
+
+  // 서버 오류 처리: true 를 돌려주면 이번 차례는 그만둡니다
+  function planFail(error, what){
+    if (planMissing(error)){ planNoServer = true; planSyncNote(); return true; }
+    if (isNetErr(error)) return true;                                  // 인터넷 문제 — 다음 차례에 다시
+    planHoldUntil = Date.now() + 300000;                               // 서버가 거절 — 5분 쉬었다가 다시 (계속 두드리지 않게)
+    if (!planErrTold){ planErrTold = true; logErrorQuiet("플래너 저장", String(error.message || error) + " · " + what); }
+    return true;
+  }
+
+  // 서버 것을 받아 기기 것과 합칩니다
+  async function planPull(lo, hi){
+    if (!planCan()) return false;
+    const uid = planUid;
+    const r = await sb.rpc("plan_load", { p_from: lo, p_to: hi });
+    if (r.error){ if (planMissing(r.error)){ planNoServer = true; planSyncNote(); } return false; }
+    const data = r.data;
+    if (uid !== planUid || !data || !Array.isArray(data.days)) return false;      // 그 사이 계정이 바뀌었으면 버립니다
+    const got = {};
+    data.days.forEach(s=>{
+      if (!s || !PLAN_DAY_RE.test(s.day)) return;
+      got[s.day] = 1;
+      const loc = plan.days[s.day];
+      if (loc && loc.sv === s.ver && !plan.dirty[s.day]) return;                  // 이미 같은 것
+      const mg = planMergeDay(loc, s);
+      mg.sv = s.ver;
+      plan.days[s.day] = mg;
+      planN[s.day] = (planN[s.day] || 0) + 1;
+      if (planSame(planDayOut(mg), planDayOut(s))) delete plan.dirty[s.day]; else plan.dirty[s.day] = 1;
+    });
+    for (const k in plan.days){                    // 기기에만 있고 서버에 없는 날 = 아직 못 올린 것
+      if (k < lo || k > hi || got[k]) continue;
+      const d = plan.days[k];
+      delete d.sv;
+      if (!planEmpty(d) && Math.abs(dayGap(k, keyOf(now()))) <= 390) plan.dirty[k] = 1;
+    }
+    // 반복 할 일: 통째로, 나중에 고친 쪽
+    const sver = Number(data.rver) || 0, srtm = Number(data.rtm) || 0;
+    if (!sver){ plan.rtv = 0; if (plan.routines.length){ plan.rtDirty = true; if (!plan.rtm) plan.rtm = planMs(); } }
+    else if (plan.rtDirty && (plan.rtm || 0) > srtm) plan.rtv = sver;
+    else if (plan.rtv !== sver || plan.rtDirty){
+      plan.routines = Array.isArray(data.routines) ? data.routines.filter(x=> x && x.id && Array.isArray(x.dows)) : [];
+      plan.rtm = srtm; plan.rtv = sver; plan.rtDirty = false;
+    }
+    if (plan.rtAdd && plan.rtAdd.length){          // 로그인 전에 적어 둔 반복 할 일을 보탭니다
+      const have = new Set(plan.routines.map(x=> x.id));
+      plan.rtAdd.forEach(x=>{ if (!have.has(x.id) && plan.routines.length < PLAN_RT_MAX){ plan.routines.push(x); plan.rtDirty = true; } });
+      if (plan.rtDirty) plan.rtm = planMs();
+    }
+    plan.rtAdd = [];
+    planPulled = true; planPullAt = Date.now();
+    if (!planLo || (lo <= planHi && hi >= planLo)){                               // 이어진 범위만 '받아 둔 범위'로 칩니다
+      planLo = planLo && planLo < lo ? planLo : lo;
+      planHi = planHi && planHi > hi ? planHi : hi;
+    }
+    planSave(); planRender(); renderPlanNow();
+    return true;
+  }
+
+  // 못 올린 것을 서버에 올립니다
+  async function planFlushNow(){
+    if (!planCan() || !planHasDirty() || Date.now() < planHoldUntil) return;
+    const uid = planUid, today = keyOf(now());
+    let changed = false;
+    planHard = false; planPushAt = Date.now();
+    const keys = Object.keys(plan.dirty).sort();
+    for (let i = 0; i < keys.length; i++){
+      const k = keys[i];
+      if (!PLAN_DAY_RE.test(k) || Math.abs(dayGap(k, today)) > 395){ delete plan.dirty[k]; continue; }
+      for (let tries = 0; tries < 3; tries++){
+        const d = plan.days[k];
+        if (!d){ delete plan.dirty[k]; break; }
+        const n = planN[k] || 0, out = planDayOut(d);
+        const r = await sb.rpc("plan_save_day", { p_day: k, p_ver: d.sv || 0, p_goal: out.goal, p_memo: out.memo, p_gm: out.gm,
+                                                  p_items: out.items, p_del: out.del, p_rt: out.rt });
+        if (uid !== planUid) return;
+        if (r.error){ planFail(r.error, k); planSave(); if (changed){ planRender(); renderPlanNow(); } return; }
+        const cur = plan.days[k], res = r.data;
+        if (res && res.ok){
+          if (cur) cur.sv = res.ver;
+          if ((planN[k] || 0) === n) delete plan.dirty[k];
+          break;
+        }
+        if (res && res.day){                       // 다른 기기에서 먼저 고쳤음 → 합쳐서 다시 올립니다
+          const mg = planMergeDay(cur, res.day);
+          mg.sv = res.day.ver;
+          plan.days[k] = mg; planN[k] = (planN[k] || 0) + 1; changed = true;
+          if (planSame(planDayOut(mg), planDayOut(res.day))){ delete plan.dirty[k]; break; }
+          continue;
+        }
+        break;
+      }
+    }
+    if (plan.rtDirty){
+      for (let tries = 0; tries < 2; tries++){
+        const rtm = plan.rtm || 0;
+        const r = await sb.rpc("plan_save_routines", { p_ver: plan.rtv || 0, p_routines: plan.routines.slice(0, PLAN_RT_MAX).map(planRtOut), p_rtm: rtm });
+        if (uid !== planUid) return;
+        if (r.error){ planFail(r.error, "반복 할 일"); break; }
+        const res = r.data;
+        if (res && res.ok){ plan.rtv = res.ver; if ((plan.rtm || 0) === rtm) plan.rtDirty = false; break; }
+        if (res && res.ver){                       // 다른 기기에서 먼저 고쳤음 → 나중에 고친 쪽으로
+          if (rtm > (Number(res.rtm) || 0)){ plan.rtv = res.ver; continue; }
+          plan.routines = Array.isArray(res.routines) ? res.routines.filter(x=> x && x.id && Array.isArray(x.dows)) : [];
+          plan.rtm = Number(res.rtm) || 0; plan.rtv = res.ver; plan.rtDirty = false; changed = true;
+        }
+        break;
+      }
+    }
+    planSave();
+    if (changed){ planRender(); renderPlanNow(); }
+  }
+
+  // 로그인 · 로그아웃 · 계정 바뀜 — 플래너의 주인을 바꿉니다
+  function planOwner(uid){
+    uid = uid || null;
+    if (uid === planUid) return;
+    const wasGuest = !planUid, old = plan, oldKey = planKey();
+    planSave();
+    // 떠나는 계정의 것이 서버에 다 올라가 있으면 기기에서는 지웁니다 (같이 쓰는 PC 에 남지 않게). 못 올린 것이 있으면 남겨 둡니다.
+    if (!wasGuest && planPulled && !planNoServer && !Object.keys(old.dirty).length && !old.rtDirty){ try { store.removeItem(oldKey); } catch(e){} }
+    planUid = uid;
+    try { if (uid) store.setItem(POWN, uid); else store.removeItem(POWN); } catch(e){}
+    const next = planRead(planKey());
+    if (uid){                                      // 로그인 전에 적어 둔 것이 있으면 이 계정으로 가져옵니다
+      const g = wasGuest ? old : planRead(PKEY);
+      for (const k in g.days){
+        const d = g.days[k]; if (planEmpty(d)) continue;
+        const cur = next.days[k], mg = planMergeDay(cur, d);
+        if (cur && cur.sv) mg.sv = cur.sv;
+        next.days[k] = mg; next.dirty[k] = 1;
+      }
+      if (g.routines.length){
+        const have = new Set(next.routines.map(r=> r.id));
+        next.rtAdd = (next.rtAdd || []).concat(g.routines.filter(r=> !have.has(r.id)));
+        next.rtAdd.forEach(r=>{ if (!have.has(r.id)){ have.add(r.id); next.routines.push(r); } });
+      }
+      try { store.removeItem(PKEY); } catch(e){}
+    }
+    plan = next;
+    for (const k in planN) delete planN[k];
+    planLo = planHi = null; planPulled = false; planPullAt = 0; planHoldUntil = 0; planErrTold = false;
+    planOpen = planEdit = null; planAs = null; planAsAt = 0;
+    planDay = planToday = keyOf(now());
+    planSave(); planRender(); renderPlanNow(); planSyncNote();
+  }
+  function planAfterLogin(){
+    planNoServer = false;
+    planSyncNote();
+    const t = keyOf(now());
+    planRun(()=> planPull(addDays(t, -120), addDays(t, 120))).then(planFlush);
+  }
+  async function planBeforeLogout(){
+    planSave();
+    if (!planCan() || !planHasDirty()) return;
+    await Promise.race([planFlush(), new Promise(res=> setTimeout(res, 3000))]);
+  }
+  // 다른 화면에 갔다 왔을 때: 날짜가 바뀌었으면 '오늘'을 새로, 1분이 넘었으면 서버 것을 다시 받습니다
+  function planResume(){
+    const t = keyOf(now());
+    if (t !== planToday){ if (planDay === planToday) planDay = t; planToday = t; planOpen = planEdit = null; planRender(); renderPlanNow(); }
+    if (planCan() && Date.now() - planPullAt > 60000){
+      planPullAt = Date.now();
+      planRun(()=> planPull(addDays(t, -14), addDays(t, 14))).then(planFlush);
+    }
+  }
+  // 보려는 날이 받아 둔 범위 밖이면 그쪽을 더 받아 옵니다
+  function planEnsure(k){
+    if (!planCan() || !planLo || (k >= planLo && k <= planHi)) return;
+    const lo = k < planLo ? addDays(k, -60) : planHi, hi = k < planLo ? planLo : addDays(k, 60);
+    planRun(()=> planPull(lo, hi));
+  }
+
+  // 타임테이블에 쓸 세션 기록을 서버에서 받아 기기 것과 합칩니다 (다른 기기에서 공부한 것도 보이게). 바뀐 것이 있으면 true
+  async function planPullSessions(lo, hi){
+    if (!sb || !me || !me.nickname) return false;
+    const uid = me.id, by = {};
+    for (let page = 0; page < 6; page++){
+      const r = await sb.from("sessions").select("day, started_at, ended_at, seconds, target_seconds, subject")
+        .gte("day", lo).lte("day", hi).order("started_at").range(page * 1000, page * 1000 + 999);
+      if (r.error || !Array.isArray(r.data)) return false;
+      r.data.forEach(x=>{ if (!x || !PLAN_DAY_RE.test(x.day)) return;
+        (by[x.day] = by[x.day] || []).push({ start: x.started_at, end: x.ended_at, sec: x.seconds, target: x.target_seconds, subject: x.subject || null }); });
+      if (r.data.length < 1000) break;
+    }
+    if (!me || me.id !== uid) return false;
+    let changed = false;
+    for (const k in by){
+      const have = new Set(by[k].map(x=> new Date(x.start).getTime()));
+      const mine = (sessions[k] || []).filter(x=> !have.has(new Date(x.start).getTime()));     // 아직 못 올린 것은 남깁니다
+      const all = by[k].concat(mine).sort((a, b)=> new Date(a.start) - new Date(b.start));
+      if ((sessions[k] || []).length !== all.length || (sessions[k] || []).some((x, i)=> (x.subject || null) !== (all[i].subject || null) || x.sec !== all[i].sec)){
+        sessions[k] = all; changed = true;
+      }
+    }
+    if (changed){ sessionsDirty = true; saveSoon(); }
+    return changed;
+  }
+  const planWeekGot = {};
+  function planNeedWeek(){                         // 보고 있는 주의 세션을 한 번 받아 둡니다 (5분 동안은 다시 안 받음)
+    if (!sb || !me || !me.nickname) return;
+    const mon = addDays(planDay, -((dOf(planDay).getDay() + 6) % 7));
+    if (mon > keyOf(now())) return;
+    const key = me.id + mon;
+    if (planWeekGot[key] && Date.now() - planWeekGot[key] < 300000) return;
+    planWeekGot[key] = Date.now();
+    planPullSessions(mon, addDays(mon, 6)).then(ch=>{
+      if (!ch) return;
+      if (!$("planView").hidden){ planRenderTt(); planRenderWeek(); }
+      if (!$("timerView").hidden) planRenderTl();
+    }, ()=>{});
+  }
+
+  // ---------- CSV 내보내기 — 엑셀에서 바로 열리게 (UTF-8 표시 + 줄바꿈 CRLF), 날짜·시각·분은 칸을 따로 ----------
+  //   엑셀이 수식으로 읽는 글자(= + - @)로 시작하는 칸은 앞에 ' 를 붙여 글자로 읽히게 합니다
+  const csvCell = (v)=>{ let s = v == null ? "" : String(v); if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const planCsv = (head, rows)=> "﻿" + [head].concat(rows).map(r=> r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+  function planDownload(name, text){
+    const a = document.createElement("a"), url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 10000);
+  }
+  function planRange(kind){                         // [첫날, 끝날]
+    const today = keyOf(now()), d = dOf(planDay);
+    if (kind === "week"){ const mon = addDays(planDay, -((d.getDay() + 6) % 7)); return [mon, addDays(mon, 6)]; }
+    if (kind === "month") return [keyOf(new Date(d.getFullYear(), d.getMonth(), 1)), keyOf(new Date(d.getFullYear(), d.getMonth() + 1, 0))];
+    if (kind === "30") return [addDays(today, -29), today];
+    let lo = today, hi = today;                     // 전체: 적은 것·공부한 것 중 가장 이른 날부터
+    const floor = addDays(today, -400);
+    [plan.days, sessions, records].forEach(o=>{ for (const k in o) if (PLAN_DAY_RE.test(k) && k < lo && k >= floor) lo = k; });
+    for (const k in plan.days) if (PLAN_DAY_RE.test(k) && k > hi && !planEmpty(plan.days[k])) hi = k;
+    return [lo, hi];
+  }
+  const planStatus = (it, k, today)=> it.moved ? "미룸" : it.done === 1 ? "완료" : it.done === 2 ? "덜 함" : (k >= today ? "예정" : "안 함");
+  const planHm = (iso)=>{ const x = new Date(iso); return pad(x.getHours()) + ":" + pad(x.getMinutes()); };
+  let planExBusy = false;
+  async function planExport(what){
+    if (planExBusy) return;
+    planExBusy = true;
+    try {
+      const kind = $("plExRange").value, today = keyOf(now());
+      if (sb && me && me.nickname){                 // 로그인했으면 다른 기기에서 적은 것·공부한 것까지 받아서
+        const lo = kind === "all" ? addDays(today, -400) : planRange(kind)[0], hi = kind === "all" ? addDays(today, 400) : planRange(kind)[1];
+        if (planCan() && !(planLo && lo >= planLo && hi <= planHi)) await planRun(()=> planPull(lo, hi));
+        if (what === "tt") await planPullSessions(lo, hi < today ? hi : today);
+      }
+      const r = planRange(kind), rows = [];
+      let head, label;
+      for (let k = r[0], n = 0; k <= r[1] && n < 900; k = addDays(k, 1), n++){
+        const p = planOf(k), dow = P_DOW[dOf(k).getDay()], ss = sessions[k] || [];
+        if (what === "todo"){
+          label = "할일"; head = ["날짜", "요일", "과목", "할 일", "상태", "계획 시작", "계획 끝", "예상 시간(분)", "실제 공부(분)"];
+          planSorted(p.items).forEach(it=>{
+            const a = hmMin(it.at), est = Number(it.est) || 0;
+            rows.push([k, dow, it.subj || "", String(it.text || ""), planStatus(it, k, today), a >= 0 ? it.at : "", a >= 0 && est ? minHm(a + est) : "",
+                       est || "", Math.round((Number(it.sec) || 0) / 60)]);
+          });
+        } else if (what === "tt"){
+          label = "타임테이블"; head = ["날짜", "요일", "시작", "끝", "과목", "공부 시간(분)", "방식"];
+          ss.slice().sort((x, y)=> new Date(x.start) - new Date(y.start)).forEach(x=>{
+            const en = x.end ? new Date(x.end) : new Date(new Date(x.start).getTime() + x.sec * 1000);
+            rows.push([k, dow, planHm(x.start), planHm(en), x.subject || "", Math.round(x.sec / 60), x.target ? Math.round(x.target / 60) + "분 포모도로" : "순공"]);
+          });
+        } else {
+          label = "하루요약"; head = ["날짜", "요일", "오늘의 목표", "할 일 수", "완료", "덜 함", "달성률(%)", "공부 시간(분)", "돌아보기"];
+          const live = p.items.filter(planLive), ok = live.filter(x=> x.done === 1).length, sec = records[k] || 0;
+          if (live.length || p.goal || p.memo || sec >= 60)
+            rows.push([k, dow, String(p.goal || ""), live.length, ok, live.filter(x=> x.done === 2).length, live.length ? Math.round(ok / live.length * 100) : "", Math.round(sec / 60), String(p.memo || "")]);
+        }
+      }
+      if (!rows.length){ toast("이 기간에는 내보낼 내용이 없어요."); return; }
+      planDownload("플래너_" + label + "_" + r[0] + "~" + r[1] + ".csv", planCsv(head, rows));
+      toast(rows.length + "줄을 내려받았어요.");
+    } catch(e){ toast("내보내지 못했어요. 잠시 뒤에 다시 해 주세요."); }
+    finally { planExBusy = false; }
+  }
+
+  // 반복 할 일: 그 요일의 날을 처음 볼 때 한 번 넣습니다.
+  //   id 를 '반복 id + 날짜'로 정해 두어, 폰과 PC 가 따로 넣어도 한 줄로 합쳐집니다. 지운 것은 다시 넣지 않습니다(rt · del).
+  //   오늘부터 일주일 뒤까지만 넣습니다 — 먼 날짜를 넘겨 보기만 해도 날마다 줄이 생기지 않게.
+  function planRoutines(k){
+    const gap = dayGap(k, keyOf(now()));
+    if (gap < 0 || gap > 7 || !plan.routines.length) return;
+    const dow = dOf(k).getDay();
+    let added = false;
+    plan.routines.forEach(r=>{
+      if (!r || !r.id || !Array.isArray(r.dows) || r.dows.indexOf(dow) < 0) return;
+      const id = "r_" + r.id + "_" + k, cur = plan.days[k];
+      if (cur && ((cur.rt || []).indexOf(r.id) >= 0 || (cur.del || []).indexOf(id) >= 0 || cur.items.some(x=> x.id === id))) return;
+      const d = planOf(k, true);
+      if (d.items.length >= PLAN_MAX) return;
+      (d.rt = d.rt || []).push(r.id);
+      d.items.push({ id: id, text: r.text, subj: r.subj || "", done: 0, sec: 0, at: "", est: 0, rt: r.id, m: 0 });   // m:0 — 저절로 넣은 것은 '가장 옛것'으로 (다른 기기에서 고친 것을 덮지 않게)
+      added = true;
+    });
+    if (added) planTouch(k, true);
+  }
+
+  // 그날 공부한 구간 [{ s, e (자정부터 몇 분), subj, sec }] — 끝낸 세션 + 지금 돌아가는 조각
+  function planSegs(k){
+    const base = dOf(k).getTime(), out = [];
+    (sessions[k] || []).forEach(x=>{
+      const s = (new Date(x.start).getTime() - base) / 60000;
+      if (!(s > -1440 && s < 1440)) return;
+      const e = x.end ? (new Date(x.end).getTime() - base) / 60000 : s + x.sec / 60;
+      out.push({ s: Math.max(0, s), e: Math.min(1440, Math.max(e, s + 1)), subj: x.subject || "", sec: x.sec });
+    });
+    if (k === keyOf(now()) && segStart && segSec >= 5 && keyOf(segStart) === k)
+      out.push({ s: (segStart.getTime() - base) / 60000, e: (now().getTime() - base) / 60000, subj: subject || "", sec: Math.floor(segSec) });
+    return out;
+  }
+
+  // 보이는 화면만 다시 그립니다
+  function planRender(){
+    const today = keyOf(now());
+    if (!$("timerView").hidden){ planRoutines(today); planRenderDay(today, "pl"); planRenderCarry(); planRenderTl(); }
+    if (!$("planView").hidden){
+      planRoutines(planDay);
+      $("ppDay").innerHTML = planDayLabel(planDay);
+      planRenderDay(planDay, "pp");
+      if (document.activeElement !== $("plMemo")) $("plMemo").value = planOf(planDay).memo || "";
+      planRenderTt(); planRenderWeek(); planRenderRt(); planSyncNote();
+      planNeedWeek();
+    }
+    planLoadAs();
+  }
+
+  // 하루치 할 일 한 벌 — pre = "pl"(타이머 화면, 오늘) 또는 "pp"(플래너 탭, 고른 날)
+  function planRenderDay(k, pre){
+    const today = keyOf(now()), day = planOf(k), items = day.items;
+    const live = items.filter(planLive), done = live.filter(x=> x.done === 1).length;
+    const pct = live.length ? Math.round(done / live.length * 100) : 0;
+    $(pre + "Bar").style.width = pct + "%";
+    $(pre + "Bar").classList.toggle("done", live.length > 0 && pct >= 100);
+    $(pre + "Count").textContent = live.length ? done + "/" + live.length : "";
+    if (document.activeElement !== $(pre + "Goal")) $(pre + "Goal").value = day.goal || "";
+    const act = plan.active && plan.active.day === k ? plan.active.id : null;
+    const list = $(pre + "List");
+    if (planEdit && list.contains(document.activeElement) && /^(INPUT|SELECT)$/.test(document.activeElement.tagName)) return;   // 시간을 고르는 중에는 목록을 건드리지 않습니다
+    list.innerHTML = items.length ? planSorted(items).map(it=>{
+      const sub = [], when = planWhen(it), sec = Number(it.sec) || 0;
+      if (when) sub.push('<b>' + esc(when) + '</b>');
+      if (it.subj) sub.push('<i style="--c:' + subjColor(it.subj) + '"></i>' + esc(it.subj));
+      if (sec >= 60) sub.push(humanKo(sec) + (it.est ? " 함" : ""));
+      if (it.moved) sub.push("미룸"); else if (it.done === 2) sub.push("덜 함"); else if (act === it.id) sub.push("진행 중");
+      const canGo = !it.moved && it.done !== 1 && k === today;
+      const editing = planEdit === it.id && planOpen === it.id;
+      return '<li class="d' + (it.done === 1 ? 1 : it.done === 2 ? 2 : 0) + (it.moved ? " mv" : "") + (act === it.id ? " on" : "") + (planOpen === it.id ? " open" : "") + '" data-id="' + esc(it.id) + '">'
+        + '<button class="pl-ck" data-act="ck" type="button" title="누를 때마다: 안 함 → 완료 → 덜 함" aria-label="' + (it.done === 1 ? "완료" : it.done === 2 ? "덜 함" : "안 함") + '">' + (it.done === 1 ? "✔" : it.done === 2 ? "△" : "") + '</button>'
+        + '<div class="pl-tx"><span>' + esc(it.text) + '</span>' + (sub.length ? '<small>' + sub.join(" · ") + '</small>' : '') + '</div>'
+        + (canGo ? '<button class="pl-go" data-act="go" type="button" title="이 할 일로 타이머를 시작해요" aria-label="이 할 일로 타이머 시작">▶</button>' : '')
+        + '<button class="pl-dots" data-act="more" type="button" title="시간 정하기 · 미루기 · 지우기" aria-label="더 보기">⋯</button>'
+        + '<div class="pl-acts">'
+        + (editing
+            ? '<div class="pl-when"><input type="time" step="600" class="pl-e-at" value="' + esc(planAtOk(it.at) ? it.at : "") + '" title="시작 시각" aria-label="시작 시각"><select class="pl-e-est" title="걸릴 시간" aria-label="걸릴 시간">' + planEstOpts(it.est) + '</select>'
+              + '<button class="pl-mini go" data-act="tmok" type="button">저장</button><button class="pl-mini" data-act="tmno" type="button">취소</button></div>'
+            : (!it.moved ? '<button class="pl-mini" data-act="tm" type="button">' + (when ? "시간 바꾸기" : "시간 정하기") + '</button>' : '')
+              + (!it.moved && it.done !== 1 ? '<button class="pl-mini" data-act="mv" type="button">' + (k < today ? "오늘로 옮기기" : "내일로 미루기") + '</button>' : '')
+              + '<button class="pl-mini" data-act="del" type="button">지우기</button>')
+        + '</div></li>';
+    }).join("") : '<li class="none">' + (k === today ? "오늘 할 일을 적어 보세요." : "이날 적은 할 일이 없어요.") + '</li>';
+  }
+  function planListClick(e, k){
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const li = b.closest("li"), day = planOf(k), it = li ? day.items.find(x=> String(x.id) === li.dataset.id) : null;
+    if (!it){ planOpen = planEdit = null; planRender(); return; }          // 그 사이 다른 기기에서 지워진 줄
+    const act = b.dataset.act;
+    if (act === "more"){ planOpen = planOpen === it.id ? null : it.id; planEdit = null; planRender(); return; }
+    if (act === "go"){ planStart(it, k); return; }
+    if (act === "tm"){ planEdit = it.id; planRender(); return; }
+    if (act === "tmno"){ planEdit = null; planRender(); return; }
+    if (act === "tmok"){
+      const at = li.querySelector(".pl-e-at").value || "";
+      it.at = planAtOk(at) ? at : "";
+      it.est = Number(li.querySelector(".pl-e-est").value) || 0;
+      it.m = planMs();
+      planEdit = null; planOpen = null; planTouch(k); planRender(); return;
+    }
+    if (act === "ck"){
+      if (it.moved) return;
+      it.done = ((it.done === 1 ? 1 : it.done === 2 ? 2 : 0) + 1) % 3;
+      it.m = planMs();
+      if (it.done === 1 && plan.active && plan.active.id === it.id){ plan.active = null; renderPlanNow(); }
+      planTouch(k);
+    } else if (act === "del"){
+      day.items = day.items.filter(x=> x !== it);
+      day.del = (day.del || []).concat(String(it.id)).slice(-100);        // 다른 기기에서 되살아나지 않게 id 를 남깁니다
+      if (plan.active && plan.active.id === it.id){ plan.active = null; renderPlanNow(); }
+      planTouch(k);
+    } else if (act === "mv"){
+      const today = keyOf(now()), to = k < today ? today : addDays(k, 1);
+      if (!planMove(it, to)){ toast("그날은 할 일이 가득 찼어요. (하루 " + PLAN_MAX + "개까지)"); return; }
+      planTouch(k); planTouch(to);
+      renderPlanNow(); toast(k < today ? "오늘 할 일로 옮겼어요." : "다음 날 할 일로 미뤘어요.");
+    }
+    planOpen = null; planEdit = null; planRender();
+  }
+  function planAddItem(k, pre){
+    const text = planClip($(pre + "Text").value, 40);
+    if (!text){ $(pre + "Text").value = ""; $(pre + "Text").focus(); return; }
+    const day = planOf(k, true);
+    if (day.items.length >= PLAN_MAX){ toast("하루에 " + PLAN_MAX + "개까지 적을 수 있어요."); return; }
+    const atEl = $(pre + "At"), estEl = $(pre + "Est");                   // 시간 배정 칸은 플래너 탭에만 있습니다
+    const at = atEl && planAtOk(atEl.value) ? atEl.value : "", est = estEl ? Number(estEl.value) || 0 : 0;
+    day.items.push({ id: planId(), text: text, subj: $(pre + "Subj").value, done: 0, sec: 0, at: at, est: est, m: planMs() });
+    $(pre + "Text").value = ""; if (atEl) atEl.value = "";
+    planTouch(k); planRender();
+    $(pre + "Text").focus();                        // 이어서 바로 다음 것을 적을 수 있게
+  }
+  function planMove(it, toDay){                     // 원래 것은 '미룸'으로 남기고, 새 날에 다시 적습니다 (배정한 시간은 그대로). 자리가 없으면 false
+    const to = planOf(toDay, true);
+    if (to.items.length >= PLAN_MAX) return false;
+    it.moved = true; it.m = planMs();
+    const n = { id: planId(), text: it.text, subj: it.subj || "", done: 0, sec: 0, at: planAtOk(it.at) ? it.at : "", est: Number(it.est) || 0, m: planMs() };
+    if (it.as != null) n.as = it.as;
+    to.items.push(n);
+    if (plan.active && plan.active.id === it.id) plan.active = null;
+    return true;
+  }
+
+  // 타이머 카드: 지난 일주일의 못 한 일을 오늘로
+  function planRenderCarry(){
+    const today = keyOf(now()), box = $("plCarry");
+    let left = 0;
+    for (let i = 1; i <= 7; i++) left += planOf(addDays(today, -i)).items.filter(x=> planLive(x) && x.done !== 1).length;
+    box.hidden = !left;
+    if (!left) return;
+    box.innerHTML = '<span>못 끝낸 일 <b>' + left + '개</b><small>지난 일주일</small></span><button class="pl-mini go" type="button" id="plCarryGo">오늘로 가져오기</button>';
+    $("plCarryGo").onclick = ()=>{
+      let moved = 0, full = false;
+      for (let i = 7; i >= 1; i--){
+        const k = addDays(today, -i); let hit = false;
+        planOf(k).items.forEach(x=>{ if (planLive(x) && x.done !== 1){ if (planMove(x, today)){ moved++; hit = true; } else full = true; } });
+        if (hit) planTouch(k);
+      }
+      if (moved) planTouch(today);
+      planRender(); renderPlanNow();
+      toast(full ? "오늘 할 일이 가득 차서 " + moved + "개만 가져왔어요." : "못 끝낸 할 일을 오늘로 가져왔어요.");
+    };
+  }
+
+  // '오늘의 세션' 카드 위: 오늘 하루를 한 줄 띠로
+  function planRenderTl(){
+    const segs = planSegs(keyOf(now()));
+    let h0 = 6;
+    segs.forEach(g=>{ h0 = Math.min(h0, Math.floor(g.s / 60)); });
+    const a = h0 * 60, span = 1440 - a;
+    $("plTl").innerHTML = segs.map(g=> '<i style="--c:' + subjColor(g.subj) + ';left:' + ((g.s - a) / span * 100).toFixed(2) + '%;width:' + ((g.e - g.s) / span * 100).toFixed(2) + '%"></i>').join("");
+    let lab = "";
+    for (let h = h0; h <= 24; h += 3) lab += '<span>' + h + '</span>';
+    $("plTlx").innerHTML = lab;
+  }
+
+  // ---------- 플래너 탭 ----------
+  function planRenderTt(){
+    const segs = planSegs(planDay), today = keyOf(now());
+    let h0 = 6;
+    segs.forEach(g=>{ h0 = Math.min(h0, Math.floor(g.s / 60)); });
+    const nowMin = planDay === today ? now().getHours() * 60 + now().getMinutes() : -1;
+    // 시간을 배정한 할 일 = 계획 구간 (걸릴 시간을 안 정했으면 30분으로 그립니다)
+    const plans = planOf(planDay).items.filter(x=> planLive(x) && hmMin(x.at) >= 0)
+      .map(x=> ({ s: hmMin(x.at), e: Math.min(1440, hmMin(x.at) + (Number(x.est) || 30)), subj: x.subj || "", text: x.text }));
+    plans.forEach(g=>{ h0 = Math.min(h0, Math.floor(g.s / 60)); });
+    let h = "";
+    for (let hr = h0; hr < 24; hr++){
+      h += '<span>' + hr + '</span>';
+      for (let c = 0; c < 6; c++){
+        const a = hr * 60 + c * 10, b = a + 10, by = {};
+        segs.forEach(g=>{ const o = Math.min(b, g.e) - Math.max(a, g.s); if (o > 0) by[g.subj] = (by[g.subj] || 0) + o; });
+        let best = null, mx = 0;
+        for (const k in by) if (by[k] > mx){ mx = by[k]; best = k; }
+        const pl = mx >= 3 ? null : plans.find(g=> g.s < b && g.e > a);     // 실제로 한 칸이 아니면 계획을 테두리로
+        h += '<i class="' + (mx >= 3 ? "f" : pl ? "p" : "") + (nowMin >= a && nowMin < b ? " now" : "") + '"'
+           + (mx >= 3 ? ' style="--c:' + subjColor(best) + '"' : pl ? ' style="--c:' + subjColor(pl.subj) + '" title="' + esc(pl.text) + '"' : '') + '></i>';
+      }
+    }
+    $("plTt").innerHTML = h;
+    const sum = {};
+    segs.forEach(g=>{ const k = g.subj || "과목 없음"; sum[k] = (sum[k] || 0) + g.sec; });
+    const keys = Object.keys(sum).sort((a, b)=> sum[b] - sum[a]);
+    $("plLeg").innerHTML = (keys.length ? keys.map(k=> '<span style="--c:' + subjColor(k) + '">' + esc(k) + ' ' + humanKo(sum[k]) + '</span>').join("")
+      : "이날은 타이머 기록이 없어요.") + (plans.length ? '<em>테두리만 있는 칸 = 계획한 시간</em>' : '');
+  }
+  function planRenderWeek(){
+    const mon = addDays(planDay, -((dOf(planDay).getDay() + 6) % 7)), days = [];
+    for (let i = 0; i < 7; i++) days.push(addDays(mon, i));
+    const secs = days.map(k=> records[k] || 0), mx = Math.max(3600, Math.max.apply(null, secs));
+    let all = 0, dn = 0; const bySubj = {}, memos = [];
+    const rate = days.map(k=>{
+      const p = planOf(k), live = p.items.filter(planLive), ok = live.filter(x=> x.done === 1).length;
+      all += live.length; dn += ok;
+      (sessions[k] || []).forEach(x=>{ const s = x.subject || "과목 없음"; bySubj[s] = (bySubj[s] || 0) + x.sec; });
+      if (p.memo) memos.push([k, p.memo]);
+      return live.length ? ok + "/" + live.length : "";
+    });
+    const tot = secs.reduce((a, b)=> a + b, 0), studied = secs.filter(s=> s >= 1800).length;
+    const subs = Object.keys(bySubj).sort((a, b)=> bySubj[b] - bySubj[a]), smx = subs.length ? bySubj[subs[0]] : 1;
+    $("plWeek").innerHTML =
+      '<div class="pl-wk">' + days.map((k, i)=> '<button type="button" data-day="' + k + '" class="' + (k === planDay ? "sel" : "") + '" title="' + humanKo(secs[i]) + '" aria-label="' + "월화수목금토일"[i] + '요일 ' + humanKo(secs[i]) + '">'
+          + '<em>' + (secs[i] >= 60 ? human(secs[i]) : "") + '</em><i style="height:' + Math.round(secs[i] / mx * 78) + 'px"></i></button>').join("") + '</div>'
+      + '<div class="pl-wkl">' + days.map((k, i)=> '<div><b>' + "월화수목금토일"[i] + '</b>' + (rate[i] || "·") + '</div>').join("") + '</div>'
+      + '<div class="pl-sum"><div><b>' + humanKo(tot) + '</b><span>이번 주 공부</span></div>'
+      + '<div><b>' + (all ? Math.round(dn / all * 100) + "%" : "–") + '</b><span>할 일 달성률' + (all ? " (" + dn + "/" + all + ")" : "") + '</span></div>'
+      + '<div><b>' + studied + '일</b><span>30분 넘긴 날</span></div></div>'
+      + subs.map(s=> '<div class="pl-sb"><span>' + esc(s) + '</span><i style="--c:' + subjColor(s) + ';width:' + Math.max(3, Math.round(bySubj[s] / smx * 100)) + '%"></i><span>' + humanKo(bySubj[s]) + '</span></div>').join("")
+      + (memos.length ? '<ul class="pl-memos">' + memos.map(m=> '<li><b>' + (dOf(m[0]).getMonth() + 1) + "." + dOf(m[0]).getDate() + '</b>' + esc(m[1]) + '</li>').join("") + '</ul>' : '');
+    $("plWeek").querySelectorAll("[data-day]").forEach(b=> b.onclick = ()=>{ planDay = b.dataset.day; planOpen = planEdit = null; planRender(); });
+  }
+  function planRenderRt(){
+    $("plRtDows").innerHTML = [1, 2, 3, 4, 5, 6, 0].map(d=> '<button type="button" data-d="' + d + '" class="' + (planRtDows.indexOf(d) >= 0 ? "on" : "") + '" aria-pressed="' + (planRtDows.indexOf(d) >= 0) + '">' + P_DOW[d] + '</button>').join("");
+    $("plRt").innerHTML = plan.routines.length ? plan.routines.map(r=>
+      '<li><span class="t">' + esc(r.text) + '</span><span class="d">' + (r.subj ? esc(r.subj) + " · " : "") + [1, 2, 3, 4, 5, 6, 0].filter(d=> r.dows.indexOf(d) >= 0).map(d=> P_DOW[d]).join("") + '</span>'
+      + '<button class="pl-mini x" type="button" data-rx="' + esc(r.id) + '" title="지우기" aria-label="지우기">✕</button></li>').join("")
+      : '<li class="none">아직 없어요.</li>';
+    $("plRt").querySelectorAll("[data-rx]").forEach(b=> b.onclick = ()=>{
+      plan.routines = plan.routines.filter(r=> String(r.id) !== b.dataset.rx); planTouchRt(); planRenderRt();
+    });
+  }
+
+  // 선생님이 낸 과제 (my_assignments · schema33). 아직 안 낸 것만.
+  //   타이머 카드에는 한 줄로 접어 두고(누르면 펼침), 플래너 탭에는 카드로 펼쳐 둡니다
+  let planAs = null, planAsAt = 0, planAsBusy = false;
+  async function planLoadAs(){
+    const line = $("plAsLine"), list = $("plAs");
+    if (!sb || !me || !me.nickname){ line.hidden = true; list.hidden = true; $("ppAsCard").hidden = true; return; }
+    if ((!planAs || Date.now() - planAsAt > 60000) && !planAsBusy){
+      planAsBusy = true; planAsAt = Date.now();
+      const uid = me.id;
+      try {
+        const { data, error } = await sb.rpc("my_assignments");
+        if (!me || me.id !== uid) return;
+        if (!error && Array.isArray(data)) planAs = data; else if (!planAs) planAs = [];
+        if (error && planMissing(error)) planAsAt = Date.now() + 3600000;      // 서버에 함수가 없으면(schema33 전) 한 시간 동안은 다시 묻지 않습니다
+      } catch(e){ if (!planAs) planAs = []; }
+      finally { planAsBusy = false; }
+    }
+    if (!planAs) return;
+    const today = keyOf(now());
+    const rows = planAs.filter(a=> a && !a.submitted && a.title).map(a=>{
+      const due = a.due_at ? new Date(a.due_at) : null;
+      return { a: a, due: due, left: due ? dayGap(keyOf(due), today) : 999 };
+    }).sort((x, y)=> x.left - y.left);
+    line.hidden = !rows.length;
+    list.hidden = !rows.length || !planAsOpen;
+    $("ppAsCard").hidden = !rows.length;
+    if (!rows.length) return;
+    const near = rows[0].left;
+    line.innerHTML = '<span>선생님이 낸 과제 <b>' + rows.length + '개</b>' + (near < 999 ? ' · 가장 빠른 마감 ' + (near > 0 ? "D-" + near : near === 0 ? "오늘" : "지남") : '') + '</span><span>' + (planAsOpen ? "접기" : "펼치기") + '</span>';
+    line.setAttribute("aria-expanded", planAsOpen ? "true" : "false");
+    const html = rows.map(r=>{
+      const a = r.a, has = planOf(today).items.some(x=> String(x.as) === String(a.id) && planLive(x));
+      return '<li><span class="t">' + esc(a.title) + '</span>'
+        + (r.due ? '<span class="d' + (r.left <= 3 ? " soon" : "") + '">' + (r.due.getMonth() + 1) + "." + r.due.getDate() + "(" + P_DOW[r.due.getDay()] + ") " + (r.left > 0 ? "D-" + r.left : r.left === 0 ? "오늘" : "지남") + '</span>' : '')
+        + '<button class="pl-mini' + (has ? "" : " go") + '" type="button" data-as="' + esc(a.id) + '"' + (has ? " disabled" : "") + '>' + (has ? "추가됨" : "오늘 할 일에 추가") + '</button></li>';
+    }).join("");
+    list.innerHTML = html; $("ppAs").innerHTML = html;
+  }
+  function planAsClick(e){
+    const b = e.target.closest("button[data-as]"); if (!b || !planAs) return;
+    const a = planAs.find(x=> String(x.id) === b.dataset.as); if (!a) return;
+    const today = keyOf(now()), day = planOf(today, true);
+    if (day.items.some(x=> String(x.as) === String(a.id) && planLive(x))) return;
+    if (day.items.length >= PLAN_MAX){ toast("하루에 " + PLAN_MAX + "개까지 적을 수 있어요."); return; }
+    day.items.push({ id: planId(), text: planClip("[과제] " + a.title, 60), subj: "정보", done: 0, sec: 0, at: "", est: 0, as: a.id, m: planMs() });
+    planTouch(today); planRender(); toast("오늘 할 일에 넣었어요.");
+  }
+
+  // 타이머 카드의 '지금 하는 일' 줄
+  function renderPlanNow(){
+    const el = $("planNow"), a = plan.active;
+    const it = a && a.day === keyOf(now()) ? planOf(a.day).items.find(x=> x.id === a.id && !x.moved) : null;
+    if (!it){ if (a){ plan.active = null; planSave(); } el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = '📝 <b>' + esc(it.text) + '</b><span>' + (it.sec >= 60 ? humanKo(it.sec) : "") + '</span><button type="button" id="planNowX">연결 끊기</button>';
+    $("planNowX").onclick = ()=>{ plan.active = null; planSave(); renderPlanNow(); planRender(); };
+  }
+  // 타이머가 공부 시간을 더할 때마다 불립니다 — 연결된 할 일에도 같은 시간을 쌓습니다
+  function planAddTime(d){
+    const a = plan.active; if (!a || !(d > 0)) return;
+    const it = a.day === keyOf(now()) ? planOf(a.day).items.find(x=> x.id === a.id && !x.moved) : null;
+    if (!it){ plan.active = null; planSave(); renderPlanNow(); return; }
+    const before = Math.floor((Number(it.sec) || 0) / 60);
+    it.sec = Math.min(86400, (Number(it.sec) || 0) + d);
+    planTouch(a.day, true);
+    if (Math.floor(it.sec / 60) !== before){ renderPlanNow(); planRender(); }
+  }
+  function planStart(it, k){
+    if (state.phase === "break"){ toast("쉬는 시간이 끝난 뒤에 시작해 주세요."); return; }
+    if (it.subj && SUBJECTS.indexOf(it.subj) >= 0 && it.subj !== subject){
+      // 돌아가던 조각은 여기서 끊어 앞 과목으로 남기고, 새 과목으로 이어 갑니다
+      if (segStart && segSec >= 5){ closeSegment(now()); segStart = now(); segSec = 0; }
+      subject = it.subj;
+      try { store.setItem(SKEY_SUBJ, subject); } catch(e){}
+      renderSubjRow();
+    }
+    plan.active = { day: k, id: it.id };
+    planOpen = planEdit = null;
+    planSave(); renderPlanNow();
+    const away = $("timerView").hidden;
+    if (away) switchView("timer"); else planRender();
+    if (away || window.innerWidth < 700) window.scrollTo({ top: 0, behavior: "smooth" });   // 타이머가 보이게
+    if (!state.running) start();
+    toast("'" + it.text + "' 시작! 공부한 시간이 이 할 일에 쌓여요.");
+  }
+
+  // ---- 누르는 것들 ----
+  const planSubjOpts = '<option value="">과목</option>' + SUBJECTS.map(s=> '<option>' + s + '</option>').join("");
+  $("plSubj").innerHTML = planSubjOpts; $("ppSubj").innerHTML = planSubjOpts; $("plRtSubj").innerHTML = planSubjOpts;
+  $("ppEst").innerHTML = planEstOpts(0);
+  function planGo(n){
+    const t = keyOf(now()), k = n === 0 ? t : addDays(planDay, n);
+    if (Math.abs(dayGap(k, t)) > 365){ toast("앞뒤로 1년까지만 볼 수 있어요."); return; }
+    planDay = k; planOpen = planEdit = null; planRender(); planEnsure(k);
+  }
+  $("ppPrev").onclick = ()=> planGo(-1);
+  $("ppNext").onclick = ()=> planGo(1);
+  $("ppDay").onclick = ()=> planGo(0);
+  $("plMore").onclick = ()=>{ planDay = keyOf(now()); switchView("plan"); window.scrollTo({ top: 0 }); };
+  // 목표 · 돌아보기: 치는 동안은 기기에만, 멈추면 서버에도
+  function planField(el, key, dayOf){
+    el.oninput = ()=>{
+      const k = dayOf(), d = planOf(k, true);
+      d[key] = el.value; d.gm = planMs();
+      planN[k] = (planN[k] || 0) + 1;
+      if (Math.abs(dayGap(k, keyOf(now()))) <= 390) plan.dirty[k] = 1;
+      planSaveSoon(); planHard = true; planFlushSoon(4000);
+    };
+    el.onchange = ()=>{ planSave(); planFlushSoon(600); if (key === "memo" && !$("planView").hidden) planRenderWeek(); };
+    el.onkeydown = (e)=>{ if (e.key === "Enter" && !e.isComposing) el.blur(); };
+  }
+  planField($("plGoal"), "goal", ()=> keyOf(now()));
+  planField($("ppGoal"), "goal", ()=> planDay);
+  planField($("plMemo"), "memo", ()=> planDay);
+  $("plAsLine").onclick = ()=>{ planAsOpen = !planAsOpen; planLoadAs(); };
+  $("plAs").onclick = planAsClick; $("ppAs").onclick = planAsClick;
+  $("plEx").onclick = (e)=>{ const b = e.target.closest("button[data-ex]"); if (b) planExport(b.dataset.ex); };
+  $("plAdd").onsubmit = (e)=>{ e.preventDefault(); planAddItem(keyOf(now()), "pl"); };
+  $("ppAdd").onsubmit = (e)=>{ e.preventDefault(); planAddItem(planDay, "pp"); };
+  $("plList").onclick = (e)=> planListClick(e, keyOf(now()));
+  $("ppList").onclick = (e)=> planListClick(e, planDay);
+  $("plRtDows").onclick = (e)=>{
+    const b = e.target.closest("button[data-d]"); if (!b) return;
+    const d = Number(b.dataset.d), i = planRtDows.indexOf(d);
+    if (i >= 0) planRtDows.splice(i, 1); else planRtDows.push(d);
+    planRenderRt();
+  };
+  $("plRtAdd").onsubmit = (e)=>{
+    e.preventDefault();
+    const text = planClip($("plRtText").value, 40);
+    if (!text){ $("plRtText").value = ""; $("plRtText").focus(); return; }
+    if (!planRtDows.length){ toast("요일을 하나 이상 골라 주세요."); return; }
+    if (plan.routines.length >= PLAN_RT_MAX){ toast("반복 할 일은 " + PLAN_RT_MAX + "개까지 둘 수 있어요."); return; }
+    plan.routines.push({ id: planId(), text: text, subj: $("plRtSubj").value, dows: planRtDows.slice().sort() });
+    $("plRtText").value = ""; planTouchRt(); planRender();
+  };
+
+  window.addEventListener("pagehide", planSave);
+  document.addEventListener("visibilitychange", ()=>{
+    if (document.hidden){ planSave(); if (planHasDirty()) planFlush(); }
+    else planResume();
+  });
+  window.addEventListener("focus", planResume);
+  window.addEventListener("online", ()=>{ if (planHasDirty()) planFlush(); });
+  // 같은 기기의 다른 탭에서 고쳤을 때 — 이 탭의 것과 합칩니다 (나중에 저장한 탭이 앞의 것을 지우지 않게)
+  window.addEventListener("storage", (e)=>{
+    if (e.key !== planKey() || !e.newValue) return;
+    const other = planRead(planKey());
+    for (const k in other.days){
+      const mine = plan.days[k], mg = planMergeDay(mine, other.days[k]);
+      const sv = Math.max((mine && mine.sv) || 0, other.days[k].sv || 0);
+      if (sv) mg.sv = sv;
+      plan.days[k] = mg;
+      if (other.dirty[k]) plan.dirty[k] = 1;
+      planN[k] = (planN[k] || 0) + 1;
+    }
+    if ((other.rtm || 0) > (plan.rtm || 0) || (!plan.rtDirty && other.rtv !== plan.rtv)){
+      plan.routines = other.routines; plan.rtm = other.rtm; plan.rtv = other.rtv; plan.rtDirty = !!other.rtDirty;
+    }
+    if (!planEdit){ planRender(); renderPlanNow(); }
+  });
+  setInterval(()=>{                                // 20초마다: 올릴 것이 있으면 올립니다
+    if (!planHasDirty()) return;
+    if (planHard || Date.now() - planPushAt > 110000) planFlush();
+  }, 20000);
+  setInterval(()=>{                                // 1분마다: 띠·타임테이블의 '지금', 자정 넘김
+    if (document.hidden) return;
+    if (keyOf(now()) !== planToday){ planResume(); return; }
+    if (!$("timerView").hidden) planRenderTl();
+    if (!$("planView").hidden) planRenderTt();
+  }, 60000);
+
+  // 타이머 화면에 '오늘 할 일' 카드와 하루 띠를 끼워 넣습니다. --o 는 폰(한 줄)에서의 순서입니다.
+  (function(){
+    const L = $("timerView").querySelector("section:first-child"), R = $("timerView").querySelector("section:last-child");
+    const timerCard = L.querySelector(".timer-card"), sessCard = $("sessionList").closest(".card");
+    const grassCard = R.querySelector(".card"), rankCard = $("rankCard"), calCard = $("mini").closest(".card");
+    sessCard.insertBefore($("plTlBox"), $("sessionList"));   // '오늘의 세션' 목록 위에 하루 띠
+    R.insertBefore($("plTodoCard"), R.firstChild);           // 오른쪽 맨 위 = 오늘 할 일 (타이머 바로 옆)
+    R.insertBefore(rankCard, grassCard);                     // 랭킹은 원래처럼 위에서 둘째
+    [timerCard, $("plTodoCard"), sessCard, rankCard, grassCard, calCard].forEach((c, i)=> c.style.setProperty("--o", i + 1));
+    $("planParts").remove();
+  })();
+  setTimeout(()=>{ renderPlanNow(); planRender(); planSyncNote(); }, 0);
+
   function renderAll(){
+    planRender();
     render();
     renderSessions();
     renderGrid();
@@ -5466,7 +6598,7 @@
     sessionUid = uid;
     ntReset();                          // 다른 계정으로 바뀌면 '이미 본 알림' 기준도 새로
     chatReset(uid);                     // 계정이 바뀌었을 때만 채팅 창·안 읽은 수 초기화
-    if (!session){ me = null; renderAccount(); renderRank(); return; }
+    if (!session){ me = null; planOwner(null); renderAccount(); renderRank(); return; }
 
     const email = session.user.email || "";
     const dom   = CFG.SCHOOL_DOMAIN;
@@ -5478,6 +6610,7 @@
     }
 
     me = { id: session.user.id, email, nickname: null, show_rank: true, role: "student" };
+    planOwner(me.id);                   // 플래너를 이 계정 것으로 (기기에 있는 것부터 보여 주고, 서버 것은 afterLogin 에서)
     const { data: prof } = await sb.from("profiles")
       .select("*").eq("id", me.id).maybeSingle();
 
@@ -5496,6 +6629,7 @@
     await pullFromServer();
     await loadGroups();
     renderAll();
+    planAfterLogin();                 // 플래너: 서버 것을 받아 합치고, 못 올린 것을 올립니다 (기다리지 않음)
     refreshRank();
     updateUnread();
     boardLoaded = false;
@@ -5556,11 +6690,12 @@
     // 오늘 세션 목록은 서버 것을 기준으로
     const tk = keyOf(now());
     const { data: ss } = await sb.from("sessions")
-      .select("started_at, ended_at, seconds, target_seconds").eq("day", tk)
+      .select("started_at, ended_at, seconds, target_seconds, subject").eq("day", tk)
       .order("started_at");
     if (ss && ss.length){
       const fromServer = ss.map(r=>({
-        start: r.started_at, end: r.ended_at, sec: r.seconds, target: r.target_seconds
+        start: r.started_at, end: r.ended_at, sec: r.seconds, target: r.target_seconds,
+        subject: r.subject || null      // 과목도 같이 (빼먹으면 새로고침 뒤 타임테이블이 회색이 됩니다)
       }));
       // 아직 못 올라간 세션까지 지워버리지 않게, 서버에 없는 것만 남겨 합칩니다.
       // (예전에는 통째로 덮어써서 오프라인에 끝낸 세션이 기기에서도 사라졌습니다)
@@ -5925,9 +7060,11 @@
   $("mGroup").onclick = ()=>{ $("accMenu").hidden = true; openGroup(); };
   $("mAdmin").onclick = ()=>{ location.href = "admin.html"; };
   $("mOut").onclick   = async ()=>{
+    await planBeforeLogout();           // 못 올린 플래너를 마저 올립니다 (인터넷이 안 되면 3초만 기다림)
     await sb.auth.signOut();
     chatReset(null);
     me = null; boardLoaded = false;
+    planOwner(null);                    // 다음 사람에게 내 플래너가 보이지 않게
     pushRenderSwitch(); pushRenderBar();
     $("notiWrap").hidden = true; $("notiPop").hidden = true;
     $("msgWrap").hidden = true; $("msgMenu").hidden = true;
@@ -6069,6 +7206,7 @@
       document.querySelectorAll(".main-tabs button")
         .forEach(b=> b.classList.toggle("on", b.dataset.view === v));
       $("timerView").hidden = true;
+      $("planView").hidden = true;
       $("boardView").hidden = false;
       renderDday();
       boardLocked();
@@ -6085,6 +7223,8 @@
     $("labView").hidden   = v !== "lab";
     $("learnView").hidden = v !== "learn";
     $("dsView").hidden    = v !== "ds";
+    $("planView").hidden  = v !== "plan";
+    if (v === "timer" || v === "plan") planRender();
     renderDday();
     renderMiniTimer();
     if (v === "board" && !boardLoaded) await openBoard();   // await switchView("board") 하면 목록을 다 받은 뒤에 돌아옵니다
